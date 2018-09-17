@@ -1,0 +1,77 @@
+/*
+ * A simple calculator program, controlled by a menu and
+ *  divided into separate functions
+ */
+
+//---------- Function Prototypes -----------
+void print_menu()
+double get_value()
+double divide(double, double)
+//-------------- Main -------------------
+void main()
+{
+  double operand1,
+        operand2,
+	answer
+  int choice, valid_choice
+  choice = 1
+  while (choice != 0) do {
+    print_menu();
+    cin >> choice;
+
+    // assume choice is valid
+    valid_choice = 1;
+
+    if (choice == 1) {
+      // addition
+      operand1 = get_value()
+      operand2 = get_value()
+      answer = operand1 + operand2
+      }
+    else if (choice == 2) {
+      // division
+      operand1 = get_value()
+      operand2 = get_value()
+      answer = divide(operand1, operand2)
+      }
+    else if (choice != 0) {
+      valid_choice = 0
+      // choice is invalid
+      write( "Invalid Choice." )
+    }
+    if (valid_choice) {
+      // if choice is valid, print the answer
+      write("\nAnswer = " answer )
+    }
+  }
+}
+
+//-------------- Functions -------------------
+double divide(double dividend, double divisor)
+{
+  if (divisor == 0) {
+    return 0			// avoids divide by zero errors
+    }
+  else {
+    return (dividend / divisor)
+    }
+}
+
+//----------------- get_value function ----------------
+double get_value()
+{
+  double temp_value;
+  write( "Enter a value: " )
+  temp_value = read()
+  return temp_value
+}
+
+//-------------------- print_menu function -------------
+void print_menu()
+{
+  write("")
+  write("Add (1)")
+  write("Divide (2)")
+  write("Exit (0)")
+  write("Enter your choice: ")
+}

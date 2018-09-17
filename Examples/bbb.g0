@@ -1,0 +1,11 @@
+void f(int)
+
+int y
+
+void main()
+{
+   int x = 6
+   y = 6
+   f(x)
+   write( "x should be 7; it is "  x )
+}
