@@ -1,0 +1,16 @@
+void main()
+{
+   float d, d2
+   write( "enter a number: " )
+   d = read()
+   d2 = 5.3 / d
+   write( d2 )
+   write( "\nnow, for integers")
+
+   int i, i2
+   write( "enter a number: " )
+   i = read()
+   i2 = 5.3 / i
+   write( i2 )
+   write( "that's all folks")
+}

@@ -1,0 +1,6 @@
+void main()
+{
+   double d = 0.0
+   d++
+   write(d)
+}

@@ -1,0 +1,14 @@
+int x = 12
+
+void main ()
+{
+    if ( x < 12 ) { }
+    if ( x < 17 ) { }
+    if ( x < 122 ) { }
+    if ( x < 20000 ) { }
+
+    if ( x < 12 ) { }
+    else if ( x < 17 ) { }
+    else if ( x < 122 ) { }
+    else if ( x < 20000 ) { }
+}
