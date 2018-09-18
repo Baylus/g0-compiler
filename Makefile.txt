@@ -31,5 +31,5 @@ type.o: type.h
 tree.o: tree.h
 
 clean:
-	rm -f g0 *.o
+	rm -f 120 *.o
 	rm -f g0lex.c g0gram.c g0gram.h

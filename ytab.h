@@ -31,44 +31,37 @@ HW #1: Lexical Analyzer
 #define WHILE 275			// while	
 // OPERATORS 
 /*
-Parenthesis
-Subscript
--
-!
-d
-#	Unary minus
-Unary logical negation
-Unary die roll
-Unary size
-*
-/
-%
-d	Multiplication
-Division
-Modulus
-dice roll
-+
--	Addition
-Subtraction
-<
-<=
->
->=	less than
-less than or equal
-greater than
-greater than or equal
-==
-!=	is equal to
-is not equal to
+() 	Parenthesis
+[] 	Subscript
+
+-	Unary minus
+!   Unary logical negation
+d   Unary die roll
+#	Unary size
+
+*	Multiplication
+/   Division
+%   Modulus
+d	dice roll
+
++	Addition
+-	Subtraction
+
+<	less than			
+<=  less than or equal
+>   greater than
+>=	greater than or equal
+
+==	is equal to
+!=	is not equal to
+
 &&	logical AND
 ||	logical OR
-=
-+=
--=
-:=:	assignment
-increment
-decrement
-swap
+
+=	assignment
++=  increment
+-=  decrement
+:=:	swap
 */
 #define LP 276			// (	
 #define RP 277			// )	
@@ -98,7 +91,7 @@ swap
 #define PLASN 301		// +=
 #define MIASN 302		// -=
 #define SWAP 303		// :=:
-// #define  304		// 
+#define BOOL 304		// bool
 // #define  305		// 
 // #define  306		// 
 // #define  307		// 

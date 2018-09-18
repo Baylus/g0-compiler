@@ -1,4 +1,15 @@
-
+%{
+/*
+Baylus Tunnicliff
+9/5/2018
+CS 445 - Compiler Design (g0 - subset of Godiva)
+HW #2: Syntax Analysis
+"g0.l"
+	Lex Specification
+	Used for lexical analysis. (AKA Scanning)
+	Creates token nodes for BISON to place into the tree.
+*/
+%}
 
 
 O                       [0-7]
@@ -44,15 +55,15 @@ struct token* yytoken = NULL;
 "for"                   { return yytok(FOR); }
 "if"                    { return yytok(IF); }
 "int"                   { return yytok(INT); }
-"list"					{ return yytok(LIST); }
+"list"						{ return yytok(LIST); }
 "return"                { return yytok(RETURN); }
 "d"/({ID}|{D}*)			{ return yytok(DROLL); }
-"string"				{ return yytok(STRING); }
-"table"					{ return yytok(TABLE); }
+"string"						{ return yytok(STRING); }
+"table"						{ return yytok(TABLE); }
 "void"                  { return yytok(VOID); }
 "while"                 { return yytok(WHILE); }
 
-{ID}          			{ return yytok(IDENTIFIER); }
+{ID}          				{ return yytok(IDENTIFIER); }
 
 0[xX]{H}+{IS}?          { return yytok(INTLITERAL); }
 0{O}+{IS}?              { return yytok(INTLITERAL); }
@@ -113,8 +124,6 @@ char* convertEscapes( const char* s ) {
 	// Dont do it this way, because it just wastes time copying all the data when
 	//	we already have to do that. So just calloc the space.
 	char* t = strdup(s);
-	//char* t = calloc( oldLength, sizeof(char) );
-	//char* t = malloc( oldLength * sizeof(char) );
 	if (t == NULL) {
 		perror("Failed to allocate memory for strdup in function convertEscapes");
 		exit(-1);
@@ -253,8 +262,6 @@ comment()
 				++yylineno;
 				break;
 			case 0: {
-			   // yychar = BAD_TOKEN;
-			   // yyerror("Unterminated comment");
 			   exit(-(++errors));
 			   }
 	   }

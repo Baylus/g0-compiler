@@ -1,0 +1,21 @@
+class body {
+      double x,y,z
+      double mass,
+             vx,vy,vz, /* velocities */
+	     ax,ay,az  // accelerations
+      body() {
+         x = y = z = 0.0
+         vx = vy = vz = 0.0
+         ax = ay = az = 0.0
+      }
+
+   /* update the body's position for one time step forward */
+   void update() {
+	x += vx
+	y += vy
+	z += vz
+	vx += ax
+	vy += ay
+	vz += az
+   }
+}

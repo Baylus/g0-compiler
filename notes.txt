@@ -1,0 +1,20 @@
+-d does something with production rules
+	dumps .h file for external files to use "#define"'s to allow for 
+	communication between different parts of the compiler
+	
+	
+Dont use YACC associativity specifiers to resolve grammar ambiguity.
+	Regular method of splitting rules apart creates O(n) where n is the number of
+		tokens. This is especially good as the number of tokens increases.
+	The associativity specifiers create slower performance of parsing.
+
+
+	
+Theres a
+	"#define YYDEBUG 1": allows debugging code to be compiled
+	"int yydebug = 1;"
+	
+	
+	
+bison -dvt:
+	all of output, time and other stuff, look into it.

@@ -4,8 +4,8 @@
  */
 
 //---------- Function Prototypes -----------
-void print_menu()
-double get_value()
+void printMenu()
+double getValue()
 double divide(double, double)
 //-------------- Main -------------------
 void main()
@@ -13,33 +13,33 @@ void main()
   double operand1,
         operand2,
 	answer
-  int choice, valid_choice
+  int choice, validChoice
   choice = 1
-  while (choice != 0) do {
-    print_menu();
+  while (choice != 0) {
+    printMenu();
     cin >> choice;
 
     // assume choice is valid
-    valid_choice = 1;
+    validChoice = 1;
 
     if (choice == 1) {
       // addition
-      operand1 = get_value()
-      operand2 = get_value()
+      operand1 = getValue()
+      operand2 = getValue()
       answer = operand1 + operand2
       }
     else if (choice == 2) {
       // division
-      operand1 = get_value()
-      operand2 = get_value()
+      operand1 = getValue()
+      operand2 = getValue()
       answer = divide(operand1, operand2)
       }
     else if (choice != 0) {
-      valid_choice = 0
+      validChoice = 0
       // choice is invalid
       write( "Invalid Choice." )
     }
-    if (valid_choice) {
+    if (validChoice) {
       // if choice is valid, print the answer
       write("\nAnswer = " answer )
     }
@@ -57,17 +57,17 @@ double divide(double dividend, double divisor)
     }
 }
 
-//----------------- get_value function ----------------
-double get_value()
+//----------------- getValue function ----------------
+double getValue()
 {
-  double temp_value;
+  double tempValue;
   write( "Enter a value: " )
-  temp_value = read()
-  return temp_value
+  tempValue = read()
+  return tempValue
 }
 
-//-------------------- print_menu function -------------
-void print_menu()
+//-------------------- printMenu function -------------
+void printMenu()
 {
   write("")
   write("Add (1)")

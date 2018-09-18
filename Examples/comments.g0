@@ -7,9 +7,8 @@ void main(){
     
     "Keep this string" // this is a comment "//... "
     "This // is not a comment... "
-    KEEPTHIS; // Another comment
-    x = 1; // Also a comment, after x = 1;  
-    return 0; 
+    KEEPTHIS // Another comment
+    x = 1 // Also a comment, after x = 1;  
+    return 0
 }
-
 

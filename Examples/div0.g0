@@ -1,10 +1,10 @@
 void main()
 {
-   float d, d2
+   double dc, dd
    write( "enter a number: " )
-   d = read()
-   d2 = 5.3 / d
-   write( d2 )
+   dc = read()
+   dd = 5.3 / dc
+   write( dd )
    write( "\nnow, for integers")
 
    int i, i2

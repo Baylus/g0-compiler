@@ -1,4 +1,4 @@
-int f( float val )
+int f( double val )
 {
    return val < 3.0
 }
@@ -7,10 +7,10 @@ int f( float val )
 
 void main()
 {
-     float g
+     double g
      write( "Enter a real number: " )
      g = read()
      if ( f(g) ) {
-       write( "f is " f(g) );
+       write( "f is " f(g) )
        }
 }
