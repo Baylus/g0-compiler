@@ -24,7 +24,7 @@ typedef struct treeNode {
 } tree ;
 
 tree* alctree( struct token* t, tree* parent, ... );
-int treeprint(  )
+int treeprint( tree *t, int depth )
 
 #endif
 

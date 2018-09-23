@@ -18,3 +18,56 @@ Theres a
 	
 bison -dvt:
 	all of output, time and other stuff, look into it.
+	
+	
+Wednesday, September 19th, 2018
+
+Epsilon production can be used for error handling.
+i.e. {$$ = NULL; printf("Error: ')' expected!\n");}
+
+bison -v creates a large file that describes which yystate values are
+	associated with which production rules.
+	
+Tool called Merr
+
+Context-Free Grammar Rule:
+
+key: E = "Epsilon"
+
+Program: E;
+Program: DeclarationList;
+DeclearationList: 
+		  Declaration DeclarationList 
+		| Declaration
+		;
+Declaration:
+		  VariableDeclaration
+		;
+VaraibleDeclaration:
+		  Type VariableList
+		;
+VariableList:
+		  Variable
+		| Variable COMMA VariableList
+		;
+Variable:
+		  IDENTIFIER 
+		| IDENTIFIER ASSIGN VALUE
+		;
+
+		
+FunctionDeclaration: FunctionHeader FunctionBody;
+FunctionHeader:	Type IDENTIFIER	LEFTPAREN ParameterList RIGHTPAREN
+FunctionBody: LEFTCURLYBRACE StatementList RIGHTCURLYBRACE
+
+
+# NOTE: Look into difference between expression and statement for grammar production
+
+StatementList: Statement StatementList | Statement;
+Statement: IfStatement | WhileStatement | FunctionCall | AssignmentStatement;
+
+
+# NOTE G0, Variable Declaration statements are required to be at the start of a function.
+
+Q: Should we allow local scopes for blocks?
+A: No, We are not going to allow variable declarations inside of code blocks.

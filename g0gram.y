@@ -13,7 +13,7 @@
  * %union declares of what kinds of values appear on the value stack
  */
 %union {
-   nodeptr node;
+   tree* node;
    }
 
 /*
@@ -41,8 +41,8 @@
 /*
  * each nonterminal is declared.  nonterminals correspond to internal nodes
  */
-%type < node > Goal Literal Type PrimitiveType NumericType IntegralType
-%type < node > FloatingPointType ReferenceType ClassOrInterfaceType
+%type < node > Program Literal Type PrimitiveType NumericType 
+%type < node >  ReferenceType ClassOrInterfaceType
 %type < node > ClassType  ArrayType Name SimpleName
 %type < node > QualifiedName CompilationUnit ImportDeclarations
 %type < node > TypeDeclarations PackageDeclaration ImportDeclaration
@@ -86,28 +86,30 @@
 %type < node > ConditionalAndExpression ConditionalOrExpression
 %type < node > ConditionalExpression AssignmentExpression Assignment
 %type < node > Assignable AssignmentOperator Expression ConstantExpression
-%type < node > PackageDeclarationOpt ImportDeclarationsOpt TypeDeclarationsOpt
-%type < node > ModifiersOpt InterfacesOpt ClassBodyDeclarationsOpt
-%type < node > FormalParameterListOpt IDENTOpt CatchesOpt
+%type < node >   TypeDeclarationsOpt
+%type < node > ModifiersOpt  ClassBodyDeclarationsOpt
+%type < node > FormalParameterListOpt IDENTOpt 
 %type < node > ExplicitConstructorInvocationOpt BlockStatementsOpt
 %type < node > ArgumentListOpt ExplicitConstructorInvocationOpt DimsOpt
-%type < node > ExtendsInterfacesOpt InterfaceMemberDeclarationsOpt
+%type < node >  
 %type < node > VariableInitializersOpt CMOpt SwitchBlockStatementGroupsOpt
 %type < node > SwitchLabelsOpt ForInitOpt ExpressionOpt ForUpdateOpt
 
 /*
- * the start symbol, Goal, may seem to be here for rhetorical purposes,
+ * the start symbol, Program, may seem to be here for rhetorical purposes,
  * but it is also the ideal spot to insert a semantic action that passes
  * the completed parse tree to a later phase of compilation.
  */
-%start Goal
+%start Program
 
 %%
 
-Goal:		  CompilationUnit
+Program:
+		  CompilationUnit
 		;
 
-Literal:	  INTLITERAL
+Literal:
+		  INTLITERAL
 		| FLOATLITERAL
 		| BOOLLITERAL
 		| STRINGLITERAL
@@ -115,177 +117,222 @@ Literal:	  INTLITERAL
 		| NULLLITERAL
 		;
 	
-Type:		  PrimitiveType
+Type:
+		  PrimitiveType
 		| ReferenceType
 		;
 
-PrimitiveType:	  NumericType
+PrimitiveType:
+		  NumericType
 		| BOOLEAN
 		;
 
-NumericType:	  IntegralType
-		| FloatingPointType
+NumericType:
+		  INT
+		| DOUBLE
 		;
 
-IntegralType:	  BYTE
-		| SHORT
-		| INT
-		| LONG
-		| CHAR
-		;
-
-FloatingPointType: DOUBLE
-		;
-
-ReferenceType:	  ClassOrInterfaceType
+ReferenceType:
+		  ClassOrInterfaceType
 		| ArrayType
 		;
 
-ClassOrInterfaceType: Name
+ClassOrInterfaceType:
+		  Name
 		;
 
-ArrayType:	  PrimitiveType LB RB
+ArrayType:
+		  PrimitiveType LB RB
 		| Name LB RB
 		| ArrayType LB RB
 		;
 
-Name:		  SimpleName
+Name:
+		  SimpleName
 		| QualifiedName
 		;
 
-SimpleName:	  IDENT
+SimpleName:
+		  IDENT
 		;
 
-QualifiedName:	  Name DOT IDENT
+QualifiedName:
+		  Name DOT IDENT
 		;
 
-CompilationUnit:	TypeDeclarationsOpt
+CompilationUnit:
+		  TypeDeclarationsOpt
 		;
 
-TypeDeclarationsOpt: TypeDeclarations | { $$ = NULL; } ;
+TypeDeclarationsOpt:
+		  TypeDeclarations | { $$ = NULL; } ;
 
-TypeDeclarations: TypeDeclaration
+TypeDeclarations:
+		  TypeDeclaration
 		| TypeDeclarations TypeDeclaration
 		;
 
-TypeDeclaration:  ClassDeclaration
+TypeDeclaration:
+		  ClassDeclaration
 		| MethodDeclaration
 		| AbstractMethodDeclaration
 		;
 
-ClassDeclaration:  CLASS IDENT ClassBody
+ClassDeclaration:
+		  CLASS IDENT ClassBody
 		;
 
-ClassBody:	  LC ClassBodyDeclarationsOpt RC
+ClassBody:
+		  LC ClassBodyDeclarationsOpt RC
 		;
 
-ClassBodyDeclarationsOpt: ClassBodyDeclarations | { $$ = NULL; } ;
+ClassBodyDeclarationsOpt:
+		  ClassBodyDeclarations | { $$ = NULL; } ;
 
-ClassBodyDeclarations: ClassBodyDeclaration
+ClassBodyDeclarations:
+		  ClassBodyDeclaration
 		| ClassBodyDeclarations ClassBodyDeclaration
 		;
 
-ClassBodyDeclaration: ClassMemberDeclaration
+ClassBodyDeclaration:
+		  ClassMemberDeclaration
 		| ConstructorDeclaration
 		;
 
-ClassMemberDeclaration: FieldDeclaration
+ClassMemberDeclaration:
+		  FieldDeclaration
 		| MethodDeclaration
 		;
 
-FieldDeclaration: Type VariableDeclarators SM
+FieldDeclaration:
+		  Type VariableDeclarators SM
 		;
 
-VariableDeclarators: VariableDeclarator
+VariableDeclarators:
+		  VariableDeclarator
 		| VariableDeclarators CM VariableDeclarator
 		;
 
-VariableDeclarator: VariableDeclaratorId
+VariableDeclarator:
+		  VariableDeclaratorId
 		| VariableDeclaratorId ASN VariableInitializer
 		;
 
-VariableDeclaratorId: IDENT
+VariableDeclaratorId:
+		  IDENT
 		| VariableDeclaratorId LB RB
 		;
 
-VariableInitializer: Expression
+VariableInitializer:
+		  Expression
 		| ArrayInitializer
 		;
 
-MethodDeclaration: MethodHeader MethodBody
+MethodDeclaration:
+		  MethodHeader MethodBody
 		;
 
-MethodHeader: Type MethodDeclarator
+MethodHeader:
+		  Type MethodDeclarator
 		| VOID MethodDeclarator
 		;
 
-FormalParameterListOpt: FormalParameterList | { $$ = NULL; } ;
+FormalParameterListOpt:
+		  FormalParameterList | { $$ = NULL; } ;
 
-MethodDeclarator: IDENT LP FormalParameterListOpt RP
+MethodDeclarator:
+		  IDENT LP FormalParameterListOpt RP
 		| MethodDeclarator LB RB
 		;
 
-FormalParameterList: FormalParameter
+FormalParameterList:
+		  FormalParameter
 		| FormalParameterList CM FormalParameter
 		;
 
-FormalParameter: Type VariableDeclaratorId
+FormalParameter:
+		  Type VariableDeclaratorId
 		;
 
-MethodBody: Block
+MethodBody:
+		  Block
 		;
 
-ConstructorDeclaration: ModifiersOpt ConstructorDeclarator
+ConstructorDeclaration:
+		  ModifiersOpt ConstructorDeclarator
 				 ConstructorBody
 		;
 
-ConstructorDeclarator: SimpleName LP FormalParameterListOpt RP
+ConstructorDeclarator:
+		  SimpleName LP FormalParameterListOpt RP
 		;
 
-ExplicitConstructorInvocationOpt: ExplicitConstructorInvocation | { $$ = NULL; } ;
+ExplicitConstructorInvocationOpt:
+		  ExplicitConstructorInvocation | { $$ = NULL; } ;
 
-BlockStatementsOpt: BlockStatements | { $$ = NULL; } ;
+BlockStatementsOpt:
+		  BlockStatements | { $$ = NULL; } ;
 
-ArgumentListOpt:  ArgumentList | { $$ = NULL; } ;
+ArgumentListOpt:
+		  ArgumentList | { $$ = NULL; } ;
 
-ConstructorBody: LC ExplicitConstructorInvocationOpt BlockStatementsOpt RC
+ConstructorBody:
+		  LC ExplicitConstructorInvocationOpt BlockStatementsOpt RC
 		;
 
-ExplicitConstructorInvocation: THIS LP ArgumentListOpt RP SM
+ExplicitConstructorInvocation:
+		  THIS LP ArgumentListOpt RP SM
 		;
 
-AbstractMethodDeclaration: MethodHeader SM
+AbstractMethodDeclaration:
+		  MethodHeader SM
 		;
 
-VariableInitializersOpt: VariableInitializers | { $$ = NULL; } ;
+VariableInitializersOpt:
+		  VariableInitializers | { $$ = NULL; } ;
 
-CMOpt:	CM { $$ = NULL; } | { $$ = NULL; } ;
+CMOpt:
+		  CM { $$ = NULL; } | { $$ = NULL; } ;
 
-ArrayInitializer: LC VariableInitializersOpt CMOpt RC
+ArrayInitializer:
+		  LC VariableInitializersOpt CMOpt RC
 		;
 
-VariableInitializers: VariableInitializer
+VariableInitializers:
+		  VariableInitializer
 		| VariableInitializers CM VariableInitializer
 		;
 
-Block:		  LC BlockStatementsOpt RC
+Block:
+		  LC BlockStatementsOpt RC
 		;
 
-BlockStatements:  BlockStatement
+BlockStatements:
+		  BlockStatement
 		| BlockStatements BlockStatement
 		;
 
-BlockStatement:   LocalVariableDeclarationStatement
+BlockStatement:
+		  LocalVariableDeclarationStatement
 		| Statement
 		;
 
-LocalVariableDeclarationStatement: LocalVariableDeclaration SM
+LocalVariableDeclarationStatementsOpt:
+		  LocalVariableDeclarationStatement
+		| LocalVariableDeclarationStatement LocalVariableDeclarationStatementsOpt
+		| { $$ = NULL; }
 		;
 
-LocalVariableDeclaration: Type VariableDeclarators
+LocalVariableDeclarationStatement:
+		  LocalVariableDeclaration SM
 		;
 
-Statement:	  StatementWithoutTrailingSubstatement
+LocalVariableDeclaration:
+		  Type VariableDeclarators
+		;
+
+Statement:
+		  StatementWithoutTrailingSubstatement
 		| LabeledStatement
 		| IfThenStatement
 		| IfThenElseStatement
@@ -293,14 +340,16 @@ Statement:	  StatementWithoutTrailingSubstatement
 		| ForStatement
 		;
 
-StatementNoShortIf: StatementWithoutTrailingSubstatement
+StatementNoShortIf:
+		  StatementWithoutTrailingSubstatement
 		| LabeledStatementNoShortIf
 		| IfThenElseStatementNoShortIf
 		| WhileStatementNoShortIf
 		| ForStatementNoShortIf
 		;
 
-StatementWithoutTrailingSubstatement: Block
+StatementWithoutTrailingSubstatement:
+		  Block
 		| EmptyStatement
 		| ExpressionStatement
 		| BreakStatement
@@ -308,196 +357,247 @@ StatementWithoutTrailingSubstatement: Block
 		| ReturnStatement
 		;
 
-EmptyStatement:	  SM
+EmptyStatement:
+		  SM
 		;
 
-LabeledStatement: IDENT COLON Statement
+LabeledStatement:
+		  IDENT COLON Statement
 		;
 
-LabeledStatementNoShortIf: IDENT COLON StatementNoShortIf
+LabeledStatementNoShortIf:
+		  IDENT COLON StatementNoShortIf
 		;
 
-ExpressionStatement: StatementExpression SM
+ExpressionStatement:
+		  StatementExpression SM
 		;
 
-StatementExpression: Assignment
+StatementExpression:
+		  Assignment
 		| MethodInvocation
 		;
 
-IfThenStatement:  IF LP Expression RP Statement
+IfThenStatement:
+		  IF LP Expression RP Statement
 		;
 
-IfThenElseStatement:  IF LP Expression RP StatementNoShortIf ELSE Statement
+IfThenElseStatement:
+		  IF LP Expression RP StatementNoShortIf ELSE Statement
 		;
 
-IfThenElseStatementNoShortIf:  IF LP Expression RP StatementNoShortIf
+IfThenElseStatementNoShortIf:
+		  IF LP Expression RP StatementNoShortIf
 			ELSE StatementNoShortIf
 		;
 
-WhileStatement:	  WHILE LP Expression RP Statement
+WhileStatement:
+		  WHILE LP Expression RP Statement
 		;
 
-WhileStatementNoShortIf:  WHILE LP Expression RP StatementNoShortIf
+WhileStatementNoShortIf:
+		  WHILE LP Expression RP StatementNoShortIf
 		;
 
-ForInitOpt: ForInit | { $$ = NULL; } ;
+ForInitOpt:
+		  ForInit | { $$ = NULL; } ;
 
-ExpressionOpt: Expression | { $$ = NULL; } ;
+ExpressionOpt:
+		  Expression | { $$ = NULL; } ;
 
-ForUpdateOpt: ForUpdate | { $$ = NULL; } ;
+ForUpdateOpt:
+		  ForUpdate | { $$ = NULL; } ;
 
-ForStatement:	  FOR LP ForInitOpt SM ExpressionOpt SM ForUpdateOpt RP
+ForStatement:
+		  FOR LP ForInitOpt SM ExpressionOpt SM ForUpdateOpt RP
 			Statement
 		;
 
-ForStatementNoShortIf:	  FOR LP ForInitOpt SM ExpressionOpt SM ForUpdateOpt RP
+ForStatementNoShortIf:
+		  FOR LP ForInitOpt SM ExpressionOpt SM ForUpdateOpt RP
 			StatementNoShortIf
 		;
 
 
-ForInit:	  StatementExpressionList
+ForInit:
+		  StatementExpressionList
 		| LocalVariableDeclaration
 		;
 
-ForUpdate:	  StatementExpressionList
+ForUpdate:
+		  StatementExpressionList
 		;
 
-StatementExpressionList: StatementExpression
+StatementExpressionList:
+		  StatementExpression
 		| StatementExpressionList CM StatementExpression
 		;
 
-IDENTOpt: IDENT | { $$ = NULL; } ;
+IDENTOpt:
+		  IDENT | { $$ = NULL; } ;
 
-BreakStatement:	  BREAK IDENTOpt SM
+BreakStatement:
+		  BREAK IDENTOpt SM
 		;
 
-ContinueStatement: CONTINUE IDENTOpt SM
+ContinueStatement:
+		  CONTINUE IDENTOpt SM
 		;
 
-ReturnStatement:  RETURN ExpressionOpt SM
+ReturnStatement:
+		  RETURN ExpressionOpt SM
 		| SUSPEND ExpressionOpt SM
 		;
 
-Primary:	  PrimaryNoNewArray
+Primary:
+		  PrimaryNoNewArray
 		;
 
-PrimaryNoNewArray: Literal
+PrimaryNoNewArray:
+		  Literal
 		| LP Expression RP
 		| FieldAccess
 		| MethodInvocation
 		| ArrayAccess
 		;
 
-ArgumentList:	  Expression
+ArgumentList:
+		  Expression
 		| ArgumentList CM Expression
 		;
 
-DimsOpt: Dims | { $$ = NULL; } ;
+DimsOpt:
+		  Dims | { $$ = NULL; } ;
 
-DimExprs:	  DimExpr
+DimExprs:
+		  DimExpr
 		| DimExprs DimExpr
 		;
 
-DimExpr:	  LB Expression RB
+DimExpr:
+		  LB Expression RB
 		;
 
-Dims:		  LB RB
+Dims:
+		  LB RB
 		| Dims LB RB
 		;
 
-FieldAccess:	  Primary DOT IDENT
+FieldAccess:
+		  Primary DOT IDENT
 		;
 
-MethodInvocation: Name LP ArgumentListOpt RP
+MethodInvocation:
+		  Name LP ArgumentListOpt RP
 		| Primary DOT IDENT LP ArgumentListOpt RP
 		;
 
-ArrayAccess:	  Name LB Expression RB
+ArrayAccess:
+		  Name LB Expression RB
 		| PrimaryNoNewArray LB Expression RB
 		;
 
-PostFixExpression: Primary
+PostFixExpression:
+		  Primary
 		| Name
 		;
 
-UnaryExpression: PLUS UnaryExpression
+UnaryExpression:
+		  PLUS UnaryExpression
 		| MINUS UnaryExpression
 		| UnaryExpressionNotPlusMinus
 		;
 
-UnaryExpressionNotPlusMinus: PostFixExpression
+UnaryExpressionNotPlusMinus:
+		  PostFixExpression
 		| BANG UnaryExpression
 		| CastExpression
 		;
 
-CastExpression:   LP PrimitiveType DimsOpt RP UnaryExpression
+CastExpression:
+		  LP PrimitiveType DimsOpt RP UnaryExpression
 		| LP Expression RP UnaryExpressionNotPlusMinus
 		| LP Name Dims RP UnaryExpressionNotPlusMinus
 		;
 
-MultiplicativeExpression: UnaryExpression
+MultiplicativeExpression:
+		  UnaryExpression
 		| MultiplicativeExpression MUL UnaryExpression
 		| MultiplicativeExpression DIV UnaryExpression
 		| MultiplicativeExpression MOD UnaryExpression
 		;
 
-AdditiveExpression: MultiplicativeExpression
+AdditiveExpression:
+		  MultiplicativeExpression
 		| AdditiveExpression PLUS MultiplicativeExpression
 		| AdditiveExpression MINUS MultiplicativeExpression
 		;
 
-RelationalExpression: AdditiveExpression
+RelationalExpression:
+		  AdditiveExpression
 		| RelationalExpression LT AdditiveExpression
 		| RelationalExpression GT AdditiveExpression
 		| RelationalExpression LE AdditiveExpression
 		| RelationalExpression GE AdditiveExpression
 		;
 
-EqualityExpression: RelationalExpression
+EqualityExpression:
+		  RelationalExpression
 		| EqualityExpression EQ RelationalExpression
 		| EqualityExpression NE RelationalExpression
 		;
 
-AndExpression: EqualityExpression
+AndExpression:
+		  EqualityExpression
 		| AndExpression AND EqualityExpression
 		;
 
-InclusiveOrExpression: AndExpression
+InclusiveOrExpression:
+		  AndExpression
 		| InclusiveOrExpression OR AndExpression
 		;
 
-ConditionalAndExpression: InclusiveOrExpression
+ConditionalAndExpression:
+		  InclusiveOrExpression
 		| ConditionalAndExpression ANDAND InclusiveOrExpression
 		;
 
-ConditionalOrExpression: ConditionalAndExpression
+ConditionalOrExpression:
+		  ConditionalAndExpression
 		| ConditionalOrExpression OROR ConditionalAndExpression
 		;
 
-ConditionalExpression: ConditionalOrExpression
+ConditionalExpression:
+		  ConditionalOrExpression
 		| ConditionalOrExpression QUEST Expression
 			COLON ConditionalExpression
 		;
 
-AssignmentExpression: ConditionalExpression
+AssignmentExpression:
+		  ConditionalExpression
 		| Assignment
 		;
 
-Assignment:	  Assignable AssignmentOperator AssignmentExpression
+Assignment:
+		  Assignable AssignmentOperator AssignmentExpression
 		;
 
-Assignable:	  Name
+Assignable:
+		  Name
 		| FieldAccess
 		| ArrayAccess
 		;
 
-AssignmentOperator: ASN
+AssignmentOperator:
+		  ASN
 		| PLASN
 		| MIASN
 		;
 
-Expression:	  AssignmentExpression
+Expression:
+		  AssignmentExpression
 		;
 
-ConstantExpression: Expression
+ConstantExpression:
+		  Expression
 		;
