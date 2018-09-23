@@ -58,9 +58,9 @@
 %type < node > EmptyStatement BreakStatement ReturnStatement 
 %type < node > Expression AssignmentOperator Assignable Assignment ConditionalOrExpression 
 %type < node > EqualityExpression RelationalExpression AdditiveExpression MultiplicativeExpression 
-%type < node > 
-%type < node > 
-%type < node > 
+%type < node > SwapExpression UnaryExpressionNotPlusMinus UnaryExpression PostFixExpression 
+%type < node > ArrayAccess MethodInvocation FieldAccess PrimaryNoNewArray Primary
+%type < node > ArgumentList ArgumentListOpt Dims DimsOpt
 %type < node > 
 %type < node > 
 %type < node > LocalVariablesOpt LocalVariables LocalVariable
@@ -467,12 +467,6 @@ UnaryExpressionNotPlusMinus:
    | DROLL UnaryExpression
    ;
 
-CastExpression:
-     LP PrimitiveType DimsOpt RP UnaryExpression
-   | LP Expression RP UnaryExpressionNotPlusMinus
-   | LP Name Dims RP UnaryExpressionNotPlusMinus
-   ;
-
 MultiplicativeExpression:
      UnaryExpression
    | MultiplicativeExpression MUL UnaryExpression
@@ -515,6 +509,8 @@ AssignmentExpression:
      ConditionalOrExpression
    | Assignment
    ;
+
+SwapExpression:
 
 Assignment:
      Assignable AssignmentOperator ConditionalOrExpression

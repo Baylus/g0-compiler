@@ -9,19 +9,29 @@ HW #2: Syntax Analysis
 */
 
 #include "tree.h"
+#include <stdarg.h> // va_start()
+#include <stdlib.h> // size_t
+#include <stdio.h>  // stderr
 
-tree *alctree(int label, int nkids, ... )
+
+tree *alctree( char* label, int code, int nkids, ... )
 { 
    int i;
    va_list ap;
+//    size_t treeSize = sizeof(tree);
+//    if (nkids > 0)
+//    {
+//        treeSize += sizeof(tree *) * ( nkids );
+//    }
    tree *ptr = malloc(sizeof(tree) +
                              (nkids-1)*sizeof(tree *));
    if (ptr == NULL) {fprintf(stderr, "alctree out of memory\n"); exit(1); }
    ptr->label = label;
+   ptr->code = code;
    ptr->nkids = nkids;
    va_start(ap, nkids);
    for(i=0; i < nkids; ++i)
-      ptr->child[i] = va_arg(ap, tree *);
+      ptr->kids[i] = va_arg(ap, tree *);
    va_end(ap);
    return ptr;
 }
@@ -30,7 +40,7 @@ int treeprint(tree *t, int depth)
 {
   int i;
 
-  printf("%*s %s: %d\n", depth*2, " ", humanreadable(t->prodrule), t->nkids);
+  printf("%*s %s: %d\n", depth*2, " ", t->label, t->nkids);
   
   for(i=0; i < t->nkids; ++i)
     treeprint(t->kids[i], depth+1);

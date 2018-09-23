@@ -14,13 +14,14 @@ HW #2: Syntax Analysis
 #include "token.h"
 
 typedef struct treeNode {
+	char* label;
 	int code;		/* terminal or nonterminal symbol */
 	int nkids;
 	union {
 	   // struct token { ...  } leaf; // or: struct token *leaf;
 	   struct token* leaf; // or: struct token *leaf;
 	   struct treeNode *kids[9];
-   } u;
+   };
 } tree ;
 
 tree* alctree( struct token* t, tree* parent, ... );
