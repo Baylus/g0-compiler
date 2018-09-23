@@ -23,10 +23,15 @@ tree *alctree( char* label, int code, int nkids, ... )
 //    {
 //        treeSize += sizeof(tree *) * ( nkids );
 //    }
-   tree *ptr = malloc(sizeof(tree) +
-                             (nkids-1)*sizeof(tree *));
+   tree *ptr = malloc(sizeof(tree));
    if (ptr == NULL) {fprintf(stderr, "alctree out of memory\n"); exit(1); }
-   ptr->label = label;
+	ptr->kids = malloc( sizeof(tree *) * (nkids) );
+	if (ptr->kids == NULL)
+	{
+		fprintf(stderr, "alctree out of memory\n");
+		exit(1);
+	}
+	ptr->label = label;
    ptr->code = code;
    ptr->nkids = nkids;
    va_start(ap, nkids);
@@ -43,6 +48,24 @@ int treeprint(tree *t, int depth)
   printf("%*s %s: %d\n", depth*2, " ", t->label, t->nkids);
   
   for(i=0; i < t->nkids; ++i)
-    treeprint(t->kids[i], depth+1);
+	{
+		if (t->kids[i] != NULL){
+    		treeprint(t->kids[i], depth+1);
+		}
+	}
 
+}
+
+tree *addLeaf(int code, struct token *t)
+{
+	tree* ptr = malloc(sizeof(tree));
+	if (ptr == NULL)
+	{
+		fprintf(stderr, "alctree out of memory\n");
+		exit(1);
+	}
+	ptr->token = t;
+	ptr->code = code;
+	ptr->label = NULL;
+	ptr->nkids = 0;
 }

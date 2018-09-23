@@ -62,6 +62,7 @@ struct token* yytoken = NULL;
 "table"						{ return yytok(TABLE); }
 "void"                  { return yytok(VOID); }
 "while"                 { return yytok(WHILE); }
+"bool"                  { return yytok(BOOL); }
 
 {ID}          				{ return yytok(IDENTIFIER); }
 
@@ -223,7 +224,9 @@ int yytok( int i )
 			// yyerror("Unknown yylval for given integer category.");
 	}
 	
-	yytoken = t;
+	// Give token to YACC
+	// yytoken = t;
+	yylval.node = addLeaf(i, t);
 	return i;
 }
 
@@ -234,7 +237,7 @@ int yytok( int i )
 yyerror (s)
      char *s;
 {
-  fprintf (stderr, "%s\n", s);
+  fprintf (stderr, "%s%s\n", s);
   exit(1);	// Exit upon lexical errors.
 }
 

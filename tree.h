@@ -19,13 +19,15 @@ typedef struct treeNode {
 	int nkids;
 	union {
 	   // struct token { ...  } leaf; // or: struct token *leaf;
-	   struct token* leaf; // or: struct token *leaf;
-	   struct treeNode *kids[9];
+	   struct token* token; // or: struct token *leaf;
+	   struct treeNode **kids;
    };
 } tree ;
 
-tree* alctree( struct token* t, tree* parent, ... );
-int treeprint( tree *t, int depth )
+tree* alctree( char* label, int code, int kids, ... );
+int treeprint( tree *t, int depth );
+tree* addLeaf( int code, struct token* t );
+
 
 #endif
 

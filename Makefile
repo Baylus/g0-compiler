@@ -33,3 +33,9 @@ tree.o: tree.h
 clean:
 	rm -f g0 *.o
 	rm -f g0lex.c g0gram.c g0gram.h
+
+submitfiles = main.c token.h tokenlist.h tokenlist.c g0.l Makefile
+submit: $(submitfiles)
+	mkdir hw2
+	cp -T hw2/ $(submitfiles)
+	gzip hw2/
