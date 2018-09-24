@@ -35,14 +35,16 @@ typedef struct IdentifierLinkedList {
 	int size;
 } identList;
 
-identList hashTable[HASH_TABLE_SIZE] = {};
+void initTables();
+void destroyTables();
 
-ident* addIdentifier( char* name, int code, int lineno);
+ident *addIdentifier(char *name, int code, int lineno);
 ident* lookUp( char* name);
 long hash( char* n );
 
 // Linked List functions.
 ident* addIdent( identList l, ident* i );
 ident *searchList(identList l, char *name);
+
 
 #endif

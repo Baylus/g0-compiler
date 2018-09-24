@@ -9,10 +9,41 @@ HW #2: Syntax Analysis
 */
 
 #include "tree.h"
+#include "token.h"
+#include "y.tab.h"
 #include <stdarg.h> // va_start()
 #include <stdlib.h> // size_t
 #include <stdio.h>  // stderr
 
+void printToken(struct token *t)
+{
+	/*
+	 *
+	 *
+	 *
+	 *
+	 *
+	 */
+	if (t == NULL) return;
+
+	printf("%d  ", t->category);
+	switch (t->category)
+	{
+		case INTLITERAL:
+			printf("%d", t->ival);
+			break;
+		case FLOATLITERAL:
+			printf("%f", t->dval);
+			break;
+		case STRINGLITERAL:
+			printf("%s", t->sval);
+			break;
+			// default:
+			// perror("ERROR: tokenlist.c, func: printToken(): unknown category\n\n");
+			// exit(-1);
+	}
+	printf("\n");
+}
 
 tree *alctree( char* label, int code, int nkids, ... )
 { 
@@ -41,11 +72,18 @@ tree *alctree( char* label, int code, int nkids, ... )
    return ptr;
 }
 
-int treeprint(tree *t, int depth)
+void treeprint(tree *t, int depth)
 {
   int i;
+  printf("%*s", depth * 2, " "); 
 
-  printf("%*s %s: %d\n", depth*2, " ", t->label, t->nkids);
+	if (t->nkids == 0)
+	{
+		printToken(t->token);
+		return;
+	}
+
+  printf(" %s: %d\n", t->label, t->nkids);
   
   for(i=0; i < t->nkids; ++i)
 	{
@@ -68,11 +106,25 @@ tree *addLeaf(int code, struct token *t)
 	ptr->code = code;
 	ptr->label = NULL;
 	ptr->nkids = 0;
+
+	return ptr;
 }
 
 void deleteTree( tree* t )
 {
-	free(t->kids);
+	if (t->nkids > 0){
+		free(t->kids);
+	}
+	else 
+	{
+		if (t->token != NULL)
+		{
+			free(t->token->text);
+			if (t->token->category)
+				free(t->token->sval);
+			free(t->token);
+		}
+	}
 	free(t);
 }
 

@@ -13,7 +13,44 @@ HW #2: Syntax Analysis
 
 #include "symt.h"
 
+identList hashTable[HASH_TABLE_SIZE] = {};
 
+void initTables()
+{
+	int i;
+	for ( i = 0; i < HASH_TABLE_SIZE; ++i )
+	{
+		hashTable[i].head = NULL;
+		hashTable[i].tail = NULL;
+		hashTable[i].size = 0;
+	}
+}
+
+void freeNode( listNode* x )
+{
+	if (x != NULL)
+	{
+		free(x->info->name);
+		free(x->info);
+		free(x);
+	}
+}
+
+void destroyTables()
+{
+	int i;
+	for (i = 0; i < HASH_TABLE_SIZE; ++i)
+	{
+		listNode *p = hashTable[i].head;
+		while (p != hashTable[i].tail)
+		{
+			hashTable[i].head = hashTable[i].head->next;
+			freeNode(p);
+			p = hashTable[i].head;
+		}
+		freeNode(p);
+	}
+}
 
 ident *addIdentifier(char *name, int code, int lineno)
 {
@@ -97,7 +134,8 @@ ident *addIdent(identList l, ident *i)
 		l.tail->next = n;
 		l.tail = l.tail->next;
 	}
-	return n;
+	l.size++;
+	return i;
 }
 
 ident *searchList(identList l, char *name)
@@ -107,12 +145,13 @@ ident *searchList(identList l, char *name)
 	 * 
 	 * 
 	 */
+	if ( l.head == NULL) return NULL;
 	listNode* p = l.head;
 	while ( p != l.tail ) 
 	{
 		if ( strcmp(p->info->name, name) == 0 ) {
 			p->info->numInstances += 1;
-			return p;
+			return p->info;
 		}
 		p = p->next;
 	}
@@ -120,7 +159,7 @@ ident *searchList(identList l, char *name)
 	if (strcmp(p->info->name, name) == 0)
 	{
 		p->info->numInstances += 1;
-		return p;
+		return p->info;
 	}
 
 	return NULL;

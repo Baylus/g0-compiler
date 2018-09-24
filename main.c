@@ -22,13 +22,14 @@ HW #1: Lexical Analyzer
 #include "tokenlist.h"
 
 #include "tree.h"
-
+#include "symt.h"
 extern int yyparse();	// g0gram.y
 extern tree* yytree;		// g0gram.y
 
 extern int yylex();		// g0.l
 extern struct token* yytoken;	// g0.l
 extern FILE* yyin;		// g0.l
+extern char* yyfilename;	//g0lex.l
 
 char* filename;
 char* addExtension( char* f ) {
@@ -69,13 +70,13 @@ int main(int argc, char** argv)
 	// int files = argc - 1;
 	int i = 1;
 	for ( ; i < argc ; ++i) {
-		filename = addExtension( argv[i] );
-		filenames[i - 1] = filename;
+		yyfilename = addExtension( argv[i] );
+		filenames[i - 1] = yyfilename;
 		
 		// yyin = fopen(filename.c_str(), "r");
-		yyin = fopen(filename, "r");
+		yyin = fopen(yyfilename, "r");
 		if ( yyin == NULL ) {
-			printf("Error: Failed to open file %s", filename);
+			printf("Error: Failed to open file %s", yyfilename);
 			exit(-1);
 		}
 		
@@ -88,10 +89,11 @@ int main(int argc, char** argv)
 		
 		if ( yyparse() == 0 )
 		{
-			printList( yytree, 0 );
+			treeprint( yytree, 0 );
 			postTraversal( yytree, 0, deleteTree );
 		}
 
+		destroyTables();
 		fclose(yyin);
 		yyin = NULL;
 		// ++i;	// move onto next

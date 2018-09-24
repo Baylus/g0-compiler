@@ -1,7 +1,8 @@
 void
 main ()
 {
-   list<String> a = { "every", "good", "bear", "deserves", "fudge" };
+   list<String> a 
+   a = { "every", "good", "bear", "deserves", "fudge" };
 
    write(a[3])
 }

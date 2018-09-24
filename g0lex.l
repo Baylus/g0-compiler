@@ -25,9 +25,9 @@ ID						{L}({L}|{D})*
 
 %{
 #include "token.h"
-#include "y.tab.h"
 #include "tree.h"
 #include "symt.h"
+#include "y.tab.h"
 
 void comment();
 int yytok( int i );
@@ -111,7 +111,7 @@ struct token* yytoken = NULL;
 "-="                    { return yytok(MIASN); }
 "#"                     { return yytok(SHARP); }
 
-.                       { exit(1); }
+.                       {  }
 
 %%
 
@@ -209,19 +209,16 @@ int yytok( int i )
 		perror("Failed to allocate memory for token!");
 		exit(-1);
 	}
-	// This variable stores information of whether last token found
-	// was "class", then we know that the identifier is a class name
-	static int isClass = 0;
 
 	if ( i == IDENT )
 	{
 		// Identifier found.
-		Identifier* p = lookUp( yytext );
+		struct Identifier* p = lookUp( yytext );
 		if ( p == NULL )
 		{
 			// New identifier
 			// yylval still holds the tree node for the previous token.
-			p = addIdentifier( yytext, yylval.node.code, yylineno );
+			p = addIdentifier( yytext, yylval.node->code, yylineno );
 		}
 		// Construct token.
 		t->lineno = yylineno;
@@ -233,7 +230,7 @@ int yytok( int i )
 		t->category = (p->typeCode == CLASS ) ? CLASS_NAME : IDENT;
 
 		// Return proper integer code.
-		yylval.node = addLeaf(t->category, t)
+		yylval.node = addLeaf(t->category, t);
 		return t->category;
 	}
 
@@ -266,12 +263,11 @@ int yytok( int i )
 // I feel like theres no way this really works, this also might hurt me because
 // yyerror might be defined by lex if i dont provide a definition for it, 
 // which this is doing.
-// yyerror (s)
-//      char *s;
-// {
-//   fprintf (stderr, "%s%s\n", s);
-//   exit(1);	// Exit upon lexical errors.
-// }
+void yyerror(char *s)
+{
+   fprintf(stderr, "%s:%d: %s before '%s' token\n",
+	   yyfilename, yylineno, s, yytext);
+}
 
 void comment()
 {

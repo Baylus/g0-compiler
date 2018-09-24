@@ -25,11 +25,11 @@ typedef struct treeNode {
 } tree ;
 
 tree* alctree( char* label, int code, int kids, ... );
-int treeprint( tree *t, int depth );
+void treeprint( tree *t, int depth );
 tree* addLeaf( int code, struct token* t );
 void postTraversal(tree *t, int depth, void (*f)(tree *));
 void deleteTree(tree *);
-
+void printToken(struct token *t);
 
 #endif
 
