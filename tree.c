@@ -69,3 +69,23 @@ tree *addLeaf(int code, struct token *t)
 	ptr->label = NULL;
 	ptr->nkids = 0;
 }
+
+void deleteTree( tree* t )
+{
+	free(t->kids);
+	free(t);
+}
+
+void postTraversal(tree *t, int depth, void (*f)(tree *))
+{
+	int i = 0;
+
+	for (i = 0; i < t->nkids; ++i)
+	{
+		if (t->kids[i] != NULL)
+		{
+			postTraversal(t->kids[i], depth + 1, (*f));
+		}
+	}
+	(*f)(t);
+}

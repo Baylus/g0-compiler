@@ -1,0 +1,6 @@
+{
+   "files.associations": {
+      "symt.h": "c",
+      "stdio.h": "c"
+   }
+}

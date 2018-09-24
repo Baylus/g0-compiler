@@ -25,10 +25,14 @@ ID						{L}({L}|{D})*
 
 %{
 #include "token.h"
-#include "ytab.h"
+#include "y.tab.h"
+#include "tree.h"
+#include "symt.h"
 
-int comment();
+void comment();
 int yytok( int i );
+void yyerror(char*);
+
 
 extern char* filename;	// main.c
 
@@ -46,8 +50,8 @@ struct token* yytoken = NULL;
 [ \t\f]+                { }
 
 "null"                  { return yytok(NULLLITERAL); }
-"false"                 { return yytok(BOOLFALSE); }
-"true"                  { return yytok(BOOLTRUE); }
+"false"                 { return yytok(FALSE); }
+"true"                  { return yytok(TRUE); }
 "break"                 { return yytok(BREAK); }
 "class"                 { return yytok(CLASS); }
 "double"                { return yytok(DOUBLE); }
@@ -64,7 +68,7 @@ struct token* yytoken = NULL;
 "while"                 { return yytok(WHILE); }
 "bool"                  { return yytok(BOOL); }
 
-{ID}          				{ return yytok(IDENTIFIER); }
+{ID}          				{ return yytok(IDENT); }
 
 0[xX]{H}+{IS}?          { return yytok(INTLITERAL); }
 0{O}+{IS}?              { return yytok(INTLITERAL); }
@@ -105,8 +109,9 @@ struct token* yytoken = NULL;
 "%"                     { return yytok(MOD); }
 "+="                    { return yytok(PLASN); }
 "-="                    { return yytok(MIASN); }
+"#"                     { return yytok(SHARP); }
 
-.                       { yyerror("lexical error"); }
+.                       { exit(1); }
 
 %%
 
@@ -204,7 +209,34 @@ int yytok( int i )
 		perror("Failed to allocate memory for token!");
 		exit(-1);
 	}
-	
+	// This variable stores information of whether last token found
+	// was "class", then we know that the identifier is a class name
+	static int isClass = 0;
+
+	if ( i == IDENT )
+	{
+		// Identifier found.
+		Identifier* p = lookUp( yytext );
+		if ( p == NULL )
+		{
+			// New identifier
+			// yylval still holds the tree node for the previous token.
+			p = addIdentifier( yytext, yylval.node.code, yylineno );
+		}
+		// Construct token.
+		t->lineno = yylineno;
+		t->tval = p;
+		t->text = p->name;
+		t->filename = filename;
+		// If typeCode of token before identifier was first declared
+		// was of type "CLASS", then make this variable a class name.
+		t->category = (p->typeCode == CLASS ) ? CLASS_NAME : IDENT;
+
+		// Return proper integer code.
+		yylval.node = addLeaf(t->category, t)
+		return t->category;
+	}
+
 	t->category = i;
 	t->text = strdup(yytext);
 	t->lineno = yylineno;
@@ -234,14 +266,14 @@ int yytok( int i )
 // I feel like theres no way this really works, this also might hurt me because
 // yyerror might be defined by lex if i dont provide a definition for it, 
 // which this is doing.
-yyerror (s)
-     char *s;
-{
-  fprintf (stderr, "%s%s\n", s);
-  exit(1);	// Exit upon lexical errors.
-}
+// yyerror (s)
+//      char *s;
+// {
+//   fprintf (stderr, "%s%s\n", s);
+//   exit(1);	// Exit upon lexical errors.
+// }
 
-comment()
+void comment()
 {
 	
 	int splat_seen = 0;

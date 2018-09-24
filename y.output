@@ -1,0 +1,6360 @@
+   0  $accept : Program $end
+
+   1  Program : CompilationUnitsOpt
+
+   2  GlobalVariablesOpt : GlobalVariables
+   3                     |
+
+   4  GlobalVariables : GlobalVariable
+   5                  | GlobalVariables GlobalVariable
+
+   6  GlobalVariable : Type VariableDeclaratorList Semicolon
+
+   7  VariableDeclaratorList : VariableDeclaratorId
+   8                         | VariableDeclaratorList CM VariableDeclaratorId
+
+   9  Type : IDENT
+  10       | ArrayType
+  11       | PrimitiveType
+  12       | ListType
+  13       | TableType
+
+  14  ListType : LIST
+  15           | LIST LT PrimitiveType GT
+
+  16  TableType : TABLE
+  17            | TABLE LT PrimitiveType GT
+  18            | TABLE LT PrimitiveType CM PrimitiveType GT
+
+  19  PrimitiveType : INT
+  20                | BOOL
+  21                | DOUBLE
+  22                | STRING
+
+  23  ArrayType : PrimitiveType LB RB
+  24            | QualifiedName LB RB
+  25            | IDENT LB RB
+  26            | ArrayType LB RB
+
+  27  CompilationUnitsOpt : CompilationUnits
+  28                      |
+
+  29  CompilationUnits : CompilationUnit
+  30                   | CompilationUnits CompilationUnit
+
+  31  CompilationUnit : ClassDeclaration
+  32                  | Function
+  33                  | AssignmentExpression
+  34                  | GlobalVariable
+
+  35  ClassDeclaration : ClassHeader ClassBlock
+
+  36  ClassHeader : CLASS IDENT
+
+  37  ClassBlock : LC ClassBlockUnitListOpt RC
+
+  38  ClassVariablesOpt : ClassVariables
+  39                    |
+
+  40  ClassVariables : ClassVariable
+  41                 | ClassVariables ClassVariable
+
+  42  ClassVariable : Type IDENT Semicolon
+
+  43  ClassBlockUnitListOpt : ClassBlockUnitList
+  44                        |
+
+  45  ClassBlockUnitList : ClassBlockUnit
+  46                     | ClassBlockUnitList ClassBlockUnit
+
+  47  ClassBlockUnit : ClassVariable
+  48                 | MethodDeclaration
+  49                 | ConstructorDeclaration
+
+  50  MethodDeclaration : MethodHeader MethodBody
+
+  51  MethodHeader : Type MethodDeclarator
+  52               | VOID MethodDeclarator
+
+  53  MethodDeclarator : IDENT LP FormalParameterListOpt RP
+
+  54  MethodBody : Block
+
+  55  ConstructorDeclaration : ConstructorDeclarator ConstructorBody
+
+  56  ConstructorDeclarator : IDENT LP FormalParameterListOpt RP
+
+  57  ConstructorBody : Block
+
+  58  Function : FunctionPrototype
+  59           | FunctionDefinition
+
+  60  FunctionPrototype : Type IDENT LP TypeListOpt RP Semicolon
+  61                    | VOID IDENT LP TypeListOpt RP Semicolon
+
+  62  TypeListOpt : TypeList
+  63              |
+
+  64  TypeList : Type
+  65           | TypeList CM Type
+
+  66  FunctionHeader : Type IDENT
+  67                 | VOID IDENT
+
+  68  FunctionDefinition : Type IDENT LP FormalParameterListOpt RP FunctionBody
+  69                     | VOID IDENT LP FormalParameterListOpt RP FunctionBody
+
+  70  FunctionBody : Block
+
+  71  Block : LC BlockStatementListOpt RC
+
+  72  BlockStatementListOpt : BlockStatementList
+  73                        |
+
+  74  BlockStatementList : BlockStatement
+  75                     | BlockStatementList BlockStatement
+
+  76  BlockStatement : LocalVariable
+  77                 | Statement
+
+  78  NoLocalVariableBlock : LC NoLocalVariableBlockStatementListOpt RC
+
+  79  NoLocalVariableBlockStatementListOpt : NoLocalVariableBlockStatementList
+  80                                       |
+
+  81  NoLocalVariableBlockStatementList : NoLocalVariableBlockStatement
+  82                                    | NoLocalVariableBlockStatementList NoLocalVariableBlockStatement
+
+  83  NoLocalVariableBlockStatement : Statement
+
+  84  Statement : StatementWithoutTrailingSubstatement
+  85            | IfThenStatement
+  86            | IfThenElseStatement
+  87            | WhileStatement
+  88            | ForStatement
+
+  89  StatementNoShortIf : StatementWithoutTrailingSubstatement
+  90                     | IfThenElseStatementNoShortIf
+  91                     | WhileStatementNoShortIf
+  92                     | ForStatementNoShortIf
+
+  93  StatementWithoutTrailingSubstatement : NoLocalVariableBlock
+  94                                       | EmptyStatement
+  95                                       | ExpressionStatement
+  96                                       | BreakStatement
+  97                                       | ReturnStatement
+
+  98  ExpressionStatement : StatementExpression Semicolon
+
+  99  StatementExpression : Assignment
+ 100                      | MethodInvocation
+
+ 101  IfThenStatement : IF LP Expression RP Statement
+
+ 102  IfThenElseStatement : IF LP Expression RP StatementNoShortIf ELSE Statement
+
+ 103  IfThenElseStatementNoShortIf : IF LP Expression RP StatementNoShortIf ELSE StatementNoShortIf
+
+ 104  WhileStatement : WHILE LP Expression RP Statement
+
+ 105  WhileStatementNoShortIf : WHILE LP Expression RP StatementNoShortIf
+
+ 106  ForInitOpt : ForInit
+ 107             |
+
+ 108  ForInit : StatementExpressionList
+
+ 109  ExpressionOpt : Expression
+ 110                |
+
+ 111  ForUpdateOpt : ForUpdate
+ 112               |
+
+ 113  ForUpdate : StatementExpressionList
+
+ 114  ForStatement : FOR LP ForInitOpt SM ExpressionOpt SM ForUpdateOpt RP Statement
+
+ 115  ForStatementNoShortIf : FOR LP ForInitOpt SM ExpressionOpt SM ForUpdateOpt RP StatementNoShortIf
+
+ 116  StatementExpressionList : StatementExpression
+ 117                          | StatementExpressionList CM StatementExpression
+
+ 118  EmptyStatement : Semicolon
+
+ 119  BreakStatement : BREAK Semicolon
+
+ 120  ReturnStatement : RETURN ExpressionOpt Semicolon
+
+ 121  DimsOpt : Dims
+ 122          |
+
+ 123  Dims : LB RB
+ 124       | Dims LB RB
+
+ 125  ArgumentListOpt : ArgumentList
+ 126                  |
+
+ 127  ArgumentList : Expression
+ 128               | ArgumentList CM Expression
+
+ 129  Primary : PrimaryNoNewArray
+
+ 130  PrimaryNoNewArray : Literal
+ 131                    | LP Expression RP
+ 132                    | FieldAccess
+ 133                    | MethodInvocation
+ 134                    | ArrayAccess
+
+ 135  FieldAccess : Primary DOT IDENT
+
+ 136  MethodInvocation : QualifiedName LP ArgumentListOpt RP
+ 137                   | IDENT LP ArgumentListOpt RP
+ 138                   | Primary DOT IDENT LP ArgumentListOpt RP
+
+ 139  ArrayAccess : QualifiedName LB Expression RB
+ 140              | IDENT LB Expression RB
+ 141              | PrimaryNoNewArray LB Expression RB
+
+ 142  PostFixExpression : Primary
+ 143                    | QualifiedName
+ 144                    | IDENT
+
+ 145  UnaryExpression : MINUS UnaryExpression
+ 146                  | UnaryExpressionNotPlusMinus
+
+ 147  UnaryExpressionNotPlusMinus : PostFixExpression
+ 148                              | BANG UnaryExpression
+ 149                              | DROLL UnaryExpression
+
+ 150  MultiplicativeExpression : UnaryExpression
+ 151                           | MultiplicativeExpression MUL UnaryExpression
+ 152                           | MultiplicativeExpression DIV UnaryExpression
+ 153                           | MultiplicativeExpression MOD UnaryExpression
+ 154                           | MultiplicativeExpression DROLL UnaryExpression
+
+ 155  AdditiveExpression : MultiplicativeExpression
+ 156                     | AdditiveExpression PLUS MultiplicativeExpression
+ 157                     | AdditiveExpression MINUS MultiplicativeExpression
+
+ 158  RelationalExpression : AdditiveExpression
+ 159                       | RelationalExpression LT AdditiveExpression
+ 160                       | RelationalExpression LE AdditiveExpression
+ 161                       | RelationalExpression GT AdditiveExpression
+ 162                       | RelationalExpression GE AdditiveExpression
+
+ 163  EqualityExpression : RelationalExpression
+ 164                     | EqualityExpression EQ RelationalExpression
+ 165                     | EqualityExpression NE RelationalExpression
+
+ 166  ConditionalAndExpression : EqualityExpression
+ 167                           | ConditionalAndExpression ANDAND EqualityExpression
+
+ 168  ConditionalOrExpression : ConditionalAndExpression
+ 169                          | ConditionalOrExpression OROR ConditionalAndExpression
+
+ 170  AssignmentExpression : ConditionalOrExpression
+ 171                       | Assignment
+
+ 172  SwapExpression : AssignmentExpression
+ 173                 | Assignable SWAP Assignable
+
+ 174  Assignment : Assignable AssignmentOperator ConditionalOrExpression
+
+ 175  Assignable : QualifiedName
+ 176             | IDENT
+ 177             | FieldAccess
+ 178             | ArrayAccess
+
+ 179  AssignmentOperator : ASN
+ 180                     | PLASN
+ 181                     | MIASN
+
+ 182  Expression : AssignmentExpression
+
+ 183  FormalParameterListOpt : FormalParameterList
+ 184                         |
+
+ 185  FormalParameterList : FormalParameter
+ 186                      | FormalParameterList CM FormalParameter
+
+ 187  FormalParameter : Type VariableDeclaratorId
+
+ 188  LocalVariablesOpt : LocalVariables
+ 189                    |
+
+ 190  LocalVariables : LocalVariable
+ 191                 | LocalVariables LocalVariable
+
+ 192  LocalVariable : Type VariableDeclaratorList Semicolon
+
+ 193  VariableDeclaratorId : IDENT
+ 194                       | VariableDeclaratorId LB RB
+
+ 195  Name : SimpleName
+ 196       | QualifiedName
+
+ 197  SimpleName : IDENT
+
+ 198  QualifiedName : IDENT DOT IDENT
+ 199                | QualifiedName DOT IDENT
+
+ 200  BoolLiteral : TRUE
+ 201              | FALSE
+
+ 202  Semicolon : SM
+ 203            |
+
+ 204  Literal : INTLITERAL
+ 205          | FLOATLITERAL
+ 206          | BoolLiteral
+ 207          | STRINGLITERAL
+ 208          | CHARLITERAL
+ 209          | NULLLITERAL
+
+state 0
+	$accept : . Program $end  (0)
+	CompilationUnitsOpt : .  (28)
+
+	BOOL  shift 1
+	CLASS  shift 2
+	STRING  shift 3
+	DOUBLE  shift 4
+	INT  shift 5
+	TABLE  shift 6
+	LIST  shift 7
+	TRUE  shift 8
+	FALSE  shift 9
+	VOID  shift 10
+	IDENT  shift 11
+	NULLLITERAL  shift 12
+	INTLITERAL  shift 13
+	CHARLITERAL  shift 14
+	FLOATLITERAL  shift 15
+	STRINGLITERAL  shift 16
+	LP  shift 17
+	BANG  shift 18
+	MINUS  shift 19
+	DROLL  shift 20
+	$end  reduce 28
+
+	Program  goto 21
+	GlobalVariable  goto 22
+	ClassDeclaration  goto 23
+	CompilationUnitsOpt  goto 24
+	CompilationUnits  goto 25
+	CompilationUnit  goto 26
+	Function  goto 27
+	FunctionPrototype  goto 28
+	FunctionDefinition  goto 29
+	AssignmentExpression  goto 30
+	QualifiedName  goto 31
+	ClassHeader  goto 32
+	Assignable  goto 33
+	Assignment  goto 34
+	ConditionalOrExpression  goto 35
+	EqualityExpression  goto 36
+	RelationalExpression  goto 37
+	AdditiveExpression  goto 38
+	MultiplicativeExpression  goto 39
+	UnaryExpressionNotPlusMinus  goto 40
+	UnaryExpression  goto 41
+	PostFixExpression  goto 42
+	ArrayAccess  goto 43
+	MethodInvocation  goto 44
+	FieldAccess  goto 45
+	PrimaryNoNewArray  goto 46
+	Primary  goto 47
+	ConditionalAndExpression  goto 48
+	Literal  goto 49
+	BoolLiteral  goto 50
+	Type  goto 51
+	PrimitiveType  goto 52
+	ArrayType  goto 53
+	ListType  goto 54
+	TableType  goto 55
+
+
+state 1
+	PrimitiveType : BOOL .  (20)
+
+	.  reduce 20
+
+
+state 2
+	ClassHeader : CLASS . IDENT  (36)
+
+	IDENT  shift 56
+	.  error
+
+
+state 3
+	PrimitiveType : STRING .  (22)
+
+	.  reduce 22
+
+
+state 4
+	PrimitiveType : DOUBLE .  (21)
+
+	.  reduce 21
+
+
+state 5
+	PrimitiveType : INT .  (19)
+
+	.  reduce 19
+
+
+state 6
+	TableType : TABLE .  (16)
+	TableType : TABLE . LT PrimitiveType GT  (17)
+	TableType : TABLE . LT PrimitiveType CM PrimitiveType GT  (18)
+
+	LT  shift 57
+	IDENT  reduce 16
+	RP  reduce 16
+	CM  reduce 16
+
+
+state 7
+	ListType : LIST .  (14)
+	ListType : LIST . LT PrimitiveType GT  (15)
+
+	LT  shift 58
+	IDENT  reduce 14
+	RP  reduce 14
+	CM  reduce 14
+
+
+state 8
+	BoolLiteral : TRUE .  (200)
+
+	.  reduce 200
+
+
+state 9
+	BoolLiteral : FALSE .  (201)
+
+	.  reduce 201
+
+
+state 10
+	FunctionPrototype : VOID . IDENT LP TypeListOpt RP Semicolon  (61)
+	FunctionDefinition : VOID . IDENT LP FormalParameterListOpt RP FunctionBody  (69)
+
+	IDENT  shift 59
+	.  error
+
+
+11: reduce/reduce conflict (reduce 9, reduce 144) on IDENT
+11: shift/reduce conflict (shift 60, reduce 144) on LP
+state 11
+	Type : IDENT .  (9)
+	ArrayType : IDENT . LB RB  (25)
+	MethodInvocation : IDENT . LP ArgumentListOpt RP  (137)
+	ArrayAccess : IDENT . LB Expression RB  (140)
+	PostFixExpression : IDENT .  (144)
+	Assignable : IDENT .  (176)
+	QualifiedName : IDENT . DOT IDENT  (198)
+
+	LP  shift 60
+	LB  shift 61
+	DOT  shift 62
+	$end  reduce 144
+	BOOL  reduce 144
+	CLASS  reduce 144
+	STRING  reduce 144
+	DOUBLE  reduce 144
+	INT  reduce 144
+	TABLE  reduce 144
+	LIST  reduce 144
+	TRUE  reduce 144
+	FALSE  reduce 144
+	VOID  reduce 144
+	IDENT  reduce 9
+	NULLLITERAL  reduce 144
+	INTLITERAL  reduce 144
+	CHARLITERAL  reduce 144
+	FLOATLITERAL  reduce 144
+	STRINGLITERAL  reduce 144
+	ASN  reduce 176
+	LT  reduce 144
+	GT  reduce 144
+	BANG  reduce 144
+	EQ  reduce 144
+	NE  reduce 144
+	LE  reduce 144
+	GE  reduce 144
+	ANDAND  reduce 144
+	OROR  reduce 144
+	PLUS  reduce 144
+	MINUS  reduce 144
+	MUL  reduce 144
+	DIV  reduce 144
+	MOD  reduce 144
+	PLASN  reduce 176
+	MIASN  reduce 176
+	DROLL  reduce 144
+
+
+state 12
+	Literal : NULLLITERAL .  (209)
+
+	.  reduce 209
+
+
+state 13
+	Literal : INTLITERAL .  (204)
+
+	.  reduce 204
+
+
+state 14
+	Literal : CHARLITERAL .  (208)
+
+	.  reduce 208
+
+
+state 15
+	Literal : FLOATLITERAL .  (205)
+
+	.  reduce 205
+
+
+state 16
+	Literal : STRINGLITERAL .  (207)
+
+	.  reduce 207
+
+
+state 17
+	PrimaryNoNewArray : LP . Expression RP  (131)
+
+	TRUE  shift 8
+	FALSE  shift 9
+	IDENT  shift 63
+	NULLLITERAL  shift 12
+	INTLITERAL  shift 13
+	CHARLITERAL  shift 14
+	FLOATLITERAL  shift 15
+	STRINGLITERAL  shift 16
+	LP  shift 17
+	BANG  shift 18
+	MINUS  shift 19
+	DROLL  shift 20
+	.  error
+
+	AssignmentExpression  goto 64
+	QualifiedName  goto 65
+	Expression  goto 66
+	Assignable  goto 33
+	Assignment  goto 34
+	ConditionalOrExpression  goto 35
+	EqualityExpression  goto 36
+	RelationalExpression  goto 37
+	AdditiveExpression  goto 38
+	MultiplicativeExpression  goto 39
+	UnaryExpressionNotPlusMinus  goto 40
+	UnaryExpression  goto 41
+	PostFixExpression  goto 42
+	ArrayAccess  goto 43
+	MethodInvocation  goto 44
+	FieldAccess  goto 45
+	PrimaryNoNewArray  goto 46
+	Primary  goto 47
+	ConditionalAndExpression  goto 48
+	Literal  goto 49
+	BoolLiteral  goto 50
+
+
+state 18
+	UnaryExpressionNotPlusMinus : BANG . UnaryExpression  (148)
+
+	TRUE  shift 8
+	FALSE  shift 9
+	IDENT  shift 67
+	NULLLITERAL  shift 12
+	INTLITERAL  shift 13
+	CHARLITERAL  shift 14
+	FLOATLITERAL  shift 15
+	STRINGLITERAL  shift 16
+	LP  shift 17
+	BANG  shift 18
+	MINUS  shift 19
+	DROLL  shift 20
+	.  error
+
+	QualifiedName  goto 68
+	UnaryExpressionNotPlusMinus  goto 40
+	UnaryExpression  goto 69
+	PostFixExpression  goto 42
+	ArrayAccess  goto 70
+	MethodInvocation  goto 44
+	FieldAccess  goto 71
+	PrimaryNoNewArray  goto 46
+	Primary  goto 47
+	Literal  goto 49
+	BoolLiteral  goto 50
+
+
+state 19
+	UnaryExpression : MINUS . UnaryExpression  (145)
+
+	TRUE  shift 8
+	FALSE  shift 9
+	IDENT  shift 67
+	NULLLITERAL  shift 12
+	INTLITERAL  shift 13
+	CHARLITERAL  shift 14
+	FLOATLITERAL  shift 15
+	STRINGLITERAL  shift 16
+	LP  shift 17
+	BANG  shift 18
+	MINUS  shift 19
+	DROLL  shift 20
+	.  error
+
+	QualifiedName  goto 68
+	UnaryExpressionNotPlusMinus  goto 40
+	UnaryExpression  goto 72
+	PostFixExpression  goto 42
+	ArrayAccess  goto 70
+	MethodInvocation  goto 44
+	FieldAccess  goto 71
+	PrimaryNoNewArray  goto 46
+	Primary  goto 47
+	Literal  goto 49
+	BoolLiteral  goto 50
+
+
+state 20
+	UnaryExpressionNotPlusMinus : DROLL . UnaryExpression  (149)
+
+	TRUE  shift 8
+	FALSE  shift 9
+	IDENT  shift 67
+	NULLLITERAL  shift 12
+	INTLITERAL  shift 13
+	CHARLITERAL  shift 14
+	FLOATLITERAL  shift 15
+	STRINGLITERAL  shift 16
+	LP  shift 17
+	BANG  shift 18
+	MINUS  shift 19
+	DROLL  shift 20
+	.  error
+
+	QualifiedName  goto 68
+	UnaryExpressionNotPlusMinus  goto 40
+	UnaryExpression  goto 73
+	PostFixExpression  goto 42
+	ArrayAccess  goto 70
+	MethodInvocation  goto 44
+	FieldAccess  goto 71
+	PrimaryNoNewArray  goto 46
+	Primary  goto 47
+	Literal  goto 49
+	BoolLiteral  goto 50
+
+
+state 21
+	$accept : Program . $end  (0)
+
+	$end  accept
+
+
+state 22
+	CompilationUnit : GlobalVariable .  (34)
+
+	.  reduce 34
+
+
+state 23
+	CompilationUnit : ClassDeclaration .  (31)
+
+	.  reduce 31
+
+
+state 24
+	Program : CompilationUnitsOpt .  (1)
+
+	.  reduce 1
+
+
+state 25
+	CompilationUnitsOpt : CompilationUnits .  (27)
+	CompilationUnits : CompilationUnits . CompilationUnit  (30)
+
+	BOOL  shift 1
+	CLASS  shift 2
+	STRING  shift 3
+	DOUBLE  shift 4
+	INT  shift 5
+	TABLE  shift 6
+	LIST  shift 7
+	TRUE  shift 8
+	FALSE  shift 9
+	VOID  shift 10
+	IDENT  shift 11
+	NULLLITERAL  shift 12
+	INTLITERAL  shift 13
+	CHARLITERAL  shift 14
+	FLOATLITERAL  shift 15
+	STRINGLITERAL  shift 16
+	LP  shift 17
+	BANG  shift 18
+	MINUS  shift 19
+	DROLL  shift 20
+	$end  reduce 27
+
+	GlobalVariable  goto 22
+	ClassDeclaration  goto 23
+	CompilationUnit  goto 74
+	Function  goto 27
+	FunctionPrototype  goto 28
+	FunctionDefinition  goto 29
+	AssignmentExpression  goto 30
+	QualifiedName  goto 31
+	ClassHeader  goto 32
+	Assignable  goto 33
+	Assignment  goto 34
+	ConditionalOrExpression  goto 35
+	EqualityExpression  goto 36
+	RelationalExpression  goto 37
+	AdditiveExpression  goto 38
+	MultiplicativeExpression  goto 39
+	UnaryExpressionNotPlusMinus  goto 40
+	UnaryExpression  goto 41
+	PostFixExpression  goto 42
+	ArrayAccess  goto 43
+	MethodInvocation  goto 44
+	FieldAccess  goto 45
+	PrimaryNoNewArray  goto 46
+	Primary  goto 47
+	ConditionalAndExpression  goto 48
+	Literal  goto 49
+	BoolLiteral  goto 50
+	Type  goto 51
+	PrimitiveType  goto 52
+	ArrayType  goto 53
+	ListType  goto 54
+	TableType  goto 55
+
+
+state 26
+	CompilationUnits : CompilationUnit .  (29)
+
+	.  reduce 29
+
+
+state 27
+	CompilationUnit : Function .  (32)
+
+	.  reduce 32
+
+
+state 28
+	Function : FunctionPrototype .  (58)
+
+	.  reduce 58
+
+
+state 29
+	Function : FunctionDefinition .  (59)
+
+	.  reduce 59
+
+
+state 30
+	CompilationUnit : AssignmentExpression .  (33)
+
+	.  reduce 33
+
+
+31: shift/reduce conflict (shift 75, reduce 143) on LP
+state 31
+	ArrayType : QualifiedName . LB RB  (24)
+	MethodInvocation : QualifiedName . LP ArgumentListOpt RP  (136)
+	ArrayAccess : QualifiedName . LB Expression RB  (139)
+	PostFixExpression : QualifiedName .  (143)
+	Assignable : QualifiedName .  (175)
+	QualifiedName : QualifiedName . DOT IDENT  (199)
+
+	LP  shift 75
+	LB  shift 76
+	DOT  shift 77
+	$end  reduce 143
+	BOOL  reduce 143
+	CLASS  reduce 143
+	STRING  reduce 143
+	DOUBLE  reduce 143
+	INT  reduce 143
+	TABLE  reduce 143
+	LIST  reduce 143
+	TRUE  reduce 143
+	FALSE  reduce 143
+	VOID  reduce 143
+	IDENT  reduce 143
+	NULLLITERAL  reduce 143
+	INTLITERAL  reduce 143
+	CHARLITERAL  reduce 143
+	FLOATLITERAL  reduce 143
+	STRINGLITERAL  reduce 143
+	ASN  reduce 175
+	LT  reduce 143
+	GT  reduce 143
+	BANG  reduce 143
+	EQ  reduce 143
+	NE  reduce 143
+	LE  reduce 143
+	GE  reduce 143
+	ANDAND  reduce 143
+	OROR  reduce 143
+	PLUS  reduce 143
+	MINUS  reduce 143
+	MUL  reduce 143
+	DIV  reduce 143
+	MOD  reduce 143
+	PLASN  reduce 175
+	MIASN  reduce 175
+	DROLL  reduce 143
+
+
+state 32
+	ClassDeclaration : ClassHeader . ClassBlock  (35)
+
+	LC  shift 78
+	.  error
+
+	ClassBlock  goto 79
+
+
+state 33
+	Assignment : Assignable . AssignmentOperator ConditionalOrExpression  (174)
+
+	ASN  shift 80
+	PLASN  shift 81
+	MIASN  shift 82
+	.  error
+
+	AssignmentOperator  goto 83
+
+
+state 34
+	AssignmentExpression : Assignment .  (171)
+
+	.  reduce 171
+
+
+state 35
+	ConditionalOrExpression : ConditionalOrExpression . OROR ConditionalAndExpression  (169)
+	AssignmentExpression : ConditionalOrExpression .  (170)
+
+	OROR  shift 84
+	$end  reduce 170
+	BOOL  reduce 170
+	BREAK  reduce 170
+	CLASS  reduce 170
+	STRING  reduce 170
+	DOUBLE  reduce 170
+	ELSE  reduce 170
+	FOR  reduce 170
+	IF  reduce 170
+	INT  reduce 170
+	RETURN  reduce 170
+	TABLE  reduce 170
+	LIST  reduce 170
+	TRUE  reduce 170
+	FALSE  reduce 170
+	VOID  reduce 170
+	WHILE  reduce 170
+	IDENT  reduce 170
+	NULLLITERAL  reduce 170
+	INTLITERAL  reduce 170
+	CHARLITERAL  reduce 170
+	FLOATLITERAL  reduce 170
+	STRINGLITERAL  reduce 170
+	LP  reduce 170
+	RP  reduce 170
+	LC  reduce 170
+	RC  reduce 170
+	RB  reduce 170
+	SM  reduce 170
+	CM  reduce 170
+	BANG  reduce 170
+	MINUS  reduce 170
+	DROLL  reduce 170
+
+
+state 36
+	EqualityExpression : EqualityExpression . EQ RelationalExpression  (164)
+	EqualityExpression : EqualityExpression . NE RelationalExpression  (165)
+	ConditionalAndExpression : EqualityExpression .  (166)
+
+	EQ  shift 85
+	NE  shift 86
+	$end  reduce 166
+	BOOL  reduce 166
+	BREAK  reduce 166
+	CLASS  reduce 166
+	STRING  reduce 166
+	DOUBLE  reduce 166
+	ELSE  reduce 166
+	FOR  reduce 166
+	IF  reduce 166
+	INT  reduce 166
+	RETURN  reduce 166
+	TABLE  reduce 166
+	LIST  reduce 166
+	TRUE  reduce 166
+	FALSE  reduce 166
+	VOID  reduce 166
+	WHILE  reduce 166
+	IDENT  reduce 166
+	NULLLITERAL  reduce 166
+	INTLITERAL  reduce 166
+	CHARLITERAL  reduce 166
+	FLOATLITERAL  reduce 166
+	STRINGLITERAL  reduce 166
+	LP  reduce 166
+	RP  reduce 166
+	LC  reduce 166
+	RC  reduce 166
+	RB  reduce 166
+	SM  reduce 166
+	CM  reduce 166
+	BANG  reduce 166
+	ANDAND  reduce 166
+	OROR  reduce 166
+	MINUS  reduce 166
+	DROLL  reduce 166
+
+
+state 37
+	RelationalExpression : RelationalExpression . LT AdditiveExpression  (159)
+	RelationalExpression : RelationalExpression . LE AdditiveExpression  (160)
+	RelationalExpression : RelationalExpression . GT AdditiveExpression  (161)
+	RelationalExpression : RelationalExpression . GE AdditiveExpression  (162)
+	EqualityExpression : RelationalExpression .  (163)
+
+	LT  shift 87
+	GT  shift 88
+	LE  shift 89
+	GE  shift 90
+	$end  reduce 163
+	BOOL  reduce 163
+	BREAK  reduce 163
+	CLASS  reduce 163
+	STRING  reduce 163
+	DOUBLE  reduce 163
+	ELSE  reduce 163
+	FOR  reduce 163
+	IF  reduce 163
+	INT  reduce 163
+	RETURN  reduce 163
+	TABLE  reduce 163
+	LIST  reduce 163
+	TRUE  reduce 163
+	FALSE  reduce 163
+	VOID  reduce 163
+	WHILE  reduce 163
+	IDENT  reduce 163
+	NULLLITERAL  reduce 163
+	INTLITERAL  reduce 163
+	CHARLITERAL  reduce 163
+	FLOATLITERAL  reduce 163
+	STRINGLITERAL  reduce 163
+	LP  reduce 163
+	RP  reduce 163
+	LC  reduce 163
+	RC  reduce 163
+	RB  reduce 163
+	SM  reduce 163
+	CM  reduce 163
+	BANG  reduce 163
+	EQ  reduce 163
+	NE  reduce 163
+	ANDAND  reduce 163
+	OROR  reduce 163
+	MINUS  reduce 163
+	DROLL  reduce 163
+
+
+38: shift/reduce conflict (shift 92, reduce 158) on MINUS
+state 38
+	AdditiveExpression : AdditiveExpression . PLUS MultiplicativeExpression  (156)
+	AdditiveExpression : AdditiveExpression . MINUS MultiplicativeExpression  (157)
+	RelationalExpression : AdditiveExpression .  (158)
+
+	PLUS  shift 91
+	MINUS  shift 92
+	$end  reduce 158
+	BOOL  reduce 158
+	BREAK  reduce 158
+	CLASS  reduce 158
+	STRING  reduce 158
+	DOUBLE  reduce 158
+	ELSE  reduce 158
+	FOR  reduce 158
+	IF  reduce 158
+	INT  reduce 158
+	RETURN  reduce 158
+	TABLE  reduce 158
+	LIST  reduce 158
+	TRUE  reduce 158
+	FALSE  reduce 158
+	VOID  reduce 158
+	WHILE  reduce 158
+	IDENT  reduce 158
+	NULLLITERAL  reduce 158
+	INTLITERAL  reduce 158
+	CHARLITERAL  reduce 158
+	FLOATLITERAL  reduce 158
+	STRINGLITERAL  reduce 158
+	LP  reduce 158
+	RP  reduce 158
+	LC  reduce 158
+	RC  reduce 158
+	RB  reduce 158
+	SM  reduce 158
+	CM  reduce 158
+	LT  reduce 158
+	GT  reduce 158
+	BANG  reduce 158
+	EQ  reduce 158
+	NE  reduce 158
+	LE  reduce 158
+	GE  reduce 158
+	ANDAND  reduce 158
+	OROR  reduce 158
+	DROLL  reduce 158
+
+
+39: shift/reduce conflict (shift 96, reduce 155) on DROLL
+state 39
+	MultiplicativeExpression : MultiplicativeExpression . MUL UnaryExpression  (151)
+	MultiplicativeExpression : MultiplicativeExpression . DIV UnaryExpression  (152)
+	MultiplicativeExpression : MultiplicativeExpression . MOD UnaryExpression  (153)
+	MultiplicativeExpression : MultiplicativeExpression . DROLL UnaryExpression  (154)
+	AdditiveExpression : MultiplicativeExpression .  (155)
+
+	MUL  shift 93
+	DIV  shift 94
+	MOD  shift 95
+	DROLL  shift 96
+	$end  reduce 155
+	BOOL  reduce 155
+	BREAK  reduce 155
+	CLASS  reduce 155
+	STRING  reduce 155
+	DOUBLE  reduce 155
+	ELSE  reduce 155
+	FOR  reduce 155
+	IF  reduce 155
+	INT  reduce 155
+	RETURN  reduce 155
+	TABLE  reduce 155
+	LIST  reduce 155
+	TRUE  reduce 155
+	FALSE  reduce 155
+	VOID  reduce 155
+	WHILE  reduce 155
+	IDENT  reduce 155
+	NULLLITERAL  reduce 155
+	INTLITERAL  reduce 155
+	CHARLITERAL  reduce 155
+	FLOATLITERAL  reduce 155
+	STRINGLITERAL  reduce 155
+	LP  reduce 155
+	RP  reduce 155
+	LC  reduce 155
+	RC  reduce 155
+	RB  reduce 155
+	SM  reduce 155
+	CM  reduce 155
+	LT  reduce 155
+	GT  reduce 155
+	BANG  reduce 155
+	EQ  reduce 155
+	NE  reduce 155
+	LE  reduce 155
+	GE  reduce 155
+	ANDAND  reduce 155
+	OROR  reduce 155
+	PLUS  reduce 155
+	MINUS  reduce 155
+
+
+state 40
+	UnaryExpression : UnaryExpressionNotPlusMinus .  (146)
+
+	.  reduce 146
+
+
+state 41
+	MultiplicativeExpression : UnaryExpression .  (150)
+
+	.  reduce 150
+
+
+state 42
+	UnaryExpressionNotPlusMinus : PostFixExpression .  (147)
+
+	.  reduce 147
+
+
+state 43
+	PrimaryNoNewArray : ArrayAccess .  (134)
+	Assignable : ArrayAccess .  (178)
+
+	$end  reduce 134
+	BOOL  reduce 134
+	BREAK  reduce 134
+	CLASS  reduce 134
+	STRING  reduce 134
+	DOUBLE  reduce 134
+	ELSE  reduce 134
+	FOR  reduce 134
+	IF  reduce 134
+	INT  reduce 134
+	RETURN  reduce 134
+	TABLE  reduce 134
+	LIST  reduce 134
+	TRUE  reduce 134
+	FALSE  reduce 134
+	VOID  reduce 134
+	WHILE  reduce 134
+	IDENT  reduce 134
+	NULLLITERAL  reduce 134
+	INTLITERAL  reduce 134
+	CHARLITERAL  reduce 134
+	FLOATLITERAL  reduce 134
+	STRINGLITERAL  reduce 134
+	LP  reduce 134
+	RP  reduce 134
+	LC  reduce 134
+	RC  reduce 134
+	LB  reduce 134
+	RB  reduce 134
+	SM  reduce 134
+	CM  reduce 134
+	DOT  reduce 134
+	ASN  reduce 178
+	LT  reduce 134
+	GT  reduce 134
+	BANG  reduce 134
+	EQ  reduce 134
+	NE  reduce 134
+	LE  reduce 134
+	GE  reduce 134
+	ANDAND  reduce 134
+	OROR  reduce 134
+	PLUS  reduce 134
+	MINUS  reduce 134
+	MUL  reduce 134
+	DIV  reduce 134
+	MOD  reduce 134
+	PLASN  reduce 178
+	MIASN  reduce 178
+	DROLL  reduce 134
+
+
+state 44
+	PrimaryNoNewArray : MethodInvocation .  (133)
+
+	.  reduce 133
+
+
+state 45
+	PrimaryNoNewArray : FieldAccess .  (132)
+	Assignable : FieldAccess .  (177)
+
+	$end  reduce 132
+	BOOL  reduce 132
+	BREAK  reduce 132
+	CLASS  reduce 132
+	STRING  reduce 132
+	DOUBLE  reduce 132
+	ELSE  reduce 132
+	FOR  reduce 132
+	IF  reduce 132
+	INT  reduce 132
+	RETURN  reduce 132
+	TABLE  reduce 132
+	LIST  reduce 132
+	TRUE  reduce 132
+	FALSE  reduce 132
+	VOID  reduce 132
+	WHILE  reduce 132
+	IDENT  reduce 132
+	NULLLITERAL  reduce 132
+	INTLITERAL  reduce 132
+	CHARLITERAL  reduce 132
+	FLOATLITERAL  reduce 132
+	STRINGLITERAL  reduce 132
+	LP  reduce 132
+	RP  reduce 132
+	LC  reduce 132
+	RC  reduce 132
+	LB  reduce 132
+	RB  reduce 132
+	SM  reduce 132
+	CM  reduce 132
+	DOT  reduce 132
+	ASN  reduce 177
+	LT  reduce 132
+	GT  reduce 132
+	BANG  reduce 132
+	EQ  reduce 132
+	NE  reduce 132
+	LE  reduce 132
+	GE  reduce 132
+	ANDAND  reduce 132
+	OROR  reduce 132
+	PLUS  reduce 132
+	MINUS  reduce 132
+	MUL  reduce 132
+	DIV  reduce 132
+	MOD  reduce 132
+	PLASN  reduce 177
+	MIASN  reduce 177
+	DROLL  reduce 132
+
+
+state 46
+	Primary : PrimaryNoNewArray .  (129)
+	ArrayAccess : PrimaryNoNewArray . LB Expression RB  (141)
+
+	LB  shift 97
+	$end  reduce 129
+	BOOL  reduce 129
+	BREAK  reduce 129
+	CLASS  reduce 129
+	STRING  reduce 129
+	DOUBLE  reduce 129
+	ELSE  reduce 129
+	FOR  reduce 129
+	IF  reduce 129
+	INT  reduce 129
+	RETURN  reduce 129
+	TABLE  reduce 129
+	LIST  reduce 129
+	TRUE  reduce 129
+	FALSE  reduce 129
+	VOID  reduce 129
+	WHILE  reduce 129
+	IDENT  reduce 129
+	NULLLITERAL  reduce 129
+	INTLITERAL  reduce 129
+	CHARLITERAL  reduce 129
+	FLOATLITERAL  reduce 129
+	STRINGLITERAL  reduce 129
+	LP  reduce 129
+	RP  reduce 129
+	LC  reduce 129
+	RC  reduce 129
+	RB  reduce 129
+	SM  reduce 129
+	CM  reduce 129
+	DOT  reduce 129
+	LT  reduce 129
+	GT  reduce 129
+	BANG  reduce 129
+	EQ  reduce 129
+	NE  reduce 129
+	LE  reduce 129
+	GE  reduce 129
+	ANDAND  reduce 129
+	OROR  reduce 129
+	PLUS  reduce 129
+	MINUS  reduce 129
+	MUL  reduce 129
+	DIV  reduce 129
+	MOD  reduce 129
+	DROLL  reduce 129
+
+
+state 47
+	FieldAccess : Primary . DOT IDENT  (135)
+	MethodInvocation : Primary . DOT IDENT LP ArgumentListOpt RP  (138)
+	PostFixExpression : Primary .  (142)
+
+	DOT  shift 98
+	$end  reduce 142
+	BOOL  reduce 142
+	BREAK  reduce 142
+	CLASS  reduce 142
+	STRING  reduce 142
+	DOUBLE  reduce 142
+	ELSE  reduce 142
+	FOR  reduce 142
+	IF  reduce 142
+	INT  reduce 142
+	RETURN  reduce 142
+	TABLE  reduce 142
+	LIST  reduce 142
+	TRUE  reduce 142
+	FALSE  reduce 142
+	VOID  reduce 142
+	WHILE  reduce 142
+	IDENT  reduce 142
+	NULLLITERAL  reduce 142
+	INTLITERAL  reduce 142
+	CHARLITERAL  reduce 142
+	FLOATLITERAL  reduce 142
+	STRINGLITERAL  reduce 142
+	LP  reduce 142
+	RP  reduce 142
+	LC  reduce 142
+	RC  reduce 142
+	RB  reduce 142
+	SM  reduce 142
+	CM  reduce 142
+	LT  reduce 142
+	GT  reduce 142
+	BANG  reduce 142
+	EQ  reduce 142
+	NE  reduce 142
+	LE  reduce 142
+	GE  reduce 142
+	ANDAND  reduce 142
+	OROR  reduce 142
+	PLUS  reduce 142
+	MINUS  reduce 142
+	MUL  reduce 142
+	DIV  reduce 142
+	MOD  reduce 142
+	DROLL  reduce 142
+
+
+state 48
+	ConditionalAndExpression : ConditionalAndExpression . ANDAND EqualityExpression  (167)
+	ConditionalOrExpression : ConditionalAndExpression .  (168)
+
+	ANDAND  shift 99
+	$end  reduce 168
+	BOOL  reduce 168
+	BREAK  reduce 168
+	CLASS  reduce 168
+	STRING  reduce 168
+	DOUBLE  reduce 168
+	ELSE  reduce 168
+	FOR  reduce 168
+	IF  reduce 168
+	INT  reduce 168
+	RETURN  reduce 168
+	TABLE  reduce 168
+	LIST  reduce 168
+	TRUE  reduce 168
+	FALSE  reduce 168
+	VOID  reduce 168
+	WHILE  reduce 168
+	IDENT  reduce 168
+	NULLLITERAL  reduce 168
+	INTLITERAL  reduce 168
+	CHARLITERAL  reduce 168
+	FLOATLITERAL  reduce 168
+	STRINGLITERAL  reduce 168
+	LP  reduce 168
+	RP  reduce 168
+	LC  reduce 168
+	RC  reduce 168
+	RB  reduce 168
+	SM  reduce 168
+	CM  reduce 168
+	BANG  reduce 168
+	OROR  reduce 168
+	MINUS  reduce 168
+	DROLL  reduce 168
+
+
+state 49
+	PrimaryNoNewArray : Literal .  (130)
+
+	.  reduce 130
+
+
+state 50
+	Literal : BoolLiteral .  (206)
+
+	.  reduce 206
+
+
+state 51
+	GlobalVariable : Type . VariableDeclaratorList Semicolon  (6)
+	FunctionPrototype : Type . IDENT LP TypeListOpt RP Semicolon  (60)
+	FunctionDefinition : Type . IDENT LP FormalParameterListOpt RP FunctionBody  (68)
+
+	IDENT  shift 100
+	.  error
+
+	VariableDeclaratorList  goto 101
+	VariableDeclaratorId  goto 102
+
+
+state 52
+	Type : PrimitiveType .  (11)
+	ArrayType : PrimitiveType . LB RB  (23)
+
+	LB  shift 103
+	IDENT  reduce 11
+	RP  reduce 11
+	CM  reduce 11
+
+
+state 53
+	Type : ArrayType .  (10)
+	ArrayType : ArrayType . LB RB  (26)
+
+	LB  shift 104
+	IDENT  reduce 10
+	RP  reduce 10
+	CM  reduce 10
+
+
+state 54
+	Type : ListType .  (12)
+
+	.  reduce 12
+
+
+state 55
+	Type : TableType .  (13)
+
+	.  reduce 13
+
+
+state 56
+	ClassHeader : CLASS IDENT .  (36)
+
+	.  reduce 36
+
+
+state 57
+	TableType : TABLE LT . PrimitiveType GT  (17)
+	TableType : TABLE LT . PrimitiveType CM PrimitiveType GT  (18)
+
+	BOOL  shift 1
+	STRING  shift 3
+	DOUBLE  shift 4
+	INT  shift 5
+	.  error
+
+	PrimitiveType  goto 105
+
+
+state 58
+	ListType : LIST LT . PrimitiveType GT  (15)
+
+	BOOL  shift 1
+	STRING  shift 3
+	DOUBLE  shift 4
+	INT  shift 5
+	.  error
+
+	PrimitiveType  goto 106
+
+
+state 59
+	FunctionPrototype : VOID IDENT . LP TypeListOpt RP Semicolon  (61)
+	FunctionDefinition : VOID IDENT . LP FormalParameterListOpt RP FunctionBody  (69)
+
+	LP  shift 107
+	.  error
+
+
+state 60
+	MethodInvocation : IDENT LP . ArgumentListOpt RP  (137)
+	ArgumentListOpt : .  (126)
+
+	TRUE  shift 8
+	FALSE  shift 9
+	IDENT  shift 63
+	NULLLITERAL  shift 12
+	INTLITERAL  shift 13
+	CHARLITERAL  shift 14
+	FLOATLITERAL  shift 15
+	STRINGLITERAL  shift 16
+	LP  shift 17
+	BANG  shift 18
+	MINUS  shift 19
+	DROLL  shift 20
+	RP  reduce 126
+
+	AssignmentExpression  goto 64
+	QualifiedName  goto 65
+	Expression  goto 108
+	Assignable  goto 33
+	Assignment  goto 34
+	ConditionalOrExpression  goto 35
+	EqualityExpression  goto 36
+	RelationalExpression  goto 37
+	AdditiveExpression  goto 38
+	MultiplicativeExpression  goto 39
+	UnaryExpressionNotPlusMinus  goto 40
+	UnaryExpression  goto 41
+	PostFixExpression  goto 42
+	ArrayAccess  goto 43
+	MethodInvocation  goto 44
+	FieldAccess  goto 45
+	PrimaryNoNewArray  goto 46
+	Primary  goto 47
+	ArgumentList  goto 109
+	ArgumentListOpt  goto 110
+	ConditionalAndExpression  goto 48
+	Literal  goto 49
+	BoolLiteral  goto 50
+
+
+state 61
+	ArrayType : IDENT LB . RB  (25)
+	ArrayAccess : IDENT LB . Expression RB  (140)
+
+	TRUE  shift 8
+	FALSE  shift 9
+	IDENT  shift 63
+	NULLLITERAL  shift 12
+	INTLITERAL  shift 13
+	CHARLITERAL  shift 14
+	FLOATLITERAL  shift 15
+	STRINGLITERAL  shift 16
+	LP  shift 17
+	RB  shift 111
+	BANG  shift 18
+	MINUS  shift 19
+	DROLL  shift 20
+	.  error
+
+	AssignmentExpression  goto 64
+	QualifiedName  goto 65
+	Expression  goto 112
+	Assignable  goto 33
+	Assignment  goto 34
+	ConditionalOrExpression  goto 35
+	EqualityExpression  goto 36
+	RelationalExpression  goto 37
+	AdditiveExpression  goto 38
+	MultiplicativeExpression  goto 39
+	UnaryExpressionNotPlusMinus  goto 40
+	UnaryExpression  goto 41
+	PostFixExpression  goto 42
+	ArrayAccess  goto 43
+	MethodInvocation  goto 44
+	FieldAccess  goto 45
+	PrimaryNoNewArray  goto 46
+	Primary  goto 47
+	ConditionalAndExpression  goto 48
+	Literal  goto 49
+	BoolLiteral  goto 50
+
+
+state 62
+	QualifiedName : IDENT DOT . IDENT  (198)
+
+	IDENT  shift 113
+	.  error
+
+
+63: shift/reduce conflict (shift 60, reduce 144) on LP
+state 63
+	MethodInvocation : IDENT . LP ArgumentListOpt RP  (137)
+	ArrayAccess : IDENT . LB Expression RB  (140)
+	PostFixExpression : IDENT .  (144)
+	Assignable : IDENT .  (176)
+	QualifiedName : IDENT . DOT IDENT  (198)
+
+	LP  shift 60
+	LB  shift 114
+	DOT  shift 62
+	BOOL  reduce 144
+	BREAK  reduce 144
+	STRING  reduce 144
+	DOUBLE  reduce 144
+	ELSE  reduce 144
+	FOR  reduce 144
+	IF  reduce 144
+	INT  reduce 144
+	RETURN  reduce 144
+	TABLE  reduce 144
+	LIST  reduce 144
+	TRUE  reduce 144
+	FALSE  reduce 144
+	WHILE  reduce 144
+	IDENT  reduce 144
+	NULLLITERAL  reduce 144
+	INTLITERAL  reduce 144
+	CHARLITERAL  reduce 144
+	FLOATLITERAL  reduce 144
+	STRINGLITERAL  reduce 144
+	RP  reduce 144
+	LC  reduce 144
+	RC  reduce 144
+	RB  reduce 144
+	SM  reduce 144
+	CM  reduce 144
+	ASN  reduce 176
+	LT  reduce 144
+	GT  reduce 144
+	EQ  reduce 144
+	NE  reduce 144
+	LE  reduce 144
+	GE  reduce 144
+	ANDAND  reduce 144
+	OROR  reduce 144
+	PLUS  reduce 144
+	MINUS  reduce 144
+	MUL  reduce 144
+	DIV  reduce 144
+	MOD  reduce 144
+	PLASN  reduce 176
+	MIASN  reduce 176
+	DROLL  reduce 144
+
+
+state 64
+	Expression : AssignmentExpression .  (182)
+
+	.  reduce 182
+
+
+65: shift/reduce conflict (shift 75, reduce 143) on LP
+state 65
+	MethodInvocation : QualifiedName . LP ArgumentListOpt RP  (136)
+	ArrayAccess : QualifiedName . LB Expression RB  (139)
+	PostFixExpression : QualifiedName .  (143)
+	Assignable : QualifiedName .  (175)
+	QualifiedName : QualifiedName . DOT IDENT  (199)
+
+	LP  shift 75
+	LB  shift 115
+	DOT  shift 77
+	BOOL  reduce 143
+	BREAK  reduce 143
+	STRING  reduce 143
+	DOUBLE  reduce 143
+	ELSE  reduce 143
+	FOR  reduce 143
+	IF  reduce 143
+	INT  reduce 143
+	RETURN  reduce 143
+	TABLE  reduce 143
+	LIST  reduce 143
+	TRUE  reduce 143
+	FALSE  reduce 143
+	WHILE  reduce 143
+	IDENT  reduce 143
+	NULLLITERAL  reduce 143
+	INTLITERAL  reduce 143
+	CHARLITERAL  reduce 143
+	FLOATLITERAL  reduce 143
+	STRINGLITERAL  reduce 143
+	RP  reduce 143
+	LC  reduce 143
+	RC  reduce 143
+	RB  reduce 143
+	SM  reduce 143
+	CM  reduce 143
+	ASN  reduce 175
+	LT  reduce 143
+	GT  reduce 143
+	EQ  reduce 143
+	NE  reduce 143
+	LE  reduce 143
+	GE  reduce 143
+	ANDAND  reduce 143
+	OROR  reduce 143
+	PLUS  reduce 143
+	MINUS  reduce 143
+	MUL  reduce 143
+	DIV  reduce 143
+	MOD  reduce 143
+	PLASN  reduce 175
+	MIASN  reduce 175
+	DROLL  reduce 143
+
+
+state 66
+	PrimaryNoNewArray : LP Expression . RP  (131)
+
+	RP  shift 116
+	.  error
+
+
+67: shift/reduce conflict (shift 60, reduce 144) on LP
+state 67
+	MethodInvocation : IDENT . LP ArgumentListOpt RP  (137)
+	ArrayAccess : IDENT . LB Expression RB  (140)
+	PostFixExpression : IDENT .  (144)
+	QualifiedName : IDENT . DOT IDENT  (198)
+
+	LP  shift 60
+	LB  shift 114
+	DOT  shift 62
+	$end  reduce 144
+	BOOL  reduce 144
+	BREAK  reduce 144
+	CLASS  reduce 144
+	STRING  reduce 144
+	DOUBLE  reduce 144
+	ELSE  reduce 144
+	FOR  reduce 144
+	IF  reduce 144
+	INT  reduce 144
+	RETURN  reduce 144
+	TABLE  reduce 144
+	LIST  reduce 144
+	TRUE  reduce 144
+	FALSE  reduce 144
+	VOID  reduce 144
+	WHILE  reduce 144
+	IDENT  reduce 144
+	NULLLITERAL  reduce 144
+	INTLITERAL  reduce 144
+	CHARLITERAL  reduce 144
+	FLOATLITERAL  reduce 144
+	STRINGLITERAL  reduce 144
+	RP  reduce 144
+	LC  reduce 144
+	RC  reduce 144
+	RB  reduce 144
+	SM  reduce 144
+	CM  reduce 144
+	LT  reduce 144
+	GT  reduce 144
+	BANG  reduce 144
+	EQ  reduce 144
+	NE  reduce 144
+	LE  reduce 144
+	GE  reduce 144
+	ANDAND  reduce 144
+	OROR  reduce 144
+	PLUS  reduce 144
+	MINUS  reduce 144
+	MUL  reduce 144
+	DIV  reduce 144
+	MOD  reduce 144
+	DROLL  reduce 144
+
+
+68: shift/reduce conflict (shift 75, reduce 143) on LP
+state 68
+	MethodInvocation : QualifiedName . LP ArgumentListOpt RP  (136)
+	ArrayAccess : QualifiedName . LB Expression RB  (139)
+	PostFixExpression : QualifiedName .  (143)
+	QualifiedName : QualifiedName . DOT IDENT  (199)
+
+	LP  shift 75
+	LB  shift 115
+	DOT  shift 77
+	$end  reduce 143
+	BOOL  reduce 143
+	BREAK  reduce 143
+	CLASS  reduce 143
+	STRING  reduce 143
+	DOUBLE  reduce 143
+	ELSE  reduce 143
+	FOR  reduce 143
+	IF  reduce 143
+	INT  reduce 143
+	RETURN  reduce 143
+	TABLE  reduce 143
+	LIST  reduce 143
+	TRUE  reduce 143
+	FALSE  reduce 143
+	VOID  reduce 143
+	WHILE  reduce 143
+	IDENT  reduce 143
+	NULLLITERAL  reduce 143
+	INTLITERAL  reduce 143
+	CHARLITERAL  reduce 143
+	FLOATLITERAL  reduce 143
+	STRINGLITERAL  reduce 143
+	RP  reduce 143
+	LC  reduce 143
+	RC  reduce 143
+	RB  reduce 143
+	SM  reduce 143
+	CM  reduce 143
+	LT  reduce 143
+	GT  reduce 143
+	BANG  reduce 143
+	EQ  reduce 143
+	NE  reduce 143
+	LE  reduce 143
+	GE  reduce 143
+	ANDAND  reduce 143
+	OROR  reduce 143
+	PLUS  reduce 143
+	MINUS  reduce 143
+	MUL  reduce 143
+	DIV  reduce 143
+	MOD  reduce 143
+	DROLL  reduce 143
+
+
+state 69
+	UnaryExpressionNotPlusMinus : BANG UnaryExpression .  (148)
+
+	.  reduce 148
+
+
+state 70
+	PrimaryNoNewArray : ArrayAccess .  (134)
+
+	.  reduce 134
+
+
+state 71
+	PrimaryNoNewArray : FieldAccess .  (132)
+
+	.  reduce 132
+
+
+state 72
+	UnaryExpression : MINUS UnaryExpression .  (145)
+
+	.  reduce 145
+
+
+state 73
+	UnaryExpressionNotPlusMinus : DROLL UnaryExpression .  (149)
+
+	.  reduce 149
+
+
+state 74
+	CompilationUnits : CompilationUnits CompilationUnit .  (30)
+
+	.  reduce 30
+
+
+state 75
+	MethodInvocation : QualifiedName LP . ArgumentListOpt RP  (136)
+	ArgumentListOpt : .  (126)
+
+	TRUE  shift 8
+	FALSE  shift 9
+	IDENT  shift 63
+	NULLLITERAL  shift 12
+	INTLITERAL  shift 13
+	CHARLITERAL  shift 14
+	FLOATLITERAL  shift 15
+	STRINGLITERAL  shift 16
+	LP  shift 17
+	BANG  shift 18
+	MINUS  shift 19
+	DROLL  shift 20
+	RP  reduce 126
+
+	AssignmentExpression  goto 64
+	QualifiedName  goto 65
+	Expression  goto 108
+	Assignable  goto 33
+	Assignment  goto 34
+	ConditionalOrExpression  goto 35
+	EqualityExpression  goto 36
+	RelationalExpression  goto 37
+	AdditiveExpression  goto 38
+	MultiplicativeExpression  goto 39
+	UnaryExpressionNotPlusMinus  goto 40
+	UnaryExpression  goto 41
+	PostFixExpression  goto 42
+	ArrayAccess  goto 43
+	MethodInvocation  goto 44
+	FieldAccess  goto 45
+	PrimaryNoNewArray  goto 46
+	Primary  goto 47
+	ArgumentList  goto 109
+	ArgumentListOpt  goto 117
+	ConditionalAndExpression  goto 48
+	Literal  goto 49
+	BoolLiteral  goto 50
+
+
+state 76
+	ArrayType : QualifiedName LB . RB  (24)
+	ArrayAccess : QualifiedName LB . Expression RB  (139)
+
+	TRUE  shift 8
+	FALSE  shift 9
+	IDENT  shift 63
+	NULLLITERAL  shift 12
+	INTLITERAL  shift 13
+	CHARLITERAL  shift 14
+	FLOATLITERAL  shift 15
+	STRINGLITERAL  shift 16
+	LP  shift 17
+	RB  shift 118
+	BANG  shift 18
+	MINUS  shift 19
+	DROLL  shift 20
+	.  error
+
+	AssignmentExpression  goto 64
+	QualifiedName  goto 65
+	Expression  goto 119
+	Assignable  goto 33
+	Assignment  goto 34
+	ConditionalOrExpression  goto 35
+	EqualityExpression  goto 36
+	RelationalExpression  goto 37
+	AdditiveExpression  goto 38
+	MultiplicativeExpression  goto 39
+	UnaryExpressionNotPlusMinus  goto 40
+	UnaryExpression  goto 41
+	PostFixExpression  goto 42
+	ArrayAccess  goto 43
+	MethodInvocation  goto 44
+	FieldAccess  goto 45
+	PrimaryNoNewArray  goto 46
+	Primary  goto 47
+	ConditionalAndExpression  goto 48
+	Literal  goto 49
+	BoolLiteral  goto 50
+
+
+state 77
+	QualifiedName : QualifiedName DOT . IDENT  (199)
+
+	IDENT  shift 120
+	.  error
+
+
+state 78
+	ClassBlock : LC . ClassBlockUnitListOpt RC  (37)
+	ClassBlockUnitListOpt : .  (44)
+
+	BOOL  shift 1
+	STRING  shift 3
+	DOUBLE  shift 4
+	INT  shift 5
+	TABLE  shift 6
+	LIST  shift 7
+	VOID  shift 121
+	IDENT  shift 122
+	RC  reduce 44
+
+	QualifiedName  goto 123
+	ClassVariable  goto 124
+	ClassBlockUnitList  goto 125
+	ClassBlockUnit  goto 126
+	MethodDeclaration  goto 127
+	ConstructorDeclaration  goto 128
+	ConstructorDeclarator  goto 129
+	MethodHeader  goto 130
+	ClassBlockUnitListOpt  goto 131
+	Type  goto 132
+	PrimitiveType  goto 52
+	ArrayType  goto 53
+	ListType  goto 54
+	TableType  goto 55
+
+
+state 79
+	ClassDeclaration : ClassHeader ClassBlock .  (35)
+
+	.  reduce 35
+
+
+state 80
+	AssignmentOperator : ASN .  (179)
+
+	.  reduce 179
+
+
+state 81
+	AssignmentOperator : PLASN .  (180)
+
+	.  reduce 180
+
+
+state 82
+	AssignmentOperator : MIASN .  (181)
+
+	.  reduce 181
+
+
+state 83
+	Assignment : Assignable AssignmentOperator . ConditionalOrExpression  (174)
+
+	TRUE  shift 8
+	FALSE  shift 9
+	IDENT  shift 67
+	NULLLITERAL  shift 12
+	INTLITERAL  shift 13
+	CHARLITERAL  shift 14
+	FLOATLITERAL  shift 15
+	STRINGLITERAL  shift 16
+	LP  shift 17
+	BANG  shift 18
+	MINUS  shift 19
+	DROLL  shift 20
+	.  error
+
+	QualifiedName  goto 68
+	ConditionalOrExpression  goto 133
+	EqualityExpression  goto 36
+	RelationalExpression  goto 37
+	AdditiveExpression  goto 38
+	MultiplicativeExpression  goto 39
+	UnaryExpressionNotPlusMinus  goto 40
+	UnaryExpression  goto 41
+	PostFixExpression  goto 42
+	ArrayAccess  goto 70
+	MethodInvocation  goto 44
+	FieldAccess  goto 71
+	PrimaryNoNewArray  goto 46
+	Primary  goto 47
+	ConditionalAndExpression  goto 48
+	Literal  goto 49
+	BoolLiteral  goto 50
+
+
+state 84
+	ConditionalOrExpression : ConditionalOrExpression OROR . ConditionalAndExpression  (169)
+
+	TRUE  shift 8
+	FALSE  shift 9
+	IDENT  shift 67
+	NULLLITERAL  shift 12
+	INTLITERAL  shift 13
+	CHARLITERAL  shift 14
+	FLOATLITERAL  shift 15
+	STRINGLITERAL  shift 16
+	LP  shift 17
+	BANG  shift 18
+	MINUS  shift 19
+	DROLL  shift 20
+	.  error
+
+	QualifiedName  goto 68
+	EqualityExpression  goto 36
+	RelationalExpression  goto 37
+	AdditiveExpression  goto 38
+	MultiplicativeExpression  goto 39
+	UnaryExpressionNotPlusMinus  goto 40
+	UnaryExpression  goto 41
+	PostFixExpression  goto 42
+	ArrayAccess  goto 70
+	MethodInvocation  goto 44
+	FieldAccess  goto 71
+	PrimaryNoNewArray  goto 46
+	Primary  goto 47
+	ConditionalAndExpression  goto 134
+	Literal  goto 49
+	BoolLiteral  goto 50
+
+
+state 85
+	EqualityExpression : EqualityExpression EQ . RelationalExpression  (164)
+
+	TRUE  shift 8
+	FALSE  shift 9
+	IDENT  shift 67
+	NULLLITERAL  shift 12
+	INTLITERAL  shift 13
+	CHARLITERAL  shift 14
+	FLOATLITERAL  shift 15
+	STRINGLITERAL  shift 16
+	LP  shift 17
+	BANG  shift 18
+	MINUS  shift 19
+	DROLL  shift 20
+	.  error
+
+	QualifiedName  goto 68
+	RelationalExpression  goto 135
+	AdditiveExpression  goto 38
+	MultiplicativeExpression  goto 39
+	UnaryExpressionNotPlusMinus  goto 40
+	UnaryExpression  goto 41
+	PostFixExpression  goto 42
+	ArrayAccess  goto 70
+	MethodInvocation  goto 44
+	FieldAccess  goto 71
+	PrimaryNoNewArray  goto 46
+	Primary  goto 47
+	Literal  goto 49
+	BoolLiteral  goto 50
+
+
+state 86
+	EqualityExpression : EqualityExpression NE . RelationalExpression  (165)
+
+	TRUE  shift 8
+	FALSE  shift 9
+	IDENT  shift 67
+	NULLLITERAL  shift 12
+	INTLITERAL  shift 13
+	CHARLITERAL  shift 14
+	FLOATLITERAL  shift 15
+	STRINGLITERAL  shift 16
+	LP  shift 17
+	BANG  shift 18
+	MINUS  shift 19
+	DROLL  shift 20
+	.  error
+
+	QualifiedName  goto 68
+	RelationalExpression  goto 136
+	AdditiveExpression  goto 38
+	MultiplicativeExpression  goto 39
+	UnaryExpressionNotPlusMinus  goto 40
+	UnaryExpression  goto 41
+	PostFixExpression  goto 42
+	ArrayAccess  goto 70
+	MethodInvocation  goto 44
+	FieldAccess  goto 71
+	PrimaryNoNewArray  goto 46
+	Primary  goto 47
+	Literal  goto 49
+	BoolLiteral  goto 50
+
+
+state 87
+	RelationalExpression : RelationalExpression LT . AdditiveExpression  (159)
+
+	TRUE  shift 8
+	FALSE  shift 9
+	IDENT  shift 67
+	NULLLITERAL  shift 12
+	INTLITERAL  shift 13
+	CHARLITERAL  shift 14
+	FLOATLITERAL  shift 15
+	STRINGLITERAL  shift 16
+	LP  shift 17
+	BANG  shift 18
+	MINUS  shift 19
+	DROLL  shift 20
+	.  error
+
+	QualifiedName  goto 68
+	AdditiveExpression  goto 137
+	MultiplicativeExpression  goto 39
+	UnaryExpressionNotPlusMinus  goto 40
+	UnaryExpression  goto 41
+	PostFixExpression  goto 42
+	ArrayAccess  goto 70
+	MethodInvocation  goto 44
+	FieldAccess  goto 71
+	PrimaryNoNewArray  goto 46
+	Primary  goto 47
+	Literal  goto 49
+	BoolLiteral  goto 50
+
+
+state 88
+	RelationalExpression : RelationalExpression GT . AdditiveExpression  (161)
+
+	TRUE  shift 8
+	FALSE  shift 9
+	IDENT  shift 67
+	NULLLITERAL  shift 12
+	INTLITERAL  shift 13
+	CHARLITERAL  shift 14
+	FLOATLITERAL  shift 15
+	STRINGLITERAL  shift 16
+	LP  shift 17
+	BANG  shift 18
+	MINUS  shift 19
+	DROLL  shift 20
+	.  error
+
+	QualifiedName  goto 68
+	AdditiveExpression  goto 138
+	MultiplicativeExpression  goto 39
+	UnaryExpressionNotPlusMinus  goto 40
+	UnaryExpression  goto 41
+	PostFixExpression  goto 42
+	ArrayAccess  goto 70
+	MethodInvocation  goto 44
+	FieldAccess  goto 71
+	PrimaryNoNewArray  goto 46
+	Primary  goto 47
+	Literal  goto 49
+	BoolLiteral  goto 50
+
+
+state 89
+	RelationalExpression : RelationalExpression LE . AdditiveExpression  (160)
+
+	TRUE  shift 8
+	FALSE  shift 9
+	IDENT  shift 67
+	NULLLITERAL  shift 12
+	INTLITERAL  shift 13
+	CHARLITERAL  shift 14
+	FLOATLITERAL  shift 15
+	STRINGLITERAL  shift 16
+	LP  shift 17
+	BANG  shift 18
+	MINUS  shift 19
+	DROLL  shift 20
+	.  error
+
+	QualifiedName  goto 68
+	AdditiveExpression  goto 139
+	MultiplicativeExpression  goto 39
+	UnaryExpressionNotPlusMinus  goto 40
+	UnaryExpression  goto 41
+	PostFixExpression  goto 42
+	ArrayAccess  goto 70
+	MethodInvocation  goto 44
+	FieldAccess  goto 71
+	PrimaryNoNewArray  goto 46
+	Primary  goto 47
+	Literal  goto 49
+	BoolLiteral  goto 50
+
+
+state 90
+	RelationalExpression : RelationalExpression GE . AdditiveExpression  (162)
+
+	TRUE  shift 8
+	FALSE  shift 9
+	IDENT  shift 67
+	NULLLITERAL  shift 12
+	INTLITERAL  shift 13
+	CHARLITERAL  shift 14
+	FLOATLITERAL  shift 15
+	STRINGLITERAL  shift 16
+	LP  shift 17
+	BANG  shift 18
+	MINUS  shift 19
+	DROLL  shift 20
+	.  error
+
+	QualifiedName  goto 68
+	AdditiveExpression  goto 140
+	MultiplicativeExpression  goto 39
+	UnaryExpressionNotPlusMinus  goto 40
+	UnaryExpression  goto 41
+	PostFixExpression  goto 42
+	ArrayAccess  goto 70
+	MethodInvocation  goto 44
+	FieldAccess  goto 71
+	PrimaryNoNewArray  goto 46
+	Primary  goto 47
+	Literal  goto 49
+	BoolLiteral  goto 50
+
+
+state 91
+	AdditiveExpression : AdditiveExpression PLUS . MultiplicativeExpression  (156)
+
+	TRUE  shift 8
+	FALSE  shift 9
+	IDENT  shift 67
+	NULLLITERAL  shift 12
+	INTLITERAL  shift 13
+	CHARLITERAL  shift 14
+	FLOATLITERAL  shift 15
+	STRINGLITERAL  shift 16
+	LP  shift 17
+	BANG  shift 18
+	MINUS  shift 19
+	DROLL  shift 20
+	.  error
+
+	QualifiedName  goto 68
+	MultiplicativeExpression  goto 141
+	UnaryExpressionNotPlusMinus  goto 40
+	UnaryExpression  goto 41
+	PostFixExpression  goto 42
+	ArrayAccess  goto 70
+	MethodInvocation  goto 44
+	FieldAccess  goto 71
+	PrimaryNoNewArray  goto 46
+	Primary  goto 47
+	Literal  goto 49
+	BoolLiteral  goto 50
+
+
+state 92
+	AdditiveExpression : AdditiveExpression MINUS . MultiplicativeExpression  (157)
+
+	TRUE  shift 8
+	FALSE  shift 9
+	IDENT  shift 67
+	NULLLITERAL  shift 12
+	INTLITERAL  shift 13
+	CHARLITERAL  shift 14
+	FLOATLITERAL  shift 15
+	STRINGLITERAL  shift 16
+	LP  shift 17
+	BANG  shift 18
+	MINUS  shift 19
+	DROLL  shift 20
+	.  error
+
+	QualifiedName  goto 68
+	MultiplicativeExpression  goto 142
+	UnaryExpressionNotPlusMinus  goto 40
+	UnaryExpression  goto 41
+	PostFixExpression  goto 42
+	ArrayAccess  goto 70
+	MethodInvocation  goto 44
+	FieldAccess  goto 71
+	PrimaryNoNewArray  goto 46
+	Primary  goto 47
+	Literal  goto 49
+	BoolLiteral  goto 50
+
+
+state 93
+	MultiplicativeExpression : MultiplicativeExpression MUL . UnaryExpression  (151)
+
+	TRUE  shift 8
+	FALSE  shift 9
+	IDENT  shift 67
+	NULLLITERAL  shift 12
+	INTLITERAL  shift 13
+	CHARLITERAL  shift 14
+	FLOATLITERAL  shift 15
+	STRINGLITERAL  shift 16
+	LP  shift 17
+	BANG  shift 18
+	MINUS  shift 19
+	DROLL  shift 20
+	.  error
+
+	QualifiedName  goto 68
+	UnaryExpressionNotPlusMinus  goto 40
+	UnaryExpression  goto 143
+	PostFixExpression  goto 42
+	ArrayAccess  goto 70
+	MethodInvocation  goto 44
+	FieldAccess  goto 71
+	PrimaryNoNewArray  goto 46
+	Primary  goto 47
+	Literal  goto 49
+	BoolLiteral  goto 50
+
+
+state 94
+	MultiplicativeExpression : MultiplicativeExpression DIV . UnaryExpression  (152)
+
+	TRUE  shift 8
+	FALSE  shift 9
+	IDENT  shift 67
+	NULLLITERAL  shift 12
+	INTLITERAL  shift 13
+	CHARLITERAL  shift 14
+	FLOATLITERAL  shift 15
+	STRINGLITERAL  shift 16
+	LP  shift 17
+	BANG  shift 18
+	MINUS  shift 19
+	DROLL  shift 20
+	.  error
+
+	QualifiedName  goto 68
+	UnaryExpressionNotPlusMinus  goto 40
+	UnaryExpression  goto 144
+	PostFixExpression  goto 42
+	ArrayAccess  goto 70
+	MethodInvocation  goto 44
+	FieldAccess  goto 71
+	PrimaryNoNewArray  goto 46
+	Primary  goto 47
+	Literal  goto 49
+	BoolLiteral  goto 50
+
+
+state 95
+	MultiplicativeExpression : MultiplicativeExpression MOD . UnaryExpression  (153)
+
+	TRUE  shift 8
+	FALSE  shift 9
+	IDENT  shift 67
+	NULLLITERAL  shift 12
+	INTLITERAL  shift 13
+	CHARLITERAL  shift 14
+	FLOATLITERAL  shift 15
+	STRINGLITERAL  shift 16
+	LP  shift 17
+	BANG  shift 18
+	MINUS  shift 19
+	DROLL  shift 20
+	.  error
+
+	QualifiedName  goto 68
+	UnaryExpressionNotPlusMinus  goto 40
+	UnaryExpression  goto 145
+	PostFixExpression  goto 42
+	ArrayAccess  goto 70
+	MethodInvocation  goto 44
+	FieldAccess  goto 71
+	PrimaryNoNewArray  goto 46
+	Primary  goto 47
+	Literal  goto 49
+	BoolLiteral  goto 50
+
+
+state 96
+	MultiplicativeExpression : MultiplicativeExpression DROLL . UnaryExpression  (154)
+
+	TRUE  shift 8
+	FALSE  shift 9
+	IDENT  shift 67
+	NULLLITERAL  shift 12
+	INTLITERAL  shift 13
+	CHARLITERAL  shift 14
+	FLOATLITERAL  shift 15
+	STRINGLITERAL  shift 16
+	LP  shift 17
+	BANG  shift 18
+	MINUS  shift 19
+	DROLL  shift 20
+	.  error
+
+	QualifiedName  goto 68
+	UnaryExpressionNotPlusMinus  goto 40
+	UnaryExpression  goto 146
+	PostFixExpression  goto 42
+	ArrayAccess  goto 70
+	MethodInvocation  goto 44
+	FieldAccess  goto 71
+	PrimaryNoNewArray  goto 46
+	Primary  goto 47
+	Literal  goto 49
+	BoolLiteral  goto 50
+
+
+state 97
+	ArrayAccess : PrimaryNoNewArray LB . Expression RB  (141)
+
+	TRUE  shift 8
+	FALSE  shift 9
+	IDENT  shift 63
+	NULLLITERAL  shift 12
+	INTLITERAL  shift 13
+	CHARLITERAL  shift 14
+	FLOATLITERAL  shift 15
+	STRINGLITERAL  shift 16
+	LP  shift 17
+	BANG  shift 18
+	MINUS  shift 19
+	DROLL  shift 20
+	.  error
+
+	AssignmentExpression  goto 64
+	QualifiedName  goto 65
+	Expression  goto 147
+	Assignable  goto 33
+	Assignment  goto 34
+	ConditionalOrExpression  goto 35
+	EqualityExpression  goto 36
+	RelationalExpression  goto 37
+	AdditiveExpression  goto 38
+	MultiplicativeExpression  goto 39
+	UnaryExpressionNotPlusMinus  goto 40
+	UnaryExpression  goto 41
+	PostFixExpression  goto 42
+	ArrayAccess  goto 43
+	MethodInvocation  goto 44
+	FieldAccess  goto 45
+	PrimaryNoNewArray  goto 46
+	Primary  goto 47
+	ConditionalAndExpression  goto 48
+	Literal  goto 49
+	BoolLiteral  goto 50
+
+
+state 98
+	FieldAccess : Primary DOT . IDENT  (135)
+	MethodInvocation : Primary DOT . IDENT LP ArgumentListOpt RP  (138)
+
+	IDENT  shift 148
+	.  error
+
+
+state 99
+	ConditionalAndExpression : ConditionalAndExpression ANDAND . EqualityExpression  (167)
+
+	TRUE  shift 8
+	FALSE  shift 9
+	IDENT  shift 67
+	NULLLITERAL  shift 12
+	INTLITERAL  shift 13
+	CHARLITERAL  shift 14
+	FLOATLITERAL  shift 15
+	STRINGLITERAL  shift 16
+	LP  shift 17
+	BANG  shift 18
+	MINUS  shift 19
+	DROLL  shift 20
+	.  error
+
+	QualifiedName  goto 68
+	EqualityExpression  goto 149
+	RelationalExpression  goto 37
+	AdditiveExpression  goto 38
+	MultiplicativeExpression  goto 39
+	UnaryExpressionNotPlusMinus  goto 40
+	UnaryExpression  goto 41
+	PostFixExpression  goto 42
+	ArrayAccess  goto 70
+	MethodInvocation  goto 44
+	FieldAccess  goto 71
+	PrimaryNoNewArray  goto 46
+	Primary  goto 47
+	Literal  goto 49
+	BoolLiteral  goto 50
+
+
+100: shift/reduce conflict (shift 150, reduce 193) on LP
+state 100
+	FunctionPrototype : Type IDENT . LP TypeListOpt RP Semicolon  (60)
+	FunctionDefinition : Type IDENT . LP FormalParameterListOpt RP FunctionBody  (68)
+	VariableDeclaratorId : IDENT .  (193)
+
+	LP  shift 150
+	$end  reduce 193
+	BOOL  reduce 193
+	CLASS  reduce 193
+	STRING  reduce 193
+	DOUBLE  reduce 193
+	INT  reduce 193
+	TABLE  reduce 193
+	LIST  reduce 193
+	TRUE  reduce 193
+	FALSE  reduce 193
+	VOID  reduce 193
+	IDENT  reduce 193
+	NULLLITERAL  reduce 193
+	INTLITERAL  reduce 193
+	CHARLITERAL  reduce 193
+	FLOATLITERAL  reduce 193
+	STRINGLITERAL  reduce 193
+	LB  reduce 193
+	SM  reduce 193
+	CM  reduce 193
+	BANG  reduce 193
+	MINUS  reduce 193
+	DROLL  reduce 193
+
+
+state 101
+	GlobalVariable : Type VariableDeclaratorList . Semicolon  (6)
+	VariableDeclaratorList : VariableDeclaratorList . CM VariableDeclaratorId  (8)
+	Semicolon : .  (203)
+
+	SM  shift 151
+	CM  shift 152
+	$end  reduce 203
+	BOOL  reduce 203
+	CLASS  reduce 203
+	STRING  reduce 203
+	DOUBLE  reduce 203
+	INT  reduce 203
+	TABLE  reduce 203
+	LIST  reduce 203
+	TRUE  reduce 203
+	FALSE  reduce 203
+	VOID  reduce 203
+	IDENT  reduce 203
+	NULLLITERAL  reduce 203
+	INTLITERAL  reduce 203
+	CHARLITERAL  reduce 203
+	FLOATLITERAL  reduce 203
+	STRINGLITERAL  reduce 203
+	LP  reduce 203
+	BANG  reduce 203
+	MINUS  reduce 203
+	DROLL  reduce 203
+
+	Semicolon  goto 153
+
+
+state 102
+	VariableDeclaratorList : VariableDeclaratorId .  (7)
+	VariableDeclaratorId : VariableDeclaratorId . LB RB  (194)
+
+	LB  shift 154
+	$end  reduce 7
+	BOOL  reduce 7
+	BREAK  reduce 7
+	CLASS  reduce 7
+	STRING  reduce 7
+	DOUBLE  reduce 7
+	FOR  reduce 7
+	IF  reduce 7
+	INT  reduce 7
+	RETURN  reduce 7
+	TABLE  reduce 7
+	LIST  reduce 7
+	TRUE  reduce 7
+	FALSE  reduce 7
+	VOID  reduce 7
+	WHILE  reduce 7
+	IDENT  reduce 7
+	NULLLITERAL  reduce 7
+	INTLITERAL  reduce 7
+	CHARLITERAL  reduce 7
+	FLOATLITERAL  reduce 7
+	STRINGLITERAL  reduce 7
+	LP  reduce 7
+	LC  reduce 7
+	RC  reduce 7
+	SM  reduce 7
+	CM  reduce 7
+	BANG  reduce 7
+	MINUS  reduce 7
+	DROLL  reduce 7
+
+
+state 103
+	ArrayType : PrimitiveType LB . RB  (23)
+
+	RB  shift 155
+	.  error
+
+
+state 104
+	ArrayType : ArrayType LB . RB  (26)
+
+	RB  shift 156
+	.  error
+
+
+state 105
+	TableType : TABLE LT PrimitiveType . GT  (17)
+	TableType : TABLE LT PrimitiveType . CM PrimitiveType GT  (18)
+
+	CM  shift 157
+	GT  shift 158
+	.  error
+
+
+state 106
+	ListType : LIST LT PrimitiveType . GT  (15)
+
+	GT  shift 159
+	.  error
+
+
+107: reduce/reduce conflict (reduce 63, reduce 184) on RP
+state 107
+	FunctionPrototype : VOID IDENT LP . TypeListOpt RP Semicolon  (61)
+	FunctionDefinition : VOID IDENT LP . FormalParameterListOpt RP FunctionBody  (69)
+	TypeListOpt : .  (63)
+	FormalParameterListOpt : .  (184)
+
+	BOOL  shift 1
+	STRING  shift 3
+	DOUBLE  shift 4
+	INT  shift 5
+	TABLE  shift 6
+	LIST  shift 7
+	IDENT  shift 160
+	RP  reduce 63
+
+	QualifiedName  goto 123
+	TypeListOpt  goto 161
+	TypeList  goto 162
+	FormalParameterListOpt  goto 163
+	FormalParameterList  goto 164
+	FormalParameter  goto 165
+	Type  goto 166
+	PrimitiveType  goto 52
+	ArrayType  goto 53
+	ListType  goto 54
+	TableType  goto 55
+
+
+state 108
+	ArgumentList : Expression .  (127)
+
+	.  reduce 127
+
+
+state 109
+	ArgumentListOpt : ArgumentList .  (125)
+	ArgumentList : ArgumentList . CM Expression  (128)
+
+	CM  shift 167
+	RP  reduce 125
+
+
+state 110
+	MethodInvocation : IDENT LP ArgumentListOpt . RP  (137)
+
+	RP  shift 168
+	.  error
+
+
+state 111
+	ArrayType : IDENT LB RB .  (25)
+
+	.  reduce 25
+
+
+state 112
+	ArrayAccess : IDENT LB Expression . RB  (140)
+
+	RB  shift 169
+	.  error
+
+
+state 113
+	QualifiedName : IDENT DOT IDENT .  (198)
+
+	.  reduce 198
+
+
+state 114
+	ArrayAccess : IDENT LB . Expression RB  (140)
+
+	TRUE  shift 8
+	FALSE  shift 9
+	IDENT  shift 63
+	NULLLITERAL  shift 12
+	INTLITERAL  shift 13
+	CHARLITERAL  shift 14
+	FLOATLITERAL  shift 15
+	STRINGLITERAL  shift 16
+	LP  shift 17
+	BANG  shift 18
+	MINUS  shift 19
+	DROLL  shift 20
+	.  error
+
+	AssignmentExpression  goto 64
+	QualifiedName  goto 65
+	Expression  goto 112
+	Assignable  goto 33
+	Assignment  goto 34
+	ConditionalOrExpression  goto 35
+	EqualityExpression  goto 36
+	RelationalExpression  goto 37
+	AdditiveExpression  goto 38
+	MultiplicativeExpression  goto 39
+	UnaryExpressionNotPlusMinus  goto 40
+	UnaryExpression  goto 41
+	PostFixExpression  goto 42
+	ArrayAccess  goto 43
+	MethodInvocation  goto 44
+	FieldAccess  goto 45
+	PrimaryNoNewArray  goto 46
+	Primary  goto 47
+	ConditionalAndExpression  goto 48
+	Literal  goto 49
+	BoolLiteral  goto 50
+
+
+state 115
+	ArrayAccess : QualifiedName LB . Expression RB  (139)
+
+	TRUE  shift 8
+	FALSE  shift 9
+	IDENT  shift 63
+	NULLLITERAL  shift 12
+	INTLITERAL  shift 13
+	CHARLITERAL  shift 14
+	FLOATLITERAL  shift 15
+	STRINGLITERAL  shift 16
+	LP  shift 17
+	BANG  shift 18
+	MINUS  shift 19
+	DROLL  shift 20
+	.  error
+
+	AssignmentExpression  goto 64
+	QualifiedName  goto 65
+	Expression  goto 119
+	Assignable  goto 33
+	Assignment  goto 34
+	ConditionalOrExpression  goto 35
+	EqualityExpression  goto 36
+	RelationalExpression  goto 37
+	AdditiveExpression  goto 38
+	MultiplicativeExpression  goto 39
+	UnaryExpressionNotPlusMinus  goto 40
+	UnaryExpression  goto 41
+	PostFixExpression  goto 42
+	ArrayAccess  goto 43
+	MethodInvocation  goto 44
+	FieldAccess  goto 45
+	PrimaryNoNewArray  goto 46
+	Primary  goto 47
+	ConditionalAndExpression  goto 48
+	Literal  goto 49
+	BoolLiteral  goto 50
+
+
+state 116
+	PrimaryNoNewArray : LP Expression RP .  (131)
+
+	.  reduce 131
+
+
+state 117
+	MethodInvocation : QualifiedName LP ArgumentListOpt . RP  (136)
+
+	RP  shift 170
+	.  error
+
+
+state 118
+	ArrayType : QualifiedName LB RB .  (24)
+
+	.  reduce 24
+
+
+state 119
+	ArrayAccess : QualifiedName LB Expression . RB  (139)
+
+	RB  shift 171
+	.  error
+
+
+state 120
+	QualifiedName : QualifiedName DOT IDENT .  (199)
+
+	.  reduce 199
+
+
+state 121
+	MethodHeader : VOID . MethodDeclarator  (52)
+
+	IDENT  shift 172
+	.  error
+
+	MethodDeclarator  goto 173
+
+
+state 122
+	Type : IDENT .  (9)
+	ArrayType : IDENT . LB RB  (25)
+	ConstructorDeclarator : IDENT . LP FormalParameterListOpt RP  (56)
+	QualifiedName : IDENT . DOT IDENT  (198)
+
+	LP  shift 174
+	LB  shift 175
+	DOT  shift 62
+	IDENT  reduce 9
+
+
+state 123
+	ArrayType : QualifiedName . LB RB  (24)
+	QualifiedName : QualifiedName . DOT IDENT  (199)
+
+	LB  shift 176
+	DOT  shift 77
+	.  error
+
+
+state 124
+	ClassBlockUnit : ClassVariable .  (47)
+
+	.  reduce 47
+
+
+state 125
+	ClassBlockUnitListOpt : ClassBlockUnitList .  (43)
+	ClassBlockUnitList : ClassBlockUnitList . ClassBlockUnit  (46)
+
+	BOOL  shift 1
+	STRING  shift 3
+	DOUBLE  shift 4
+	INT  shift 5
+	TABLE  shift 6
+	LIST  shift 7
+	VOID  shift 121
+	IDENT  shift 122
+	RC  reduce 43
+
+	QualifiedName  goto 123
+	ClassVariable  goto 124
+	ClassBlockUnit  goto 177
+	MethodDeclaration  goto 127
+	ConstructorDeclaration  goto 128
+	ConstructorDeclarator  goto 129
+	MethodHeader  goto 130
+	Type  goto 132
+	PrimitiveType  goto 52
+	ArrayType  goto 53
+	ListType  goto 54
+	TableType  goto 55
+
+
+state 126
+	ClassBlockUnitList : ClassBlockUnit .  (45)
+
+	.  reduce 45
+
+
+state 127
+	ClassBlockUnit : MethodDeclaration .  (48)
+
+	.  reduce 48
+
+
+state 128
+	ClassBlockUnit : ConstructorDeclaration .  (49)
+
+	.  reduce 49
+
+
+state 129
+	ConstructorDeclaration : ConstructorDeclarator . ConstructorBody  (55)
+
+	LC  shift 178
+	.  error
+
+	ConstructorBody  goto 179
+	Block  goto 180
+
+
+state 130
+	MethodDeclaration : MethodHeader . MethodBody  (50)
+
+	LC  shift 178
+	.  error
+
+	Block  goto 181
+	MethodBody  goto 182
+
+
+state 131
+	ClassBlock : LC ClassBlockUnitListOpt . RC  (37)
+
+	RC  shift 183
+	.  error
+
+
+state 132
+	ClassVariable : Type . IDENT Semicolon  (42)
+	MethodHeader : Type . MethodDeclarator  (51)
+
+	IDENT  shift 184
+	.  error
+
+	MethodDeclarator  goto 185
+
+
+state 133
+	ConditionalOrExpression : ConditionalOrExpression . OROR ConditionalAndExpression  (169)
+	Assignment : Assignable AssignmentOperator ConditionalOrExpression .  (174)
+
+	OROR  shift 84
+	$end  reduce 174
+	BOOL  reduce 174
+	BREAK  reduce 174
+	CLASS  reduce 174
+	STRING  reduce 174
+	DOUBLE  reduce 174
+	ELSE  reduce 174
+	FOR  reduce 174
+	IF  reduce 174
+	INT  reduce 174
+	RETURN  reduce 174
+	TABLE  reduce 174
+	LIST  reduce 174
+	TRUE  reduce 174
+	FALSE  reduce 174
+	VOID  reduce 174
+	WHILE  reduce 174
+	IDENT  reduce 174
+	NULLLITERAL  reduce 174
+	INTLITERAL  reduce 174
+	CHARLITERAL  reduce 174
+	FLOATLITERAL  reduce 174
+	STRINGLITERAL  reduce 174
+	LP  reduce 174
+	RP  reduce 174
+	LC  reduce 174
+	RC  reduce 174
+	RB  reduce 174
+	SM  reduce 174
+	CM  reduce 174
+	BANG  reduce 174
+	MINUS  reduce 174
+	DROLL  reduce 174
+
+
+state 134
+	ConditionalAndExpression : ConditionalAndExpression . ANDAND EqualityExpression  (167)
+	ConditionalOrExpression : ConditionalOrExpression OROR ConditionalAndExpression .  (169)
+
+	ANDAND  shift 99
+	$end  reduce 169
+	BOOL  reduce 169
+	BREAK  reduce 169
+	CLASS  reduce 169
+	STRING  reduce 169
+	DOUBLE  reduce 169
+	ELSE  reduce 169
+	FOR  reduce 169
+	IF  reduce 169
+	INT  reduce 169
+	RETURN  reduce 169
+	TABLE  reduce 169
+	LIST  reduce 169
+	TRUE  reduce 169
+	FALSE  reduce 169
+	VOID  reduce 169
+	WHILE  reduce 169
+	IDENT  reduce 169
+	NULLLITERAL  reduce 169
+	INTLITERAL  reduce 169
+	CHARLITERAL  reduce 169
+	FLOATLITERAL  reduce 169
+	STRINGLITERAL  reduce 169
+	LP  reduce 169
+	RP  reduce 169
+	LC  reduce 169
+	RC  reduce 169
+	RB  reduce 169
+	SM  reduce 169
+	CM  reduce 169
+	BANG  reduce 169
+	OROR  reduce 169
+	MINUS  reduce 169
+	DROLL  reduce 169
+
+
+state 135
+	RelationalExpression : RelationalExpression . LT AdditiveExpression  (159)
+	RelationalExpression : RelationalExpression . LE AdditiveExpression  (160)
+	RelationalExpression : RelationalExpression . GT AdditiveExpression  (161)
+	RelationalExpression : RelationalExpression . GE AdditiveExpression  (162)
+	EqualityExpression : EqualityExpression EQ RelationalExpression .  (164)
+
+	LT  shift 87
+	GT  shift 88
+	LE  shift 89
+	GE  shift 90
+	$end  reduce 164
+	BOOL  reduce 164
+	BREAK  reduce 164
+	CLASS  reduce 164
+	STRING  reduce 164
+	DOUBLE  reduce 164
+	ELSE  reduce 164
+	FOR  reduce 164
+	IF  reduce 164
+	INT  reduce 164
+	RETURN  reduce 164
+	TABLE  reduce 164
+	LIST  reduce 164
+	TRUE  reduce 164
+	FALSE  reduce 164
+	VOID  reduce 164
+	WHILE  reduce 164
+	IDENT  reduce 164
+	NULLLITERAL  reduce 164
+	INTLITERAL  reduce 164
+	CHARLITERAL  reduce 164
+	FLOATLITERAL  reduce 164
+	STRINGLITERAL  reduce 164
+	LP  reduce 164
+	RP  reduce 164
+	LC  reduce 164
+	RC  reduce 164
+	RB  reduce 164
+	SM  reduce 164
+	CM  reduce 164
+	BANG  reduce 164
+	EQ  reduce 164
+	NE  reduce 164
+	ANDAND  reduce 164
+	OROR  reduce 164
+	MINUS  reduce 164
+	DROLL  reduce 164
+
+
+state 136
+	RelationalExpression : RelationalExpression . LT AdditiveExpression  (159)
+	RelationalExpression : RelationalExpression . LE AdditiveExpression  (160)
+	RelationalExpression : RelationalExpression . GT AdditiveExpression  (161)
+	RelationalExpression : RelationalExpression . GE AdditiveExpression  (162)
+	EqualityExpression : EqualityExpression NE RelationalExpression .  (165)
+
+	LT  shift 87
+	GT  shift 88
+	LE  shift 89
+	GE  shift 90
+	$end  reduce 165
+	BOOL  reduce 165
+	BREAK  reduce 165
+	CLASS  reduce 165
+	STRING  reduce 165
+	DOUBLE  reduce 165
+	ELSE  reduce 165
+	FOR  reduce 165
+	IF  reduce 165
+	INT  reduce 165
+	RETURN  reduce 165
+	TABLE  reduce 165
+	LIST  reduce 165
+	TRUE  reduce 165
+	FALSE  reduce 165
+	VOID  reduce 165
+	WHILE  reduce 165
+	IDENT  reduce 165
+	NULLLITERAL  reduce 165
+	INTLITERAL  reduce 165
+	CHARLITERAL  reduce 165
+	FLOATLITERAL  reduce 165
+	STRINGLITERAL  reduce 165
+	LP  reduce 165
+	RP  reduce 165
+	LC  reduce 165
+	RC  reduce 165
+	RB  reduce 165
+	SM  reduce 165
+	CM  reduce 165
+	BANG  reduce 165
+	EQ  reduce 165
+	NE  reduce 165
+	ANDAND  reduce 165
+	OROR  reduce 165
+	MINUS  reduce 165
+	DROLL  reduce 165
+
+
+state 137
+	AdditiveExpression : AdditiveExpression . PLUS MultiplicativeExpression  (156)
+	AdditiveExpression : AdditiveExpression . MINUS MultiplicativeExpression  (157)
+	RelationalExpression : RelationalExpression LT AdditiveExpression .  (159)
+
+	PLUS  shift 91
+	MINUS  shift 92
+	$end  reduce 159
+	BOOL  reduce 159
+	BREAK  reduce 159
+	CLASS  reduce 159
+	STRING  reduce 159
+	DOUBLE  reduce 159
+	ELSE  reduce 159
+	FOR  reduce 159
+	IF  reduce 159
+	INT  reduce 159
+	RETURN  reduce 159
+	TABLE  reduce 159
+	LIST  reduce 159
+	TRUE  reduce 159
+	FALSE  reduce 159
+	VOID  reduce 159
+	WHILE  reduce 159
+	IDENT  reduce 159
+	NULLLITERAL  reduce 159
+	INTLITERAL  reduce 159
+	CHARLITERAL  reduce 159
+	FLOATLITERAL  reduce 159
+	STRINGLITERAL  reduce 159
+	LP  reduce 159
+	RP  reduce 159
+	LC  reduce 159
+	RC  reduce 159
+	RB  reduce 159
+	SM  reduce 159
+	CM  reduce 159
+	LT  reduce 159
+	GT  reduce 159
+	BANG  reduce 159
+	EQ  reduce 159
+	NE  reduce 159
+	LE  reduce 159
+	GE  reduce 159
+	ANDAND  reduce 159
+	OROR  reduce 159
+	DROLL  reduce 159
+
+
+state 138
+	AdditiveExpression : AdditiveExpression . PLUS MultiplicativeExpression  (156)
+	AdditiveExpression : AdditiveExpression . MINUS MultiplicativeExpression  (157)
+	RelationalExpression : RelationalExpression GT AdditiveExpression .  (161)
+
+	PLUS  shift 91
+	MINUS  shift 92
+	$end  reduce 161
+	BOOL  reduce 161
+	BREAK  reduce 161
+	CLASS  reduce 161
+	STRING  reduce 161
+	DOUBLE  reduce 161
+	ELSE  reduce 161
+	FOR  reduce 161
+	IF  reduce 161
+	INT  reduce 161
+	RETURN  reduce 161
+	TABLE  reduce 161
+	LIST  reduce 161
+	TRUE  reduce 161
+	FALSE  reduce 161
+	VOID  reduce 161
+	WHILE  reduce 161
+	IDENT  reduce 161
+	NULLLITERAL  reduce 161
+	INTLITERAL  reduce 161
+	CHARLITERAL  reduce 161
+	FLOATLITERAL  reduce 161
+	STRINGLITERAL  reduce 161
+	LP  reduce 161
+	RP  reduce 161
+	LC  reduce 161
+	RC  reduce 161
+	RB  reduce 161
+	SM  reduce 161
+	CM  reduce 161
+	LT  reduce 161
+	GT  reduce 161
+	BANG  reduce 161
+	EQ  reduce 161
+	NE  reduce 161
+	LE  reduce 161
+	GE  reduce 161
+	ANDAND  reduce 161
+	OROR  reduce 161
+	DROLL  reduce 161
+
+
+state 139
+	AdditiveExpression : AdditiveExpression . PLUS MultiplicativeExpression  (156)
+	AdditiveExpression : AdditiveExpression . MINUS MultiplicativeExpression  (157)
+	RelationalExpression : RelationalExpression LE AdditiveExpression .  (160)
+
+	PLUS  shift 91
+	MINUS  shift 92
+	$end  reduce 160
+	BOOL  reduce 160
+	BREAK  reduce 160
+	CLASS  reduce 160
+	STRING  reduce 160
+	DOUBLE  reduce 160
+	ELSE  reduce 160
+	FOR  reduce 160
+	IF  reduce 160
+	INT  reduce 160
+	RETURN  reduce 160
+	TABLE  reduce 160
+	LIST  reduce 160
+	TRUE  reduce 160
+	FALSE  reduce 160
+	VOID  reduce 160
+	WHILE  reduce 160
+	IDENT  reduce 160
+	NULLLITERAL  reduce 160
+	INTLITERAL  reduce 160
+	CHARLITERAL  reduce 160
+	FLOATLITERAL  reduce 160
+	STRINGLITERAL  reduce 160
+	LP  reduce 160
+	RP  reduce 160
+	LC  reduce 160
+	RC  reduce 160
+	RB  reduce 160
+	SM  reduce 160
+	CM  reduce 160
+	LT  reduce 160
+	GT  reduce 160
+	BANG  reduce 160
+	EQ  reduce 160
+	NE  reduce 160
+	LE  reduce 160
+	GE  reduce 160
+	ANDAND  reduce 160
+	OROR  reduce 160
+	DROLL  reduce 160
+
+
+state 140
+	AdditiveExpression : AdditiveExpression . PLUS MultiplicativeExpression  (156)
+	AdditiveExpression : AdditiveExpression . MINUS MultiplicativeExpression  (157)
+	RelationalExpression : RelationalExpression GE AdditiveExpression .  (162)
+
+	PLUS  shift 91
+	MINUS  shift 92
+	$end  reduce 162
+	BOOL  reduce 162
+	BREAK  reduce 162
+	CLASS  reduce 162
+	STRING  reduce 162
+	DOUBLE  reduce 162
+	ELSE  reduce 162
+	FOR  reduce 162
+	IF  reduce 162
+	INT  reduce 162
+	RETURN  reduce 162
+	TABLE  reduce 162
+	LIST  reduce 162
+	TRUE  reduce 162
+	FALSE  reduce 162
+	VOID  reduce 162
+	WHILE  reduce 162
+	IDENT  reduce 162
+	NULLLITERAL  reduce 162
+	INTLITERAL  reduce 162
+	CHARLITERAL  reduce 162
+	FLOATLITERAL  reduce 162
+	STRINGLITERAL  reduce 162
+	LP  reduce 162
+	RP  reduce 162
+	LC  reduce 162
+	RC  reduce 162
+	RB  reduce 162
+	SM  reduce 162
+	CM  reduce 162
+	LT  reduce 162
+	GT  reduce 162
+	BANG  reduce 162
+	EQ  reduce 162
+	NE  reduce 162
+	LE  reduce 162
+	GE  reduce 162
+	ANDAND  reduce 162
+	OROR  reduce 162
+	DROLL  reduce 162
+
+
+state 141
+	MultiplicativeExpression : MultiplicativeExpression . MUL UnaryExpression  (151)
+	MultiplicativeExpression : MultiplicativeExpression . DIV UnaryExpression  (152)
+	MultiplicativeExpression : MultiplicativeExpression . MOD UnaryExpression  (153)
+	MultiplicativeExpression : MultiplicativeExpression . DROLL UnaryExpression  (154)
+	AdditiveExpression : AdditiveExpression PLUS MultiplicativeExpression .  (156)
+
+	MUL  shift 93
+	DIV  shift 94
+	MOD  shift 95
+	DROLL  shift 96
+	$end  reduce 156
+	BOOL  reduce 156
+	BREAK  reduce 156
+	CLASS  reduce 156
+	STRING  reduce 156
+	DOUBLE  reduce 156
+	ELSE  reduce 156
+	FOR  reduce 156
+	IF  reduce 156
+	INT  reduce 156
+	RETURN  reduce 156
+	TABLE  reduce 156
+	LIST  reduce 156
+	TRUE  reduce 156
+	FALSE  reduce 156
+	VOID  reduce 156
+	WHILE  reduce 156
+	IDENT  reduce 156
+	NULLLITERAL  reduce 156
+	INTLITERAL  reduce 156
+	CHARLITERAL  reduce 156
+	FLOATLITERAL  reduce 156
+	STRINGLITERAL  reduce 156
+	LP  reduce 156
+	RP  reduce 156
+	LC  reduce 156
+	RC  reduce 156
+	RB  reduce 156
+	SM  reduce 156
+	CM  reduce 156
+	LT  reduce 156
+	GT  reduce 156
+	BANG  reduce 156
+	EQ  reduce 156
+	NE  reduce 156
+	LE  reduce 156
+	GE  reduce 156
+	ANDAND  reduce 156
+	OROR  reduce 156
+	PLUS  reduce 156
+	MINUS  reduce 156
+
+
+state 142
+	MultiplicativeExpression : MultiplicativeExpression . MUL UnaryExpression  (151)
+	MultiplicativeExpression : MultiplicativeExpression . DIV UnaryExpression  (152)
+	MultiplicativeExpression : MultiplicativeExpression . MOD UnaryExpression  (153)
+	MultiplicativeExpression : MultiplicativeExpression . DROLL UnaryExpression  (154)
+	AdditiveExpression : AdditiveExpression MINUS MultiplicativeExpression .  (157)
+
+	MUL  shift 93
+	DIV  shift 94
+	MOD  shift 95
+	DROLL  shift 96
+	$end  reduce 157
+	BOOL  reduce 157
+	BREAK  reduce 157
+	CLASS  reduce 157
+	STRING  reduce 157
+	DOUBLE  reduce 157
+	ELSE  reduce 157
+	FOR  reduce 157
+	IF  reduce 157
+	INT  reduce 157
+	RETURN  reduce 157
+	TABLE  reduce 157
+	LIST  reduce 157
+	TRUE  reduce 157
+	FALSE  reduce 157
+	VOID  reduce 157
+	WHILE  reduce 157
+	IDENT  reduce 157
+	NULLLITERAL  reduce 157
+	INTLITERAL  reduce 157
+	CHARLITERAL  reduce 157
+	FLOATLITERAL  reduce 157
+	STRINGLITERAL  reduce 157
+	LP  reduce 157
+	RP  reduce 157
+	LC  reduce 157
+	RC  reduce 157
+	RB  reduce 157
+	SM  reduce 157
+	CM  reduce 157
+	LT  reduce 157
+	GT  reduce 157
+	BANG  reduce 157
+	EQ  reduce 157
+	NE  reduce 157
+	LE  reduce 157
+	GE  reduce 157
+	ANDAND  reduce 157
+	OROR  reduce 157
+	PLUS  reduce 157
+	MINUS  reduce 157
+
+
+state 143
+	MultiplicativeExpression : MultiplicativeExpression MUL UnaryExpression .  (151)
+
+	.  reduce 151
+
+
+state 144
+	MultiplicativeExpression : MultiplicativeExpression DIV UnaryExpression .  (152)
+
+	.  reduce 152
+
+
+state 145
+	MultiplicativeExpression : MultiplicativeExpression MOD UnaryExpression .  (153)
+
+	.  reduce 153
+
+
+state 146
+	MultiplicativeExpression : MultiplicativeExpression DROLL UnaryExpression .  (154)
+
+	.  reduce 154
+
+
+state 147
+	ArrayAccess : PrimaryNoNewArray LB Expression . RB  (141)
+
+	RB  shift 186
+	.  error
+
+
+148: shift/reduce conflict (shift 187, reduce 135) on LP
+state 148
+	FieldAccess : Primary DOT IDENT .  (135)
+	MethodInvocation : Primary DOT IDENT . LP ArgumentListOpt RP  (138)
+
+	LP  shift 187
+	$end  reduce 135
+	BOOL  reduce 135
+	BREAK  reduce 135
+	CLASS  reduce 135
+	STRING  reduce 135
+	DOUBLE  reduce 135
+	ELSE  reduce 135
+	FOR  reduce 135
+	IF  reduce 135
+	INT  reduce 135
+	RETURN  reduce 135
+	TABLE  reduce 135
+	LIST  reduce 135
+	TRUE  reduce 135
+	FALSE  reduce 135
+	VOID  reduce 135
+	WHILE  reduce 135
+	IDENT  reduce 135
+	NULLLITERAL  reduce 135
+	INTLITERAL  reduce 135
+	CHARLITERAL  reduce 135
+	FLOATLITERAL  reduce 135
+	STRINGLITERAL  reduce 135
+	RP  reduce 135
+	LC  reduce 135
+	RC  reduce 135
+	LB  reduce 135
+	RB  reduce 135
+	SM  reduce 135
+	CM  reduce 135
+	DOT  reduce 135
+	ASN  reduce 135
+	LT  reduce 135
+	GT  reduce 135
+	BANG  reduce 135
+	EQ  reduce 135
+	NE  reduce 135
+	LE  reduce 135
+	GE  reduce 135
+	ANDAND  reduce 135
+	OROR  reduce 135
+	PLUS  reduce 135
+	MINUS  reduce 135
+	MUL  reduce 135
+	DIV  reduce 135
+	MOD  reduce 135
+	PLASN  reduce 135
+	MIASN  reduce 135
+	DROLL  reduce 135
+
+
+state 149
+	EqualityExpression : EqualityExpression . EQ RelationalExpression  (164)
+	EqualityExpression : EqualityExpression . NE RelationalExpression  (165)
+	ConditionalAndExpression : ConditionalAndExpression ANDAND EqualityExpression .  (167)
+
+	EQ  shift 85
+	NE  shift 86
+	$end  reduce 167
+	BOOL  reduce 167
+	BREAK  reduce 167
+	CLASS  reduce 167
+	STRING  reduce 167
+	DOUBLE  reduce 167
+	ELSE  reduce 167
+	FOR  reduce 167
+	IF  reduce 167
+	INT  reduce 167
+	RETURN  reduce 167
+	TABLE  reduce 167
+	LIST  reduce 167
+	TRUE  reduce 167
+	FALSE  reduce 167
+	VOID  reduce 167
+	WHILE  reduce 167
+	IDENT  reduce 167
+	NULLLITERAL  reduce 167
+	INTLITERAL  reduce 167
+	CHARLITERAL  reduce 167
+	FLOATLITERAL  reduce 167
+	STRINGLITERAL  reduce 167
+	LP  reduce 167
+	RP  reduce 167
+	LC  reduce 167
+	RC  reduce 167
+	RB  reduce 167
+	SM  reduce 167
+	CM  reduce 167
+	BANG  reduce 167
+	ANDAND  reduce 167
+	OROR  reduce 167
+	MINUS  reduce 167
+	DROLL  reduce 167
+
+
+150: reduce/reduce conflict (reduce 63, reduce 184) on RP
+state 150
+	FunctionPrototype : Type IDENT LP . TypeListOpt RP Semicolon  (60)
+	FunctionDefinition : Type IDENT LP . FormalParameterListOpt RP FunctionBody  (68)
+	TypeListOpt : .  (63)
+	FormalParameterListOpt : .  (184)
+
+	BOOL  shift 1
+	STRING  shift 3
+	DOUBLE  shift 4
+	INT  shift 5
+	TABLE  shift 6
+	LIST  shift 7
+	IDENT  shift 160
+	RP  reduce 63
+
+	QualifiedName  goto 123
+	TypeListOpt  goto 188
+	TypeList  goto 162
+	FormalParameterListOpt  goto 189
+	FormalParameterList  goto 164
+	FormalParameter  goto 165
+	Type  goto 166
+	PrimitiveType  goto 52
+	ArrayType  goto 53
+	ListType  goto 54
+	TableType  goto 55
+
+
+state 151
+	Semicolon : SM .  (202)
+
+	.  reduce 202
+
+
+state 152
+	VariableDeclaratorList : VariableDeclaratorList CM . VariableDeclaratorId  (8)
+
+	IDENT  shift 190
+	.  error
+
+	VariableDeclaratorId  goto 191
+
+
+state 153
+	GlobalVariable : Type VariableDeclaratorList Semicolon .  (6)
+
+	.  reduce 6
+
+
+state 154
+	VariableDeclaratorId : VariableDeclaratorId LB . RB  (194)
+
+	RB  shift 192
+	.  error
+
+
+state 155
+	ArrayType : PrimitiveType LB RB .  (23)
+
+	.  reduce 23
+
+
+state 156
+	ArrayType : ArrayType LB RB .  (26)
+
+	.  reduce 26
+
+
+state 157
+	TableType : TABLE LT PrimitiveType CM . PrimitiveType GT  (18)
+
+	BOOL  shift 1
+	STRING  shift 3
+	DOUBLE  shift 4
+	INT  shift 5
+	.  error
+
+	PrimitiveType  goto 193
+
+
+state 158
+	TableType : TABLE LT PrimitiveType GT .  (17)
+
+	.  reduce 17
+
+
+state 159
+	ListType : LIST LT PrimitiveType GT .  (15)
+
+	.  reduce 15
+
+
+state 160
+	Type : IDENT .  (9)
+	ArrayType : IDENT . LB RB  (25)
+	QualifiedName : IDENT . DOT IDENT  (198)
+
+	LB  shift 175
+	DOT  shift 62
+	IDENT  reduce 9
+	RP  reduce 9
+	CM  reduce 9
+
+
+state 161
+	FunctionPrototype : VOID IDENT LP TypeListOpt . RP Semicolon  (61)
+
+	RP  shift 194
+	.  error
+
+
+state 162
+	TypeListOpt : TypeList .  (62)
+	TypeList : TypeList . CM Type  (65)
+
+	CM  shift 195
+	RP  reduce 62
+
+
+state 163
+	FunctionDefinition : VOID IDENT LP FormalParameterListOpt . RP FunctionBody  (69)
+
+	RP  shift 196
+	.  error
+
+
+state 164
+	FormalParameterListOpt : FormalParameterList .  (183)
+	FormalParameterList : FormalParameterList . CM FormalParameter  (186)
+
+	CM  shift 197
+	RP  reduce 183
+
+
+state 165
+	FormalParameterList : FormalParameter .  (185)
+
+	.  reduce 185
+
+
+state 166
+	TypeList : Type .  (64)
+	FormalParameter : Type . VariableDeclaratorId  (187)
+
+	IDENT  shift 190
+	RP  reduce 64
+	CM  reduce 64
+
+	VariableDeclaratorId  goto 198
+
+
+state 167
+	ArgumentList : ArgumentList CM . Expression  (128)
+
+	TRUE  shift 8
+	FALSE  shift 9
+	IDENT  shift 63
+	NULLLITERAL  shift 12
+	INTLITERAL  shift 13
+	CHARLITERAL  shift 14
+	FLOATLITERAL  shift 15
+	STRINGLITERAL  shift 16
+	LP  shift 17
+	BANG  shift 18
+	MINUS  shift 19
+	DROLL  shift 20
+	.  error
+
+	AssignmentExpression  goto 64
+	QualifiedName  goto 65
+	Expression  goto 199
+	Assignable  goto 33
+	Assignment  goto 34
+	ConditionalOrExpression  goto 35
+	EqualityExpression  goto 36
+	RelationalExpression  goto 37
+	AdditiveExpression  goto 38
+	MultiplicativeExpression  goto 39
+	UnaryExpressionNotPlusMinus  goto 40
+	UnaryExpression  goto 41
+	PostFixExpression  goto 42
+	ArrayAccess  goto 43
+	MethodInvocation  goto 44
+	FieldAccess  goto 45
+	PrimaryNoNewArray  goto 46
+	Primary  goto 47
+	ConditionalAndExpression  goto 48
+	Literal  goto 49
+	BoolLiteral  goto 50
+
+
+state 168
+	MethodInvocation : IDENT LP ArgumentListOpt RP .  (137)
+
+	.  reduce 137
+
+
+state 169
+	ArrayAccess : IDENT LB Expression RB .  (140)
+
+	.  reduce 140
+
+
+state 170
+	MethodInvocation : QualifiedName LP ArgumentListOpt RP .  (136)
+
+	.  reduce 136
+
+
+state 171
+	ArrayAccess : QualifiedName LB Expression RB .  (139)
+
+	.  reduce 139
+
+
+state 172
+	MethodDeclarator : IDENT . LP FormalParameterListOpt RP  (53)
+
+	LP  shift 200
+	.  error
+
+
+state 173
+	MethodHeader : VOID MethodDeclarator .  (52)
+
+	.  reduce 52
+
+
+state 174
+	ConstructorDeclarator : IDENT LP . FormalParameterListOpt RP  (56)
+	FormalParameterListOpt : .  (184)
+
+	BOOL  shift 1
+	STRING  shift 3
+	DOUBLE  shift 4
+	INT  shift 5
+	TABLE  shift 6
+	LIST  shift 7
+	IDENT  shift 160
+	RP  reduce 184
+
+	QualifiedName  goto 123
+	FormalParameterListOpt  goto 201
+	FormalParameterList  goto 164
+	FormalParameter  goto 165
+	Type  goto 202
+	PrimitiveType  goto 52
+	ArrayType  goto 53
+	ListType  goto 54
+	TableType  goto 55
+
+
+state 175
+	ArrayType : IDENT LB . RB  (25)
+
+	RB  shift 111
+	.  error
+
+
+state 176
+	ArrayType : QualifiedName LB . RB  (24)
+
+	RB  shift 118
+	.  error
+
+
+state 177
+	ClassBlockUnitList : ClassBlockUnitList ClassBlockUnit .  (46)
+
+	.  reduce 46
+
+
+178: shift/reduce conflict (shift 1, reduce 203) on BOOL
+178: shift/reduce conflict (shift 203, reduce 203) on BREAK
+178: shift/reduce conflict (shift 3, reduce 203) on STRING
+178: shift/reduce conflict (shift 4, reduce 203) on DOUBLE
+178: shift/reduce conflict (shift 204, reduce 203) on FOR
+178: shift/reduce conflict (shift 205, reduce 203) on IF
+178: shift/reduce conflict (shift 5, reduce 203) on INT
+178: shift/reduce conflict (shift 206, reduce 203) on RETURN
+178: shift/reduce conflict (shift 6, reduce 203) on TABLE
+178: shift/reduce conflict (shift 7, reduce 203) on LIST
+178: shift/reduce conflict (shift 8, reduce 203) on TRUE
+178: shift/reduce conflict (shift 9, reduce 203) on FALSE
+178: shift/reduce conflict (shift 207, reduce 203) on WHILE
+178: shift/reduce conflict (shift 208, reduce 203) on IDENT
+178: shift/reduce conflict (shift 12, reduce 203) on NULLLITERAL
+178: shift/reduce conflict (shift 13, reduce 203) on INTLITERAL
+178: shift/reduce conflict (shift 14, reduce 203) on CHARLITERAL
+178: shift/reduce conflict (shift 15, reduce 203) on FLOATLITERAL
+178: shift/reduce conflict (shift 16, reduce 203) on STRINGLITERAL
+178: shift/reduce conflict (shift 17, reduce 203) on LP
+178: shift/reduce conflict (shift 209, reduce 203) on LC
+178: reduce/reduce conflict (reduce 73, reduce 203) on RC
+178: shift/reduce conflict (shift 151, reduce 203) on SM
+state 178
+	Block : LC . BlockStatementListOpt RC  (71)
+	BlockStatementListOpt : .  (73)
+	Semicolon : .  (203)
+
+	BOOL  shift 1
+	BREAK  shift 203
+	STRING  shift 3
+	DOUBLE  shift 4
+	FOR  shift 204
+	IF  shift 205
+	INT  shift 5
+	RETURN  shift 206
+	TABLE  shift 6
+	LIST  shift 7
+	TRUE  shift 8
+	FALSE  shift 9
+	WHILE  shift 207
+	IDENT  shift 208
+	NULLLITERAL  shift 12
+	INTLITERAL  shift 13
+	CHARLITERAL  shift 14
+	FLOATLITERAL  shift 15
+	STRINGLITERAL  shift 16
+	LP  shift 17
+	LC  shift 209
+	SM  shift 151
+	RC  reduce 73
+
+	QualifiedName  goto 210
+	BlockStatementListOpt  goto 211
+	BlockStatementList  goto 212
+	BlockStatement  goto 213
+	Statement  goto 214
+	NoLocalVariableBlock  goto 215
+	StatementWithoutTrailingSubstatement  goto 216
+	ExpressionStatement  goto 217
+	StatementExpression  goto 218
+	IfThenStatement  goto 219
+	IfThenElseStatement  goto 220
+	WhileStatement  goto 221
+	ForStatement  goto 222
+	EmptyStatement  goto 223
+	BreakStatement  goto 224
+	ReturnStatement  goto 225
+	Assignable  goto 33
+	Assignment  goto 226
+	ArrayAccess  goto 43
+	MethodInvocation  goto 227
+	FieldAccess  goto 45
+	PrimaryNoNewArray  goto 46
+	Primary  goto 228
+	Literal  goto 49
+	LocalVariable  goto 229
+	BoolLiteral  goto 50
+	Semicolon  goto 230
+	Type  goto 231
+	PrimitiveType  goto 52
+	ArrayType  goto 53
+	ListType  goto 54
+	TableType  goto 55
+
+
+state 179
+	ConstructorDeclaration : ConstructorDeclarator ConstructorBody .  (55)
+
+	.  reduce 55
+
+
+state 180
+	ConstructorBody : Block .  (57)
+
+	.  reduce 57
+
+
+state 181
+	MethodBody : Block .  (54)
+
+	.  reduce 54
+
+
+state 182
+	MethodDeclaration : MethodHeader MethodBody .  (50)
+
+	.  reduce 50
+
+
+state 183
+	ClassBlock : LC ClassBlockUnitListOpt RC .  (37)
+
+	.  reduce 37
+
+
+state 184
+	ClassVariable : Type IDENT . Semicolon  (42)
+	MethodDeclarator : IDENT . LP FormalParameterListOpt RP  (53)
+	Semicolon : .  (203)
+
+	LP  shift 200
+	SM  shift 151
+	BOOL  reduce 203
+	STRING  reduce 203
+	DOUBLE  reduce 203
+	INT  reduce 203
+	TABLE  reduce 203
+	LIST  reduce 203
+	VOID  reduce 203
+	IDENT  reduce 203
+	RC  reduce 203
+
+	Semicolon  goto 232
+
+
+state 185
+	MethodHeader : Type MethodDeclarator .  (51)
+
+	.  reduce 51
+
+
+state 186
+	ArrayAccess : PrimaryNoNewArray LB Expression RB .  (141)
+
+	.  reduce 141
+
+
+state 187
+	MethodInvocation : Primary DOT IDENT LP . ArgumentListOpt RP  (138)
+	ArgumentListOpt : .  (126)
+
+	TRUE  shift 8
+	FALSE  shift 9
+	IDENT  shift 63
+	NULLLITERAL  shift 12
+	INTLITERAL  shift 13
+	CHARLITERAL  shift 14
+	FLOATLITERAL  shift 15
+	STRINGLITERAL  shift 16
+	LP  shift 17
+	BANG  shift 18
+	MINUS  shift 19
+	DROLL  shift 20
+	RP  reduce 126
+
+	AssignmentExpression  goto 64
+	QualifiedName  goto 65
+	Expression  goto 108
+	Assignable  goto 33
+	Assignment  goto 34
+	ConditionalOrExpression  goto 35
+	EqualityExpression  goto 36
+	RelationalExpression  goto 37
+	AdditiveExpression  goto 38
+	MultiplicativeExpression  goto 39
+	UnaryExpressionNotPlusMinus  goto 40
+	UnaryExpression  goto 41
+	PostFixExpression  goto 42
+	ArrayAccess  goto 43
+	MethodInvocation  goto 44
+	FieldAccess  goto 45
+	PrimaryNoNewArray  goto 46
+	Primary  goto 47
+	ArgumentList  goto 109
+	ArgumentListOpt  goto 233
+	ConditionalAndExpression  goto 48
+	Literal  goto 49
+	BoolLiteral  goto 50
+
+
+state 188
+	FunctionPrototype : Type IDENT LP TypeListOpt . RP Semicolon  (60)
+
+	RP  shift 234
+	.  error
+
+
+state 189
+	FunctionDefinition : Type IDENT LP FormalParameterListOpt . RP FunctionBody  (68)
+
+	RP  shift 235
+	.  error
+
+
+state 190
+	VariableDeclaratorId : IDENT .  (193)
+
+	.  reduce 193
+
+
+state 191
+	VariableDeclaratorList : VariableDeclaratorList CM VariableDeclaratorId .  (8)
+	VariableDeclaratorId : VariableDeclaratorId . LB RB  (194)
+
+	LB  shift 154
+	$end  reduce 8
+	BOOL  reduce 8
+	BREAK  reduce 8
+	CLASS  reduce 8
+	STRING  reduce 8
+	DOUBLE  reduce 8
+	FOR  reduce 8
+	IF  reduce 8
+	INT  reduce 8
+	RETURN  reduce 8
+	TABLE  reduce 8
+	LIST  reduce 8
+	TRUE  reduce 8
+	FALSE  reduce 8
+	VOID  reduce 8
+	WHILE  reduce 8
+	IDENT  reduce 8
+	NULLLITERAL  reduce 8
+	INTLITERAL  reduce 8
+	CHARLITERAL  reduce 8
+	FLOATLITERAL  reduce 8
+	STRINGLITERAL  reduce 8
+	LP  reduce 8
+	LC  reduce 8
+	RC  reduce 8
+	SM  reduce 8
+	CM  reduce 8
+	BANG  reduce 8
+	MINUS  reduce 8
+	DROLL  reduce 8
+
+
+state 192
+	VariableDeclaratorId : VariableDeclaratorId LB RB .  (194)
+
+	.  reduce 194
+
+
+state 193
+	TableType : TABLE LT PrimitiveType CM PrimitiveType . GT  (18)
+
+	GT  shift 236
+	.  error
+
+
+state 194
+	FunctionPrototype : VOID IDENT LP TypeListOpt RP . Semicolon  (61)
+	Semicolon : .  (203)
+
+	SM  shift 151
+	$end  reduce 203
+	BOOL  reduce 203
+	CLASS  reduce 203
+	STRING  reduce 203
+	DOUBLE  reduce 203
+	INT  reduce 203
+	TABLE  reduce 203
+	LIST  reduce 203
+	TRUE  reduce 203
+	FALSE  reduce 203
+	VOID  reduce 203
+	IDENT  reduce 203
+	NULLLITERAL  reduce 203
+	INTLITERAL  reduce 203
+	CHARLITERAL  reduce 203
+	FLOATLITERAL  reduce 203
+	STRINGLITERAL  reduce 203
+	LP  reduce 203
+	BANG  reduce 203
+	MINUS  reduce 203
+	DROLL  reduce 203
+
+	Semicolon  goto 237
+
+
+state 195
+	TypeList : TypeList CM . Type  (65)
+
+	BOOL  shift 1
+	STRING  shift 3
+	DOUBLE  shift 4
+	INT  shift 5
+	TABLE  shift 6
+	LIST  shift 7
+	IDENT  shift 160
+	.  error
+
+	QualifiedName  goto 123
+	Type  goto 238
+	PrimitiveType  goto 52
+	ArrayType  goto 53
+	ListType  goto 54
+	TableType  goto 55
+
+
+state 196
+	FunctionDefinition : VOID IDENT LP FormalParameterListOpt RP . FunctionBody  (69)
+
+	LC  shift 178
+	.  error
+
+	FunctionBody  goto 239
+	Block  goto 240
+
+
+state 197
+	FormalParameterList : FormalParameterList CM . FormalParameter  (186)
+
+	BOOL  shift 1
+	STRING  shift 3
+	DOUBLE  shift 4
+	INT  shift 5
+	TABLE  shift 6
+	LIST  shift 7
+	IDENT  shift 160
+	.  error
+
+	QualifiedName  goto 123
+	FormalParameter  goto 241
+	Type  goto 202
+	PrimitiveType  goto 52
+	ArrayType  goto 53
+	ListType  goto 54
+	TableType  goto 55
+
+
+state 198
+	FormalParameter : Type VariableDeclaratorId .  (187)
+	VariableDeclaratorId : VariableDeclaratorId . LB RB  (194)
+
+	LB  shift 154
+	RP  reduce 187
+	CM  reduce 187
+
+
+state 199
+	ArgumentList : ArgumentList CM Expression .  (128)
+
+	.  reduce 128
+
+
+state 200
+	MethodDeclarator : IDENT LP . FormalParameterListOpt RP  (53)
+	FormalParameterListOpt : .  (184)
+
+	BOOL  shift 1
+	STRING  shift 3
+	DOUBLE  shift 4
+	INT  shift 5
+	TABLE  shift 6
+	LIST  shift 7
+	IDENT  shift 160
+	RP  reduce 184
+
+	QualifiedName  goto 123
+	FormalParameterListOpt  goto 242
+	FormalParameterList  goto 164
+	FormalParameter  goto 165
+	Type  goto 202
+	PrimitiveType  goto 52
+	ArrayType  goto 53
+	ListType  goto 54
+	TableType  goto 55
+
+
+state 201
+	ConstructorDeclarator : IDENT LP FormalParameterListOpt . RP  (56)
+
+	RP  shift 243
+	.  error
+
+
+state 202
+	FormalParameter : Type . VariableDeclaratorId  (187)
+
+	IDENT  shift 190
+	.  error
+
+	VariableDeclaratorId  goto 198
+
+
+203: shift/reduce conflict (shift 151, reduce 203) on SM
+state 203
+	BreakStatement : BREAK . Semicolon  (119)
+	Semicolon : .  (203)
+
+	SM  shift 151
+	BOOL  reduce 203
+	BREAK  reduce 203
+	STRING  reduce 203
+	DOUBLE  reduce 203
+	ELSE  reduce 203
+	FOR  reduce 203
+	IF  reduce 203
+	INT  reduce 203
+	RETURN  reduce 203
+	TABLE  reduce 203
+	LIST  reduce 203
+	TRUE  reduce 203
+	FALSE  reduce 203
+	WHILE  reduce 203
+	IDENT  reduce 203
+	NULLLITERAL  reduce 203
+	INTLITERAL  reduce 203
+	CHARLITERAL  reduce 203
+	FLOATLITERAL  reduce 203
+	STRINGLITERAL  reduce 203
+	LP  reduce 203
+	LC  reduce 203
+	RC  reduce 203
+
+	Semicolon  goto 244
+
+
+state 204
+	ForStatement : FOR . LP ForInitOpt SM ExpressionOpt SM ForUpdateOpt RP Statement  (114)
+
+	LP  shift 245
+	.  error
+
+
+state 205
+	IfThenStatement : IF . LP Expression RP Statement  (101)
+	IfThenElseStatement : IF . LP Expression RP StatementNoShortIf ELSE Statement  (102)
+
+	LP  shift 246
+	.  error
+
+
+206: shift/reduce conflict (shift 8, reduce 110) on TRUE
+206: shift/reduce conflict (shift 9, reduce 110) on FALSE
+206: shift/reduce conflict (shift 63, reduce 110) on IDENT
+206: shift/reduce conflict (shift 12, reduce 110) on NULLLITERAL
+206: shift/reduce conflict (shift 13, reduce 110) on INTLITERAL
+206: shift/reduce conflict (shift 14, reduce 110) on CHARLITERAL
+206: shift/reduce conflict (shift 15, reduce 110) on FLOATLITERAL
+206: shift/reduce conflict (shift 16, reduce 110) on STRINGLITERAL
+206: shift/reduce conflict (shift 17, reduce 110) on LP
+state 206
+	ReturnStatement : RETURN . ExpressionOpt Semicolon  (120)
+	ExpressionOpt : .  (110)
+
+	TRUE  shift 8
+	FALSE  shift 9
+	IDENT  shift 63
+	NULLLITERAL  shift 12
+	INTLITERAL  shift 13
+	CHARLITERAL  shift 14
+	FLOATLITERAL  shift 15
+	STRINGLITERAL  shift 16
+	LP  shift 17
+	BANG  shift 18
+	MINUS  shift 19
+	DROLL  shift 20
+	BOOL  reduce 110
+	BREAK  reduce 110
+	STRING  reduce 110
+	DOUBLE  reduce 110
+	ELSE  reduce 110
+	FOR  reduce 110
+	IF  reduce 110
+	INT  reduce 110
+	RETURN  reduce 110
+	TABLE  reduce 110
+	LIST  reduce 110
+	WHILE  reduce 110
+	LC  reduce 110
+	RC  reduce 110
+	SM  reduce 110
+
+	AssignmentExpression  goto 64
+	QualifiedName  goto 65
+	ExpressionOpt  goto 247
+	Expression  goto 248
+	Assignable  goto 33
+	Assignment  goto 34
+	ConditionalOrExpression  goto 35
+	EqualityExpression  goto 36
+	RelationalExpression  goto 37
+	AdditiveExpression  goto 38
+	MultiplicativeExpression  goto 39
+	UnaryExpressionNotPlusMinus  goto 40
+	UnaryExpression  goto 41
+	PostFixExpression  goto 42
+	ArrayAccess  goto 43
+	MethodInvocation  goto 44
+	FieldAccess  goto 45
+	PrimaryNoNewArray  goto 46
+	Primary  goto 47
+	ConditionalAndExpression  goto 48
+	Literal  goto 49
+	BoolLiteral  goto 50
+
+
+state 207
+	WhileStatement : WHILE . LP Expression RP Statement  (104)
+
+	LP  shift 249
+	.  error
+
+
+state 208
+	Type : IDENT .  (9)
+	ArrayType : IDENT . LB RB  (25)
+	MethodInvocation : IDENT . LP ArgumentListOpt RP  (137)
+	ArrayAccess : IDENT . LB Expression RB  (140)
+	Assignable : IDENT .  (176)
+	QualifiedName : IDENT . DOT IDENT  (198)
+
+	LP  shift 60
+	LB  shift 61
+	DOT  shift 62
+	IDENT  reduce 9
+	ASN  reduce 176
+	PLASN  reduce 176
+	MIASN  reduce 176
+
+
+209: shift/reduce conflict (shift 203, reduce 203) on BREAK
+209: shift/reduce conflict (shift 204, reduce 203) on FOR
+209: shift/reduce conflict (shift 205, reduce 203) on IF
+209: shift/reduce conflict (shift 206, reduce 203) on RETURN
+209: shift/reduce conflict (shift 8, reduce 203) on TRUE
+209: shift/reduce conflict (shift 9, reduce 203) on FALSE
+209: shift/reduce conflict (shift 207, reduce 203) on WHILE
+209: shift/reduce conflict (shift 250, reduce 203) on IDENT
+209: shift/reduce conflict (shift 12, reduce 203) on NULLLITERAL
+209: shift/reduce conflict (shift 13, reduce 203) on INTLITERAL
+209: shift/reduce conflict (shift 14, reduce 203) on CHARLITERAL
+209: shift/reduce conflict (shift 15, reduce 203) on FLOATLITERAL
+209: shift/reduce conflict (shift 16, reduce 203) on STRINGLITERAL
+209: shift/reduce conflict (shift 17, reduce 203) on LP
+209: shift/reduce conflict (shift 209, reduce 203) on LC
+209: reduce/reduce conflict (reduce 80, reduce 203) on RC
+209: shift/reduce conflict (shift 151, reduce 203) on SM
+state 209
+	NoLocalVariableBlock : LC . NoLocalVariableBlockStatementListOpt RC  (78)
+	NoLocalVariableBlockStatementListOpt : .  (80)
+	Semicolon : .  (203)
+
+	BREAK  shift 203
+	FOR  shift 204
+	IF  shift 205
+	RETURN  shift 206
+	TRUE  shift 8
+	FALSE  shift 9
+	WHILE  shift 207
+	IDENT  shift 250
+	NULLLITERAL  shift 12
+	INTLITERAL  shift 13
+	CHARLITERAL  shift 14
+	FLOATLITERAL  shift 15
+	STRINGLITERAL  shift 16
+	LP  shift 17
+	LC  shift 209
+	SM  shift 151
+	RC  reduce 80
+
+	QualifiedName  goto 251
+	Statement  goto 252
+	NoLocalVariableBlock  goto 215
+	NoLocalVariableBlockStatementListOpt  goto 253
+	NoLocalVariableBlockStatementList  goto 254
+	NoLocalVariableBlockStatement  goto 255
+	StatementWithoutTrailingSubstatement  goto 216
+	ExpressionStatement  goto 217
+	StatementExpression  goto 218
+	IfThenStatement  goto 219
+	IfThenElseStatement  goto 220
+	WhileStatement  goto 221
+	ForStatement  goto 222
+	EmptyStatement  goto 223
+	BreakStatement  goto 224
+	ReturnStatement  goto 225
+	Assignable  goto 33
+	Assignment  goto 226
+	ArrayAccess  goto 43
+	MethodInvocation  goto 227
+	FieldAccess  goto 45
+	PrimaryNoNewArray  goto 46
+	Primary  goto 228
+	Literal  goto 49
+	BoolLiteral  goto 50
+	Semicolon  goto 230
+
+
+state 210
+	ArrayType : QualifiedName . LB RB  (24)
+	MethodInvocation : QualifiedName . LP ArgumentListOpt RP  (136)
+	ArrayAccess : QualifiedName . LB Expression RB  (139)
+	Assignable : QualifiedName .  (175)
+	QualifiedName : QualifiedName . DOT IDENT  (199)
+
+	LP  shift 75
+	LB  shift 76
+	DOT  shift 77
+	ASN  reduce 175
+	PLASN  reduce 175
+	MIASN  reduce 175
+
+
+state 211
+	Block : LC BlockStatementListOpt . RC  (71)
+
+	RC  shift 256
+	.  error
+
+
+212: shift/reduce conflict (shift 1, reduce 203) on BOOL
+212: shift/reduce conflict (shift 203, reduce 203) on BREAK
+212: shift/reduce conflict (shift 3, reduce 203) on STRING
+212: shift/reduce conflict (shift 4, reduce 203) on DOUBLE
+212: shift/reduce conflict (shift 204, reduce 203) on FOR
+212: shift/reduce conflict (shift 205, reduce 203) on IF
+212: shift/reduce conflict (shift 5, reduce 203) on INT
+212: shift/reduce conflict (shift 206, reduce 203) on RETURN
+212: shift/reduce conflict (shift 6, reduce 203) on TABLE
+212: shift/reduce conflict (shift 7, reduce 203) on LIST
+212: shift/reduce conflict (shift 8, reduce 203) on TRUE
+212: shift/reduce conflict (shift 9, reduce 203) on FALSE
+212: shift/reduce conflict (shift 207, reduce 203) on WHILE
+212: shift/reduce conflict (shift 208, reduce 203) on IDENT
+212: shift/reduce conflict (shift 12, reduce 203) on NULLLITERAL
+212: shift/reduce conflict (shift 13, reduce 203) on INTLITERAL
+212: shift/reduce conflict (shift 14, reduce 203) on CHARLITERAL
+212: shift/reduce conflict (shift 15, reduce 203) on FLOATLITERAL
+212: shift/reduce conflict (shift 16, reduce 203) on STRINGLITERAL
+212: shift/reduce conflict (shift 17, reduce 203) on LP
+212: shift/reduce conflict (shift 209, reduce 203) on LC
+212: reduce/reduce conflict (reduce 72, reduce 203) on RC
+212: shift/reduce conflict (shift 151, reduce 203) on SM
+state 212
+	BlockStatementListOpt : BlockStatementList .  (72)
+	BlockStatementList : BlockStatementList . BlockStatement  (75)
+	Semicolon : .  (203)
+
+	BOOL  shift 1
+	BREAK  shift 203
+	STRING  shift 3
+	DOUBLE  shift 4
+	FOR  shift 204
+	IF  shift 205
+	INT  shift 5
+	RETURN  shift 206
+	TABLE  shift 6
+	LIST  shift 7
+	TRUE  shift 8
+	FALSE  shift 9
+	WHILE  shift 207
+	IDENT  shift 208
+	NULLLITERAL  shift 12
+	INTLITERAL  shift 13
+	CHARLITERAL  shift 14
+	FLOATLITERAL  shift 15
+	STRINGLITERAL  shift 16
+	LP  shift 17
+	LC  shift 209
+	SM  shift 151
+	RC  reduce 72
+
+	QualifiedName  goto 210
+	BlockStatement  goto 257
+	Statement  goto 214
+	NoLocalVariableBlock  goto 215
+	StatementWithoutTrailingSubstatement  goto 216
+	ExpressionStatement  goto 217
+	StatementExpression  goto 218
+	IfThenStatement  goto 219
+	IfThenElseStatement  goto 220
+	WhileStatement  goto 221
+	ForStatement  goto 222
+	EmptyStatement  goto 223
+	BreakStatement  goto 224
+	ReturnStatement  goto 225
+	Assignable  goto 33
+	Assignment  goto 226
+	ArrayAccess  goto 43
+	MethodInvocation  goto 227
+	FieldAccess  goto 45
+	PrimaryNoNewArray  goto 46
+	Primary  goto 228
+	Literal  goto 49
+	LocalVariable  goto 229
+	BoolLiteral  goto 50
+	Semicolon  goto 230
+	Type  goto 231
+	PrimitiveType  goto 52
+	ArrayType  goto 53
+	ListType  goto 54
+	TableType  goto 55
+
+
+state 213
+	BlockStatementList : BlockStatement .  (74)
+
+	.  reduce 74
+
+
+state 214
+	BlockStatement : Statement .  (77)
+
+	.  reduce 77
+
+
+state 215
+	StatementWithoutTrailingSubstatement : NoLocalVariableBlock .  (93)
+
+	.  reduce 93
+
+
+state 216
+	Statement : StatementWithoutTrailingSubstatement .  (84)
+
+	.  reduce 84
+
+
+state 217
+	StatementWithoutTrailingSubstatement : ExpressionStatement .  (95)
+
+	.  reduce 95
+
+
+218: shift/reduce conflict (shift 151, reduce 203) on SM
+state 218
+	ExpressionStatement : StatementExpression . Semicolon  (98)
+	Semicolon : .  (203)
+
+	SM  shift 151
+	BOOL  reduce 203
+	BREAK  reduce 203
+	STRING  reduce 203
+	DOUBLE  reduce 203
+	ELSE  reduce 203
+	FOR  reduce 203
+	IF  reduce 203
+	INT  reduce 203
+	RETURN  reduce 203
+	TABLE  reduce 203
+	LIST  reduce 203
+	TRUE  reduce 203
+	FALSE  reduce 203
+	WHILE  reduce 203
+	IDENT  reduce 203
+	NULLLITERAL  reduce 203
+	INTLITERAL  reduce 203
+	CHARLITERAL  reduce 203
+	FLOATLITERAL  reduce 203
+	STRINGLITERAL  reduce 203
+	LP  reduce 203
+	LC  reduce 203
+	RC  reduce 203
+
+	Semicolon  goto 258
+
+
+state 219
+	Statement : IfThenStatement .  (85)
+
+	.  reduce 85
+
+
+state 220
+	Statement : IfThenElseStatement .  (86)
+
+	.  reduce 86
+
+
+state 221
+	Statement : WhileStatement .  (87)
+
+	.  reduce 87
+
+
+state 222
+	Statement : ForStatement .  (88)
+
+	.  reduce 88
+
+
+state 223
+	StatementWithoutTrailingSubstatement : EmptyStatement .  (94)
+
+	.  reduce 94
+
+
+state 224
+	StatementWithoutTrailingSubstatement : BreakStatement .  (96)
+
+	.  reduce 96
+
+
+state 225
+	StatementWithoutTrailingSubstatement : ReturnStatement .  (97)
+
+	.  reduce 97
+
+
+state 226
+	StatementExpression : Assignment .  (99)
+
+	.  reduce 99
+
+
+state 227
+	StatementExpression : MethodInvocation .  (100)
+	PrimaryNoNewArray : MethodInvocation .  (133)
+
+	BOOL  reduce 100
+	BREAK  reduce 100
+	STRING  reduce 100
+	DOUBLE  reduce 100
+	ELSE  reduce 100
+	FOR  reduce 100
+	IF  reduce 100
+	INT  reduce 100
+	RETURN  reduce 100
+	TABLE  reduce 100
+	LIST  reduce 100
+	TRUE  reduce 100
+	FALSE  reduce 100
+	WHILE  reduce 100
+	IDENT  reduce 100
+	NULLLITERAL  reduce 100
+	INTLITERAL  reduce 100
+	CHARLITERAL  reduce 100
+	FLOATLITERAL  reduce 100
+	STRINGLITERAL  reduce 100
+	LP  reduce 100
+	RP  reduce 100
+	LC  reduce 100
+	RC  reduce 100
+	LB  reduce 133
+	SM  reduce 100
+	CM  reduce 100
+	DOT  reduce 133
+
+
+state 228
+	FieldAccess : Primary . DOT IDENT  (135)
+	MethodInvocation : Primary . DOT IDENT LP ArgumentListOpt RP  (138)
+
+	DOT  shift 98
+	.  error
+
+
+state 229
+	BlockStatement : LocalVariable .  (76)
+
+	.  reduce 76
+
+
+state 230
+	EmptyStatement : Semicolon .  (118)
+
+	.  reduce 118
+
+
+state 231
+	LocalVariable : Type . VariableDeclaratorList Semicolon  (192)
+
+	IDENT  shift 190
+	.  error
+
+	VariableDeclaratorList  goto 259
+	VariableDeclaratorId  goto 102
+
+
+state 232
+	ClassVariable : Type IDENT Semicolon .  (42)
+
+	.  reduce 42
+
+
+state 233
+	MethodInvocation : Primary DOT IDENT LP ArgumentListOpt . RP  (138)
+
+	RP  shift 260
+	.  error
+
+
+state 234
+	FunctionPrototype : Type IDENT LP TypeListOpt RP . Semicolon  (60)
+	Semicolon : .  (203)
+
+	SM  shift 151
+	$end  reduce 203
+	BOOL  reduce 203
+	CLASS  reduce 203
+	STRING  reduce 203
+	DOUBLE  reduce 203
+	INT  reduce 203
+	TABLE  reduce 203
+	LIST  reduce 203
+	TRUE  reduce 203
+	FALSE  reduce 203
+	VOID  reduce 203
+	IDENT  reduce 203
+	NULLLITERAL  reduce 203
+	INTLITERAL  reduce 203
+	CHARLITERAL  reduce 203
+	FLOATLITERAL  reduce 203
+	STRINGLITERAL  reduce 203
+	LP  reduce 203
+	BANG  reduce 203
+	MINUS  reduce 203
+	DROLL  reduce 203
+
+	Semicolon  goto 261
+
+
+state 235
+	FunctionDefinition : Type IDENT LP FormalParameterListOpt RP . FunctionBody  (68)
+
+	LC  shift 178
+	.  error
+
+	FunctionBody  goto 262
+	Block  goto 240
+
+
+state 236
+	TableType : TABLE LT PrimitiveType CM PrimitiveType GT .  (18)
+
+	.  reduce 18
+
+
+state 237
+	FunctionPrototype : VOID IDENT LP TypeListOpt RP Semicolon .  (61)
+
+	.  reduce 61
+
+
+state 238
+	TypeList : TypeList CM Type .  (65)
+
+	.  reduce 65
+
+
+state 239
+	FunctionDefinition : VOID IDENT LP FormalParameterListOpt RP FunctionBody .  (69)
+
+	.  reduce 69
+
+
+state 240
+	FunctionBody : Block .  (70)
+
+	.  reduce 70
+
+
+state 241
+	FormalParameterList : FormalParameterList CM FormalParameter .  (186)
+
+	.  reduce 186
+
+
+state 242
+	MethodDeclarator : IDENT LP FormalParameterListOpt . RP  (53)
+
+	RP  shift 263
+	.  error
+
+
+state 243
+	ConstructorDeclarator : IDENT LP FormalParameterListOpt RP .  (56)
+
+	.  reduce 56
+
+
+state 244
+	BreakStatement : BREAK Semicolon .  (119)
+
+	.  reduce 119
+
+
+state 245
+	ForStatement : FOR LP . ForInitOpt SM ExpressionOpt SM ForUpdateOpt RP Statement  (114)
+	ForInitOpt : .  (107)
+
+	TRUE  shift 8
+	FALSE  shift 9
+	IDENT  shift 250
+	NULLLITERAL  shift 12
+	INTLITERAL  shift 13
+	CHARLITERAL  shift 14
+	FLOATLITERAL  shift 15
+	STRINGLITERAL  shift 16
+	LP  shift 17
+	SM  reduce 107
+
+	QualifiedName  goto 251
+	StatementExpression  goto 264
+	ForInitOpt  goto 265
+	ForInit  goto 266
+	StatementExpressionList  goto 267
+	Assignable  goto 33
+	Assignment  goto 226
+	ArrayAccess  goto 43
+	MethodInvocation  goto 227
+	FieldAccess  goto 45
+	PrimaryNoNewArray  goto 46
+	Primary  goto 228
+	Literal  goto 49
+	BoolLiteral  goto 50
+
+
+state 246
+	IfThenStatement : IF LP . Expression RP Statement  (101)
+	IfThenElseStatement : IF LP . Expression RP StatementNoShortIf ELSE Statement  (102)
+
+	TRUE  shift 8
+	FALSE  shift 9
+	IDENT  shift 63
+	NULLLITERAL  shift 12
+	INTLITERAL  shift 13
+	CHARLITERAL  shift 14
+	FLOATLITERAL  shift 15
+	STRINGLITERAL  shift 16
+	LP  shift 17
+	BANG  shift 18
+	MINUS  shift 19
+	DROLL  shift 20
+	.  error
+
+	AssignmentExpression  goto 64
+	QualifiedName  goto 65
+	Expression  goto 268
+	Assignable  goto 33
+	Assignment  goto 34
+	ConditionalOrExpression  goto 35
+	EqualityExpression  goto 36
+	RelationalExpression  goto 37
+	AdditiveExpression  goto 38
+	MultiplicativeExpression  goto 39
+	UnaryExpressionNotPlusMinus  goto 40
+	UnaryExpression  goto 41
+	PostFixExpression  goto 42
+	ArrayAccess  goto 43
+	MethodInvocation  goto 44
+	FieldAccess  goto 45
+	PrimaryNoNewArray  goto 46
+	Primary  goto 47
+	ConditionalAndExpression  goto 48
+	Literal  goto 49
+	BoolLiteral  goto 50
+
+
+247: shift/reduce conflict (shift 151, reduce 203) on SM
+state 247
+	ReturnStatement : RETURN ExpressionOpt . Semicolon  (120)
+	Semicolon : .  (203)
+
+	SM  shift 151
+	BOOL  reduce 203
+	BREAK  reduce 203
+	STRING  reduce 203
+	DOUBLE  reduce 203
+	ELSE  reduce 203
+	FOR  reduce 203
+	IF  reduce 203
+	INT  reduce 203
+	RETURN  reduce 203
+	TABLE  reduce 203
+	LIST  reduce 203
+	TRUE  reduce 203
+	FALSE  reduce 203
+	WHILE  reduce 203
+	IDENT  reduce 203
+	NULLLITERAL  reduce 203
+	INTLITERAL  reduce 203
+	CHARLITERAL  reduce 203
+	FLOATLITERAL  reduce 203
+	STRINGLITERAL  reduce 203
+	LP  reduce 203
+	LC  reduce 203
+	RC  reduce 203
+
+	Semicolon  goto 269
+
+
+state 248
+	ExpressionOpt : Expression .  (109)
+
+	.  reduce 109
+
+
+state 249
+	WhileStatement : WHILE LP . Expression RP Statement  (104)
+
+	TRUE  shift 8
+	FALSE  shift 9
+	IDENT  shift 63
+	NULLLITERAL  shift 12
+	INTLITERAL  shift 13
+	CHARLITERAL  shift 14
+	FLOATLITERAL  shift 15
+	STRINGLITERAL  shift 16
+	LP  shift 17
+	BANG  shift 18
+	MINUS  shift 19
+	DROLL  shift 20
+	.  error
+
+	AssignmentExpression  goto 64
+	QualifiedName  goto 65
+	Expression  goto 270
+	Assignable  goto 33
+	Assignment  goto 34
+	ConditionalOrExpression  goto 35
+	EqualityExpression  goto 36
+	RelationalExpression  goto 37
+	AdditiveExpression  goto 38
+	MultiplicativeExpression  goto 39
+	UnaryExpressionNotPlusMinus  goto 40
+	UnaryExpression  goto 41
+	PostFixExpression  goto 42
+	ArrayAccess  goto 43
+	MethodInvocation  goto 44
+	FieldAccess  goto 45
+	PrimaryNoNewArray  goto 46
+	Primary  goto 47
+	ConditionalAndExpression  goto 48
+	Literal  goto 49
+	BoolLiteral  goto 50
+
+
+state 250
+	MethodInvocation : IDENT . LP ArgumentListOpt RP  (137)
+	ArrayAccess : IDENT . LB Expression RB  (140)
+	Assignable : IDENT .  (176)
+	QualifiedName : IDENT . DOT IDENT  (198)
+
+	LP  shift 60
+	LB  shift 114
+	DOT  shift 62
+	ASN  reduce 176
+	PLASN  reduce 176
+	MIASN  reduce 176
+
+
+state 251
+	MethodInvocation : QualifiedName . LP ArgumentListOpt RP  (136)
+	ArrayAccess : QualifiedName . LB Expression RB  (139)
+	Assignable : QualifiedName .  (175)
+	QualifiedName : QualifiedName . DOT IDENT  (199)
+
+	LP  shift 75
+	LB  shift 115
+	DOT  shift 77
+	ASN  reduce 175
+	PLASN  reduce 175
+	MIASN  reduce 175
+
+
+state 252
+	NoLocalVariableBlockStatement : Statement .  (83)
+
+	.  reduce 83
+
+
+state 253
+	NoLocalVariableBlock : LC NoLocalVariableBlockStatementListOpt . RC  (78)
+
+	RC  shift 271
+	.  error
+
+
+254: shift/reduce conflict (shift 203, reduce 203) on BREAK
+254: shift/reduce conflict (shift 204, reduce 203) on FOR
+254: shift/reduce conflict (shift 205, reduce 203) on IF
+254: shift/reduce conflict (shift 206, reduce 203) on RETURN
+254: shift/reduce conflict (shift 8, reduce 203) on TRUE
+254: shift/reduce conflict (shift 9, reduce 203) on FALSE
+254: shift/reduce conflict (shift 207, reduce 203) on WHILE
+254: shift/reduce conflict (shift 250, reduce 203) on IDENT
+254: shift/reduce conflict (shift 12, reduce 203) on NULLLITERAL
+254: shift/reduce conflict (shift 13, reduce 203) on INTLITERAL
+254: shift/reduce conflict (shift 14, reduce 203) on CHARLITERAL
+254: shift/reduce conflict (shift 15, reduce 203) on FLOATLITERAL
+254: shift/reduce conflict (shift 16, reduce 203) on STRINGLITERAL
+254: shift/reduce conflict (shift 17, reduce 203) on LP
+254: shift/reduce conflict (shift 209, reduce 203) on LC
+254: reduce/reduce conflict (reduce 79, reduce 203) on RC
+254: shift/reduce conflict (shift 151, reduce 203) on SM
+state 254
+	NoLocalVariableBlockStatementListOpt : NoLocalVariableBlockStatementList .  (79)
+	NoLocalVariableBlockStatementList : NoLocalVariableBlockStatementList . NoLocalVariableBlockStatement  (82)
+	Semicolon : .  (203)
+
+	BREAK  shift 203
+	FOR  shift 204
+	IF  shift 205
+	RETURN  shift 206
+	TRUE  shift 8
+	FALSE  shift 9
+	WHILE  shift 207
+	IDENT  shift 250
+	NULLLITERAL  shift 12
+	INTLITERAL  shift 13
+	CHARLITERAL  shift 14
+	FLOATLITERAL  shift 15
+	STRINGLITERAL  shift 16
+	LP  shift 17
+	LC  shift 209
+	SM  shift 151
+	RC  reduce 79
+
+	QualifiedName  goto 251
+	Statement  goto 252
+	NoLocalVariableBlock  goto 215
+	NoLocalVariableBlockStatement  goto 272
+	StatementWithoutTrailingSubstatement  goto 216
+	ExpressionStatement  goto 217
+	StatementExpression  goto 218
+	IfThenStatement  goto 219
+	IfThenElseStatement  goto 220
+	WhileStatement  goto 221
+	ForStatement  goto 222
+	EmptyStatement  goto 223
+	BreakStatement  goto 224
+	ReturnStatement  goto 225
+	Assignable  goto 33
+	Assignment  goto 226
+	ArrayAccess  goto 43
+	MethodInvocation  goto 227
+	FieldAccess  goto 45
+	PrimaryNoNewArray  goto 46
+	Primary  goto 228
+	Literal  goto 49
+	BoolLiteral  goto 50
+	Semicolon  goto 230
+
+
+state 255
+	NoLocalVariableBlockStatementList : NoLocalVariableBlockStatement .  (81)
+
+	.  reduce 81
+
+
+state 256
+	Block : LC BlockStatementListOpt RC .  (71)
+
+	.  reduce 71
+
+
+state 257
+	BlockStatementList : BlockStatementList BlockStatement .  (75)
+
+	.  reduce 75
+
+
+state 258
+	ExpressionStatement : StatementExpression Semicolon .  (98)
+
+	.  reduce 98
+
+
+259: shift/reduce conflict (shift 151, reduce 203) on SM
+state 259
+	VariableDeclaratorList : VariableDeclaratorList . CM VariableDeclaratorId  (8)
+	LocalVariable : Type VariableDeclaratorList . Semicolon  (192)
+	Semicolon : .  (203)
+
+	SM  shift 151
+	CM  shift 152
+	BOOL  reduce 203
+	BREAK  reduce 203
+	STRING  reduce 203
+	DOUBLE  reduce 203
+	FOR  reduce 203
+	IF  reduce 203
+	INT  reduce 203
+	RETURN  reduce 203
+	TABLE  reduce 203
+	LIST  reduce 203
+	TRUE  reduce 203
+	FALSE  reduce 203
+	WHILE  reduce 203
+	IDENT  reduce 203
+	NULLLITERAL  reduce 203
+	INTLITERAL  reduce 203
+	CHARLITERAL  reduce 203
+	FLOATLITERAL  reduce 203
+	STRINGLITERAL  reduce 203
+	LP  reduce 203
+	LC  reduce 203
+	RC  reduce 203
+
+	Semicolon  goto 273
+
+
+state 260
+	MethodInvocation : Primary DOT IDENT LP ArgumentListOpt RP .  (138)
+
+	.  reduce 138
+
+
+state 261
+	FunctionPrototype : Type IDENT LP TypeListOpt RP Semicolon .  (60)
+
+	.  reduce 60
+
+
+state 262
+	FunctionDefinition : Type IDENT LP FormalParameterListOpt RP FunctionBody .  (68)
+
+	.  reduce 68
+
+
+state 263
+	MethodDeclarator : IDENT LP FormalParameterListOpt RP .  (53)
+
+	.  reduce 53
+
+
+state 264
+	StatementExpressionList : StatementExpression .  (116)
+
+	.  reduce 116
+
+
+state 265
+	ForStatement : FOR LP ForInitOpt . SM ExpressionOpt SM ForUpdateOpt RP Statement  (114)
+
+	SM  shift 274
+	.  error
+
+
+state 266
+	ForInitOpt : ForInit .  (106)
+
+	.  reduce 106
+
+
+state 267
+	ForInit : StatementExpressionList .  (108)
+	StatementExpressionList : StatementExpressionList . CM StatementExpression  (117)
+
+	CM  shift 275
+	SM  reduce 108
+
+
+state 268
+	IfThenStatement : IF LP Expression . RP Statement  (101)
+	IfThenElseStatement : IF LP Expression . RP StatementNoShortIf ELSE Statement  (102)
+
+	RP  shift 276
+	.  error
+
+
+state 269
+	ReturnStatement : RETURN ExpressionOpt Semicolon .  (120)
+
+	.  reduce 120
+
+
+state 270
+	WhileStatement : WHILE LP Expression . RP Statement  (104)
+
+	RP  shift 277
+	.  error
+
+
+state 271
+	NoLocalVariableBlock : LC NoLocalVariableBlockStatementListOpt RC .  (78)
+
+	.  reduce 78
+
+
+state 272
+	NoLocalVariableBlockStatementList : NoLocalVariableBlockStatementList NoLocalVariableBlockStatement .  (82)
+
+	.  reduce 82
+
+
+state 273
+	LocalVariable : Type VariableDeclaratorList Semicolon .  (192)
+
+	.  reduce 192
+
+
+state 274
+	ForStatement : FOR LP ForInitOpt SM . ExpressionOpt SM ForUpdateOpt RP Statement  (114)
+	ExpressionOpt : .  (110)
+
+	TRUE  shift 8
+	FALSE  shift 9
+	IDENT  shift 63
+	NULLLITERAL  shift 12
+	INTLITERAL  shift 13
+	CHARLITERAL  shift 14
+	FLOATLITERAL  shift 15
+	STRINGLITERAL  shift 16
+	LP  shift 17
+	BANG  shift 18
+	MINUS  shift 19
+	DROLL  shift 20
+	SM  reduce 110
+
+	AssignmentExpression  goto 64
+	QualifiedName  goto 65
+	ExpressionOpt  goto 278
+	Expression  goto 248
+	Assignable  goto 33
+	Assignment  goto 34
+	ConditionalOrExpression  goto 35
+	EqualityExpression  goto 36
+	RelationalExpression  goto 37
+	AdditiveExpression  goto 38
+	MultiplicativeExpression  goto 39
+	UnaryExpressionNotPlusMinus  goto 40
+	UnaryExpression  goto 41
+	PostFixExpression  goto 42
+	ArrayAccess  goto 43
+	MethodInvocation  goto 44
+	FieldAccess  goto 45
+	PrimaryNoNewArray  goto 46
+	Primary  goto 47
+	ConditionalAndExpression  goto 48
+	Literal  goto 49
+	BoolLiteral  goto 50
+
+
+state 275
+	StatementExpressionList : StatementExpressionList CM . StatementExpression  (117)
+
+	TRUE  shift 8
+	FALSE  shift 9
+	IDENT  shift 250
+	NULLLITERAL  shift 12
+	INTLITERAL  shift 13
+	CHARLITERAL  shift 14
+	FLOATLITERAL  shift 15
+	STRINGLITERAL  shift 16
+	LP  shift 17
+	.  error
+
+	QualifiedName  goto 251
+	StatementExpression  goto 279
+	Assignable  goto 33
+	Assignment  goto 226
+	ArrayAccess  goto 43
+	MethodInvocation  goto 227
+	FieldAccess  goto 45
+	PrimaryNoNewArray  goto 46
+	Primary  goto 228
+	Literal  goto 49
+	BoolLiteral  goto 50
+
+
+276: shift/reduce conflict (shift 203, reduce 203) on BREAK
+276: shift/reduce conflict (shift 280, reduce 203) on FOR
+276: shift/reduce conflict (shift 281, reduce 203) on IF
+276: shift/reduce conflict (shift 206, reduce 203) on RETURN
+276: shift/reduce conflict (shift 8, reduce 203) on TRUE
+276: shift/reduce conflict (shift 9, reduce 203) on FALSE
+276: shift/reduce conflict (shift 282, reduce 203) on WHILE
+276: shift/reduce conflict (shift 250, reduce 203) on IDENT
+276: shift/reduce conflict (shift 12, reduce 203) on NULLLITERAL
+276: shift/reduce conflict (shift 13, reduce 203) on INTLITERAL
+276: shift/reduce conflict (shift 14, reduce 203) on CHARLITERAL
+276: shift/reduce conflict (shift 15, reduce 203) on FLOATLITERAL
+276: shift/reduce conflict (shift 16, reduce 203) on STRINGLITERAL
+276: shift/reduce conflict (shift 17, reduce 203) on LP
+276: shift/reduce conflict (shift 209, reduce 203) on LC
+276: shift/reduce conflict (shift 151, reduce 203) on SM
+state 276
+	IfThenStatement : IF LP Expression RP . Statement  (101)
+	IfThenElseStatement : IF LP Expression RP . StatementNoShortIf ELSE Statement  (102)
+	Semicolon : .  (203)
+
+	BREAK  shift 203
+	FOR  shift 280
+	IF  shift 281
+	RETURN  shift 206
+	TRUE  shift 8
+	FALSE  shift 9
+	WHILE  shift 282
+	IDENT  shift 250
+	NULLLITERAL  shift 12
+	INTLITERAL  shift 13
+	CHARLITERAL  shift 14
+	FLOATLITERAL  shift 15
+	STRINGLITERAL  shift 16
+	LP  shift 17
+	LC  shift 209
+	SM  shift 151
+	BOOL  reduce 203
+	STRING  reduce 203
+	DOUBLE  reduce 203
+	ELSE  reduce 203
+	INT  reduce 203
+	TABLE  reduce 203
+	LIST  reduce 203
+	RC  reduce 203
+
+	QualifiedName  goto 251
+	Statement  goto 283
+	NoLocalVariableBlock  goto 215
+	StatementNoShortIf  goto 284
+	StatementWithoutTrailingSubstatement  goto 285
+	ExpressionStatement  goto 217
+	StatementExpression  goto 218
+	IfThenStatement  goto 219
+	IfThenElseStatement  goto 220
+	IfThenElseStatementNoShortIf  goto 286
+	WhileStatement  goto 221
+	WhileStatementNoShortIf  goto 287
+	ForStatement  goto 222
+	ForStatementNoShortIf  goto 288
+	EmptyStatement  goto 223
+	BreakStatement  goto 224
+	ReturnStatement  goto 225
+	Assignable  goto 33
+	Assignment  goto 226
+	ArrayAccess  goto 43
+	MethodInvocation  goto 227
+	FieldAccess  goto 45
+	PrimaryNoNewArray  goto 46
+	Primary  goto 228
+	Literal  goto 49
+	BoolLiteral  goto 50
+	Semicolon  goto 230
+
+
+277: shift/reduce conflict (shift 203, reduce 203) on BREAK
+277: shift/reduce conflict (shift 204, reduce 203) on FOR
+277: shift/reduce conflict (shift 205, reduce 203) on IF
+277: shift/reduce conflict (shift 206, reduce 203) on RETURN
+277: shift/reduce conflict (shift 8, reduce 203) on TRUE
+277: shift/reduce conflict (shift 9, reduce 203) on FALSE
+277: shift/reduce conflict (shift 207, reduce 203) on WHILE
+277: shift/reduce conflict (shift 250, reduce 203) on IDENT
+277: shift/reduce conflict (shift 12, reduce 203) on NULLLITERAL
+277: shift/reduce conflict (shift 13, reduce 203) on INTLITERAL
+277: shift/reduce conflict (shift 14, reduce 203) on CHARLITERAL
+277: shift/reduce conflict (shift 15, reduce 203) on FLOATLITERAL
+277: shift/reduce conflict (shift 16, reduce 203) on STRINGLITERAL
+277: shift/reduce conflict (shift 17, reduce 203) on LP
+277: shift/reduce conflict (shift 209, reduce 203) on LC
+277: shift/reduce conflict (shift 151, reduce 203) on SM
+state 277
+	WhileStatement : WHILE LP Expression RP . Statement  (104)
+	Semicolon : .  (203)
+
+	BREAK  shift 203
+	FOR  shift 204
+	IF  shift 205
+	RETURN  shift 206
+	TRUE  shift 8
+	FALSE  shift 9
+	WHILE  shift 207
+	IDENT  shift 250
+	NULLLITERAL  shift 12
+	INTLITERAL  shift 13
+	CHARLITERAL  shift 14
+	FLOATLITERAL  shift 15
+	STRINGLITERAL  shift 16
+	LP  shift 17
+	LC  shift 209
+	SM  shift 151
+	BOOL  reduce 203
+	STRING  reduce 203
+	DOUBLE  reduce 203
+	INT  reduce 203
+	TABLE  reduce 203
+	LIST  reduce 203
+	RC  reduce 203
+
+	QualifiedName  goto 251
+	Statement  goto 289
+	NoLocalVariableBlock  goto 215
+	StatementWithoutTrailingSubstatement  goto 216
+	ExpressionStatement  goto 217
+	StatementExpression  goto 218
+	IfThenStatement  goto 219
+	IfThenElseStatement  goto 220
+	WhileStatement  goto 221
+	ForStatement  goto 222
+	EmptyStatement  goto 223
+	BreakStatement  goto 224
+	ReturnStatement  goto 225
+	Assignable  goto 33
+	Assignment  goto 226
+	ArrayAccess  goto 43
+	MethodInvocation  goto 227
+	FieldAccess  goto 45
+	PrimaryNoNewArray  goto 46
+	Primary  goto 228
+	Literal  goto 49
+	BoolLiteral  goto 50
+	Semicolon  goto 230
+
+
+state 278
+	ForStatement : FOR LP ForInitOpt SM ExpressionOpt . SM ForUpdateOpt RP Statement  (114)
+
+	SM  shift 290
+	.  error
+
+
+state 279
+	StatementExpressionList : StatementExpressionList CM StatementExpression .  (117)
+
+	.  reduce 117
+
+
+state 280
+	ForStatement : FOR . LP ForInitOpt SM ExpressionOpt SM ForUpdateOpt RP Statement  (114)
+	ForStatementNoShortIf : FOR . LP ForInitOpt SM ExpressionOpt SM ForUpdateOpt RP StatementNoShortIf  (115)
+
+	LP  shift 291
+	.  error
+
+
+state 281
+	IfThenStatement : IF . LP Expression RP Statement  (101)
+	IfThenElseStatement : IF . LP Expression RP StatementNoShortIf ELSE Statement  (102)
+	IfThenElseStatementNoShortIf : IF . LP Expression RP StatementNoShortIf ELSE StatementNoShortIf  (103)
+
+	LP  shift 292
+	.  error
+
+
+state 282
+	WhileStatement : WHILE . LP Expression RP Statement  (104)
+	WhileStatementNoShortIf : WHILE . LP Expression RP StatementNoShortIf  (105)
+
+	LP  shift 293
+	.  error
+
+
+state 283
+	IfThenStatement : IF LP Expression RP Statement .  (101)
+
+	.  reduce 101
+
+
+state 284
+	IfThenElseStatement : IF LP Expression RP StatementNoShortIf . ELSE Statement  (102)
+
+	ELSE  shift 294
+	.  error
+
+
+state 285
+	Statement : StatementWithoutTrailingSubstatement .  (84)
+	StatementNoShortIf : StatementWithoutTrailingSubstatement .  (89)
+
+	BOOL  reduce 84
+	BREAK  reduce 84
+	STRING  reduce 84
+	DOUBLE  reduce 84
+	ELSE  reduce 89
+	FOR  reduce 84
+	IF  reduce 84
+	INT  reduce 84
+	RETURN  reduce 84
+	TABLE  reduce 84
+	LIST  reduce 84
+	TRUE  reduce 84
+	FALSE  reduce 84
+	WHILE  reduce 84
+	IDENT  reduce 84
+	NULLLITERAL  reduce 84
+	INTLITERAL  reduce 84
+	CHARLITERAL  reduce 84
+	FLOATLITERAL  reduce 84
+	STRINGLITERAL  reduce 84
+	LP  reduce 84
+	LC  reduce 84
+	RC  reduce 84
+	SM  reduce 84
+
+
+state 286
+	StatementNoShortIf : IfThenElseStatementNoShortIf .  (90)
+
+	.  reduce 90
+
+
+state 287
+	StatementNoShortIf : WhileStatementNoShortIf .  (91)
+
+	.  reduce 91
+
+
+state 288
+	StatementNoShortIf : ForStatementNoShortIf .  (92)
+
+	.  reduce 92
+
+
+state 289
+	WhileStatement : WHILE LP Expression RP Statement .  (104)
+
+	.  reduce 104
+
+
+state 290
+	ForStatement : FOR LP ForInitOpt SM ExpressionOpt SM . ForUpdateOpt RP Statement  (114)
+	ForUpdateOpt : .  (112)
+
+	TRUE  shift 8
+	FALSE  shift 9
+	IDENT  shift 250
+	NULLLITERAL  shift 12
+	INTLITERAL  shift 13
+	CHARLITERAL  shift 14
+	FLOATLITERAL  shift 15
+	STRINGLITERAL  shift 16
+	LP  shift 17
+	RP  reduce 112
+
+	QualifiedName  goto 251
+	StatementExpression  goto 264
+	ForUpdateOpt  goto 295
+	ForUpdate  goto 296
+	StatementExpressionList  goto 297
+	Assignable  goto 33
+	Assignment  goto 226
+	ArrayAccess  goto 43
+	MethodInvocation  goto 227
+	FieldAccess  goto 45
+	PrimaryNoNewArray  goto 46
+	Primary  goto 228
+	Literal  goto 49
+	BoolLiteral  goto 50
+
+
+state 291
+	ForStatement : FOR LP . ForInitOpt SM ExpressionOpt SM ForUpdateOpt RP Statement  (114)
+	ForStatementNoShortIf : FOR LP . ForInitOpt SM ExpressionOpt SM ForUpdateOpt RP StatementNoShortIf  (115)
+	ForInitOpt : .  (107)
+
+	TRUE  shift 8
+	FALSE  shift 9
+	IDENT  shift 250
+	NULLLITERAL  shift 12
+	INTLITERAL  shift 13
+	CHARLITERAL  shift 14
+	FLOATLITERAL  shift 15
+	STRINGLITERAL  shift 16
+	LP  shift 17
+	SM  reduce 107
+
+	QualifiedName  goto 251
+	StatementExpression  goto 264
+	ForInitOpt  goto 298
+	ForInit  goto 266
+	StatementExpressionList  goto 267
+	Assignable  goto 33
+	Assignment  goto 226
+	ArrayAccess  goto 43
+	MethodInvocation  goto 227
+	FieldAccess  goto 45
+	PrimaryNoNewArray  goto 46
+	Primary  goto 228
+	Literal  goto 49
+	BoolLiteral  goto 50
+
+
+state 292
+	IfThenStatement : IF LP . Expression RP Statement  (101)
+	IfThenElseStatement : IF LP . Expression RP StatementNoShortIf ELSE Statement  (102)
+	IfThenElseStatementNoShortIf : IF LP . Expression RP StatementNoShortIf ELSE StatementNoShortIf  (103)
+
+	TRUE  shift 8
+	FALSE  shift 9
+	IDENT  shift 63
+	NULLLITERAL  shift 12
+	INTLITERAL  shift 13
+	CHARLITERAL  shift 14
+	FLOATLITERAL  shift 15
+	STRINGLITERAL  shift 16
+	LP  shift 17
+	BANG  shift 18
+	MINUS  shift 19
+	DROLL  shift 20
+	.  error
+
+	AssignmentExpression  goto 64
+	QualifiedName  goto 65
+	Expression  goto 299
+	Assignable  goto 33
+	Assignment  goto 34
+	ConditionalOrExpression  goto 35
+	EqualityExpression  goto 36
+	RelationalExpression  goto 37
+	AdditiveExpression  goto 38
+	MultiplicativeExpression  goto 39
+	UnaryExpressionNotPlusMinus  goto 40
+	UnaryExpression  goto 41
+	PostFixExpression  goto 42
+	ArrayAccess  goto 43
+	MethodInvocation  goto 44
+	FieldAccess  goto 45
+	PrimaryNoNewArray  goto 46
+	Primary  goto 47
+	ConditionalAndExpression  goto 48
+	Literal  goto 49
+	BoolLiteral  goto 50
+
+
+state 293
+	WhileStatement : WHILE LP . Expression RP Statement  (104)
+	WhileStatementNoShortIf : WHILE LP . Expression RP StatementNoShortIf  (105)
+
+	TRUE  shift 8
+	FALSE  shift 9
+	IDENT  shift 63
+	NULLLITERAL  shift 12
+	INTLITERAL  shift 13
+	CHARLITERAL  shift 14
+	FLOATLITERAL  shift 15
+	STRINGLITERAL  shift 16
+	LP  shift 17
+	BANG  shift 18
+	MINUS  shift 19
+	DROLL  shift 20
+	.  error
+
+	AssignmentExpression  goto 64
+	QualifiedName  goto 65
+	Expression  goto 300
+	Assignable  goto 33
+	Assignment  goto 34
+	ConditionalOrExpression  goto 35
+	EqualityExpression  goto 36
+	RelationalExpression  goto 37
+	AdditiveExpression  goto 38
+	MultiplicativeExpression  goto 39
+	UnaryExpressionNotPlusMinus  goto 40
+	UnaryExpression  goto 41
+	PostFixExpression  goto 42
+	ArrayAccess  goto 43
+	MethodInvocation  goto 44
+	FieldAccess  goto 45
+	PrimaryNoNewArray  goto 46
+	Primary  goto 47
+	ConditionalAndExpression  goto 48
+	Literal  goto 49
+	BoolLiteral  goto 50
+
+
+294: shift/reduce conflict (shift 203, reduce 203) on BREAK
+294: shift/reduce conflict (shift 204, reduce 203) on FOR
+294: shift/reduce conflict (shift 205, reduce 203) on IF
+294: shift/reduce conflict (shift 206, reduce 203) on RETURN
+294: shift/reduce conflict (shift 8, reduce 203) on TRUE
+294: shift/reduce conflict (shift 9, reduce 203) on FALSE
+294: shift/reduce conflict (shift 207, reduce 203) on WHILE
+294: shift/reduce conflict (shift 250, reduce 203) on IDENT
+294: shift/reduce conflict (shift 12, reduce 203) on NULLLITERAL
+294: shift/reduce conflict (shift 13, reduce 203) on INTLITERAL
+294: shift/reduce conflict (shift 14, reduce 203) on CHARLITERAL
+294: shift/reduce conflict (shift 15, reduce 203) on FLOATLITERAL
+294: shift/reduce conflict (shift 16, reduce 203) on STRINGLITERAL
+294: shift/reduce conflict (shift 17, reduce 203) on LP
+294: shift/reduce conflict (shift 209, reduce 203) on LC
+294: shift/reduce conflict (shift 151, reduce 203) on SM
+state 294
+	IfThenElseStatement : IF LP Expression RP StatementNoShortIf ELSE . Statement  (102)
+	Semicolon : .  (203)
+
+	BREAK  shift 203
+	FOR  shift 204
+	IF  shift 205
+	RETURN  shift 206
+	TRUE  shift 8
+	FALSE  shift 9
+	WHILE  shift 207
+	IDENT  shift 250
+	NULLLITERAL  shift 12
+	INTLITERAL  shift 13
+	CHARLITERAL  shift 14
+	FLOATLITERAL  shift 15
+	STRINGLITERAL  shift 16
+	LP  shift 17
+	LC  shift 209
+	SM  shift 151
+	BOOL  reduce 203
+	STRING  reduce 203
+	DOUBLE  reduce 203
+	INT  reduce 203
+	TABLE  reduce 203
+	LIST  reduce 203
+	RC  reduce 203
+
+	QualifiedName  goto 251
+	Statement  goto 301
+	NoLocalVariableBlock  goto 215
+	StatementWithoutTrailingSubstatement  goto 216
+	ExpressionStatement  goto 217
+	StatementExpression  goto 218
+	IfThenStatement  goto 219
+	IfThenElseStatement  goto 220
+	WhileStatement  goto 221
+	ForStatement  goto 222
+	EmptyStatement  goto 223
+	BreakStatement  goto 224
+	ReturnStatement  goto 225
+	Assignable  goto 33
+	Assignment  goto 226
+	ArrayAccess  goto 43
+	MethodInvocation  goto 227
+	FieldAccess  goto 45
+	PrimaryNoNewArray  goto 46
+	Primary  goto 228
+	Literal  goto 49
+	BoolLiteral  goto 50
+	Semicolon  goto 230
+
+
+state 295
+	ForStatement : FOR LP ForInitOpt SM ExpressionOpt SM ForUpdateOpt . RP Statement  (114)
+
+	RP  shift 302
+	.  error
+
+
+state 296
+	ForUpdateOpt : ForUpdate .  (111)
+
+	.  reduce 111
+
+
+state 297
+	ForUpdate : StatementExpressionList .  (113)
+	StatementExpressionList : StatementExpressionList . CM StatementExpression  (117)
+
+	CM  shift 275
+	RP  reduce 113
+
+
+state 298
+	ForStatement : FOR LP ForInitOpt . SM ExpressionOpt SM ForUpdateOpt RP Statement  (114)
+	ForStatementNoShortIf : FOR LP ForInitOpt . SM ExpressionOpt SM ForUpdateOpt RP StatementNoShortIf  (115)
+
+	SM  shift 303
+	.  error
+
+
+state 299
+	IfThenStatement : IF LP Expression . RP Statement  (101)
+	IfThenElseStatement : IF LP Expression . RP StatementNoShortIf ELSE Statement  (102)
+	IfThenElseStatementNoShortIf : IF LP Expression . RP StatementNoShortIf ELSE StatementNoShortIf  (103)
+
+	RP  shift 304
+	.  error
+
+
+state 300
+	WhileStatement : WHILE LP Expression . RP Statement  (104)
+	WhileStatementNoShortIf : WHILE LP Expression . RP StatementNoShortIf  (105)
+
+	RP  shift 305
+	.  error
+
+
+state 301
+	IfThenElseStatement : IF LP Expression RP StatementNoShortIf ELSE Statement .  (102)
+
+	.  reduce 102
+
+
+302: shift/reduce conflict (shift 203, reduce 203) on BREAK
+302: shift/reduce conflict (shift 204, reduce 203) on FOR
+302: shift/reduce conflict (shift 205, reduce 203) on IF
+302: shift/reduce conflict (shift 206, reduce 203) on RETURN
+302: shift/reduce conflict (shift 8, reduce 203) on TRUE
+302: shift/reduce conflict (shift 9, reduce 203) on FALSE
+302: shift/reduce conflict (shift 207, reduce 203) on WHILE
+302: shift/reduce conflict (shift 250, reduce 203) on IDENT
+302: shift/reduce conflict (shift 12, reduce 203) on NULLLITERAL
+302: shift/reduce conflict (shift 13, reduce 203) on INTLITERAL
+302: shift/reduce conflict (shift 14, reduce 203) on CHARLITERAL
+302: shift/reduce conflict (shift 15, reduce 203) on FLOATLITERAL
+302: shift/reduce conflict (shift 16, reduce 203) on STRINGLITERAL
+302: shift/reduce conflict (shift 17, reduce 203) on LP
+302: shift/reduce conflict (shift 209, reduce 203) on LC
+302: shift/reduce conflict (shift 151, reduce 203) on SM
+state 302
+	ForStatement : FOR LP ForInitOpt SM ExpressionOpt SM ForUpdateOpt RP . Statement  (114)
+	Semicolon : .  (203)
+
+	BREAK  shift 203
+	FOR  shift 204
+	IF  shift 205
+	RETURN  shift 206
+	TRUE  shift 8
+	FALSE  shift 9
+	WHILE  shift 207
+	IDENT  shift 250
+	NULLLITERAL  shift 12
+	INTLITERAL  shift 13
+	CHARLITERAL  shift 14
+	FLOATLITERAL  shift 15
+	STRINGLITERAL  shift 16
+	LP  shift 17
+	LC  shift 209
+	SM  shift 151
+	BOOL  reduce 203
+	STRING  reduce 203
+	DOUBLE  reduce 203
+	INT  reduce 203
+	TABLE  reduce 203
+	LIST  reduce 203
+	RC  reduce 203
+
+	QualifiedName  goto 251
+	Statement  goto 306
+	NoLocalVariableBlock  goto 215
+	StatementWithoutTrailingSubstatement  goto 216
+	ExpressionStatement  goto 217
+	StatementExpression  goto 218
+	IfThenStatement  goto 219
+	IfThenElseStatement  goto 220
+	WhileStatement  goto 221
+	ForStatement  goto 222
+	EmptyStatement  goto 223
+	BreakStatement  goto 224
+	ReturnStatement  goto 225
+	Assignable  goto 33
+	Assignment  goto 226
+	ArrayAccess  goto 43
+	MethodInvocation  goto 227
+	FieldAccess  goto 45
+	PrimaryNoNewArray  goto 46
+	Primary  goto 228
+	Literal  goto 49
+	BoolLiteral  goto 50
+	Semicolon  goto 230
+
+
+state 303
+	ForStatement : FOR LP ForInitOpt SM . ExpressionOpt SM ForUpdateOpt RP Statement  (114)
+	ForStatementNoShortIf : FOR LP ForInitOpt SM . ExpressionOpt SM ForUpdateOpt RP StatementNoShortIf  (115)
+	ExpressionOpt : .  (110)
+
+	TRUE  shift 8
+	FALSE  shift 9
+	IDENT  shift 63
+	NULLLITERAL  shift 12
+	INTLITERAL  shift 13
+	CHARLITERAL  shift 14
+	FLOATLITERAL  shift 15
+	STRINGLITERAL  shift 16
+	LP  shift 17
+	BANG  shift 18
+	MINUS  shift 19
+	DROLL  shift 20
+	SM  reduce 110
+
+	AssignmentExpression  goto 64
+	QualifiedName  goto 65
+	ExpressionOpt  goto 307
+	Expression  goto 248
+	Assignable  goto 33
+	Assignment  goto 34
+	ConditionalOrExpression  goto 35
+	EqualityExpression  goto 36
+	RelationalExpression  goto 37
+	AdditiveExpression  goto 38
+	MultiplicativeExpression  goto 39
+	UnaryExpressionNotPlusMinus  goto 40
+	UnaryExpression  goto 41
+	PostFixExpression  goto 42
+	ArrayAccess  goto 43
+	MethodInvocation  goto 44
+	FieldAccess  goto 45
+	PrimaryNoNewArray  goto 46
+	Primary  goto 47
+	ConditionalAndExpression  goto 48
+	Literal  goto 49
+	BoolLiteral  goto 50
+
+
+304: shift/reduce conflict (shift 203, reduce 203) on BREAK
+304: shift/reduce conflict (shift 280, reduce 203) on FOR
+304: shift/reduce conflict (shift 281, reduce 203) on IF
+304: shift/reduce conflict (shift 206, reduce 203) on RETURN
+304: shift/reduce conflict (shift 8, reduce 203) on TRUE
+304: shift/reduce conflict (shift 9, reduce 203) on FALSE
+304: shift/reduce conflict (shift 282, reduce 203) on WHILE
+304: shift/reduce conflict (shift 250, reduce 203) on IDENT
+304: shift/reduce conflict (shift 12, reduce 203) on NULLLITERAL
+304: shift/reduce conflict (shift 13, reduce 203) on INTLITERAL
+304: shift/reduce conflict (shift 14, reduce 203) on CHARLITERAL
+304: shift/reduce conflict (shift 15, reduce 203) on FLOATLITERAL
+304: shift/reduce conflict (shift 16, reduce 203) on STRINGLITERAL
+304: shift/reduce conflict (shift 17, reduce 203) on LP
+304: shift/reduce conflict (shift 209, reduce 203) on LC
+304: shift/reduce conflict (shift 151, reduce 203) on SM
+state 304
+	IfThenStatement : IF LP Expression RP . Statement  (101)
+	IfThenElseStatement : IF LP Expression RP . StatementNoShortIf ELSE Statement  (102)
+	IfThenElseStatementNoShortIf : IF LP Expression RP . StatementNoShortIf ELSE StatementNoShortIf  (103)
+	Semicolon : .  (203)
+
+	BREAK  shift 203
+	FOR  shift 280
+	IF  shift 281
+	RETURN  shift 206
+	TRUE  shift 8
+	FALSE  shift 9
+	WHILE  shift 282
+	IDENT  shift 250
+	NULLLITERAL  shift 12
+	INTLITERAL  shift 13
+	CHARLITERAL  shift 14
+	FLOATLITERAL  shift 15
+	STRINGLITERAL  shift 16
+	LP  shift 17
+	LC  shift 209
+	SM  shift 151
+	BOOL  reduce 203
+	STRING  reduce 203
+	DOUBLE  reduce 203
+	ELSE  reduce 203
+	INT  reduce 203
+	TABLE  reduce 203
+	LIST  reduce 203
+	RC  reduce 203
+
+	QualifiedName  goto 251
+	Statement  goto 283
+	NoLocalVariableBlock  goto 215
+	StatementNoShortIf  goto 308
+	StatementWithoutTrailingSubstatement  goto 285
+	ExpressionStatement  goto 217
+	StatementExpression  goto 218
+	IfThenStatement  goto 219
+	IfThenElseStatement  goto 220
+	IfThenElseStatementNoShortIf  goto 286
+	WhileStatement  goto 221
+	WhileStatementNoShortIf  goto 287
+	ForStatement  goto 222
+	ForStatementNoShortIf  goto 288
+	EmptyStatement  goto 223
+	BreakStatement  goto 224
+	ReturnStatement  goto 225
+	Assignable  goto 33
+	Assignment  goto 226
+	ArrayAccess  goto 43
+	MethodInvocation  goto 227
+	FieldAccess  goto 45
+	PrimaryNoNewArray  goto 46
+	Primary  goto 228
+	Literal  goto 49
+	BoolLiteral  goto 50
+	Semicolon  goto 230
+
+
+305: shift/reduce conflict (shift 203, reduce 203) on BREAK
+305: shift/reduce conflict (shift 280, reduce 203) on FOR
+305: shift/reduce conflict (shift 281, reduce 203) on IF
+305: shift/reduce conflict (shift 206, reduce 203) on RETURN
+305: shift/reduce conflict (shift 8, reduce 203) on TRUE
+305: shift/reduce conflict (shift 9, reduce 203) on FALSE
+305: shift/reduce conflict (shift 282, reduce 203) on WHILE
+305: shift/reduce conflict (shift 250, reduce 203) on IDENT
+305: shift/reduce conflict (shift 12, reduce 203) on NULLLITERAL
+305: shift/reduce conflict (shift 13, reduce 203) on INTLITERAL
+305: shift/reduce conflict (shift 14, reduce 203) on CHARLITERAL
+305: shift/reduce conflict (shift 15, reduce 203) on FLOATLITERAL
+305: shift/reduce conflict (shift 16, reduce 203) on STRINGLITERAL
+305: shift/reduce conflict (shift 17, reduce 203) on LP
+305: shift/reduce conflict (shift 209, reduce 203) on LC
+305: shift/reduce conflict (shift 151, reduce 203) on SM
+state 305
+	WhileStatement : WHILE LP Expression RP . Statement  (104)
+	WhileStatementNoShortIf : WHILE LP Expression RP . StatementNoShortIf  (105)
+	Semicolon : .  (203)
+
+	BREAK  shift 203
+	FOR  shift 280
+	IF  shift 281
+	RETURN  shift 206
+	TRUE  shift 8
+	FALSE  shift 9
+	WHILE  shift 282
+	IDENT  shift 250
+	NULLLITERAL  shift 12
+	INTLITERAL  shift 13
+	CHARLITERAL  shift 14
+	FLOATLITERAL  shift 15
+	STRINGLITERAL  shift 16
+	LP  shift 17
+	LC  shift 209
+	SM  shift 151
+	BOOL  reduce 203
+	STRING  reduce 203
+	DOUBLE  reduce 203
+	ELSE  reduce 203
+	INT  reduce 203
+	TABLE  reduce 203
+	LIST  reduce 203
+	RC  reduce 203
+
+	QualifiedName  goto 251
+	Statement  goto 289
+	NoLocalVariableBlock  goto 215
+	StatementNoShortIf  goto 309
+	StatementWithoutTrailingSubstatement  goto 285
+	ExpressionStatement  goto 217
+	StatementExpression  goto 218
+	IfThenStatement  goto 219
+	IfThenElseStatement  goto 220
+	IfThenElseStatementNoShortIf  goto 286
+	WhileStatement  goto 221
+	WhileStatementNoShortIf  goto 287
+	ForStatement  goto 222
+	ForStatementNoShortIf  goto 288
+	EmptyStatement  goto 223
+	BreakStatement  goto 224
+	ReturnStatement  goto 225
+	Assignable  goto 33
+	Assignment  goto 226
+	ArrayAccess  goto 43
+	MethodInvocation  goto 227
+	FieldAccess  goto 45
+	PrimaryNoNewArray  goto 46
+	Primary  goto 228
+	Literal  goto 49
+	BoolLiteral  goto 50
+	Semicolon  goto 230
+
+
+state 306
+	ForStatement : FOR LP ForInitOpt SM ExpressionOpt SM ForUpdateOpt RP Statement .  (114)
+
+	.  reduce 114
+
+
+state 307
+	ForStatement : FOR LP ForInitOpt SM ExpressionOpt . SM ForUpdateOpt RP Statement  (114)
+	ForStatementNoShortIf : FOR LP ForInitOpt SM ExpressionOpt . SM ForUpdateOpt RP StatementNoShortIf  (115)
+
+	SM  shift 310
+	.  error
+
+
+state 308
+	IfThenElseStatement : IF LP Expression RP StatementNoShortIf . ELSE Statement  (102)
+	IfThenElseStatementNoShortIf : IF LP Expression RP StatementNoShortIf . ELSE StatementNoShortIf  (103)
+
+	ELSE  shift 311
+	.  error
+
+
+state 309
+	WhileStatementNoShortIf : WHILE LP Expression RP StatementNoShortIf .  (105)
+
+	.  reduce 105
+
+
+state 310
+	ForStatement : FOR LP ForInitOpt SM ExpressionOpt SM . ForUpdateOpt RP Statement  (114)
+	ForStatementNoShortIf : FOR LP ForInitOpt SM ExpressionOpt SM . ForUpdateOpt RP StatementNoShortIf  (115)
+	ForUpdateOpt : .  (112)
+
+	TRUE  shift 8
+	FALSE  shift 9
+	IDENT  shift 250
+	NULLLITERAL  shift 12
+	INTLITERAL  shift 13
+	CHARLITERAL  shift 14
+	FLOATLITERAL  shift 15
+	STRINGLITERAL  shift 16
+	LP  shift 17
+	RP  reduce 112
+
+	QualifiedName  goto 251
+	StatementExpression  goto 264
+	ForUpdateOpt  goto 312
+	ForUpdate  goto 296
+	StatementExpressionList  goto 297
+	Assignable  goto 33
+	Assignment  goto 226
+	ArrayAccess  goto 43
+	MethodInvocation  goto 227
+	FieldAccess  goto 45
+	PrimaryNoNewArray  goto 46
+	Primary  goto 228
+	Literal  goto 49
+	BoolLiteral  goto 50
+
+
+311: shift/reduce conflict (shift 203, reduce 203) on BREAK
+311: shift/reduce conflict (shift 280, reduce 203) on FOR
+311: shift/reduce conflict (shift 281, reduce 203) on IF
+311: shift/reduce conflict (shift 206, reduce 203) on RETURN
+311: shift/reduce conflict (shift 8, reduce 203) on TRUE
+311: shift/reduce conflict (shift 9, reduce 203) on FALSE
+311: shift/reduce conflict (shift 282, reduce 203) on WHILE
+311: shift/reduce conflict (shift 250, reduce 203) on IDENT
+311: shift/reduce conflict (shift 12, reduce 203) on NULLLITERAL
+311: shift/reduce conflict (shift 13, reduce 203) on INTLITERAL
+311: shift/reduce conflict (shift 14, reduce 203) on CHARLITERAL
+311: shift/reduce conflict (shift 15, reduce 203) on FLOATLITERAL
+311: shift/reduce conflict (shift 16, reduce 203) on STRINGLITERAL
+311: shift/reduce conflict (shift 17, reduce 203) on LP
+311: shift/reduce conflict (shift 209, reduce 203) on LC
+311: shift/reduce conflict (shift 151, reduce 203) on SM
+state 311
+	IfThenElseStatement : IF LP Expression RP StatementNoShortIf ELSE . Statement  (102)
+	IfThenElseStatementNoShortIf : IF LP Expression RP StatementNoShortIf ELSE . StatementNoShortIf  (103)
+	Semicolon : .  (203)
+
+	BREAK  shift 203
+	FOR  shift 280
+	IF  shift 281
+	RETURN  shift 206
+	TRUE  shift 8
+	FALSE  shift 9
+	WHILE  shift 282
+	IDENT  shift 250
+	NULLLITERAL  shift 12
+	INTLITERAL  shift 13
+	CHARLITERAL  shift 14
+	FLOATLITERAL  shift 15
+	STRINGLITERAL  shift 16
+	LP  shift 17
+	LC  shift 209
+	SM  shift 151
+	BOOL  reduce 203
+	STRING  reduce 203
+	DOUBLE  reduce 203
+	ELSE  reduce 203
+	INT  reduce 203
+	TABLE  reduce 203
+	LIST  reduce 203
+	RC  reduce 203
+
+	QualifiedName  goto 251
+	Statement  goto 301
+	NoLocalVariableBlock  goto 215
+	StatementNoShortIf  goto 313
+	StatementWithoutTrailingSubstatement  goto 285
+	ExpressionStatement  goto 217
+	StatementExpression  goto 218
+	IfThenStatement  goto 219
+	IfThenElseStatement  goto 220
+	IfThenElseStatementNoShortIf  goto 286
+	WhileStatement  goto 221
+	WhileStatementNoShortIf  goto 287
+	ForStatement  goto 222
+	ForStatementNoShortIf  goto 288
+	EmptyStatement  goto 223
+	BreakStatement  goto 224
+	ReturnStatement  goto 225
+	Assignable  goto 33
+	Assignment  goto 226
+	ArrayAccess  goto 43
+	MethodInvocation  goto 227
+	FieldAccess  goto 45
+	PrimaryNoNewArray  goto 46
+	Primary  goto 228
+	Literal  goto 49
+	BoolLiteral  goto 50
+	Semicolon  goto 230
+
+
+state 312
+	ForStatement : FOR LP ForInitOpt SM ExpressionOpt SM ForUpdateOpt . RP Statement  (114)
+	ForStatementNoShortIf : FOR LP ForInitOpt SM ExpressionOpt SM ForUpdateOpt . RP StatementNoShortIf  (115)
+
+	RP  shift 314
+	.  error
+
+
+state 313
+	IfThenElseStatementNoShortIf : IF LP Expression RP StatementNoShortIf ELSE StatementNoShortIf .  (103)
+
+	.  reduce 103
+
+
+314: shift/reduce conflict (shift 203, reduce 203) on BREAK
+314: shift/reduce conflict (shift 280, reduce 203) on FOR
+314: shift/reduce conflict (shift 281, reduce 203) on IF
+314: shift/reduce conflict (shift 206, reduce 203) on RETURN
+314: shift/reduce conflict (shift 8, reduce 203) on TRUE
+314: shift/reduce conflict (shift 9, reduce 203) on FALSE
+314: shift/reduce conflict (shift 282, reduce 203) on WHILE
+314: shift/reduce conflict (shift 250, reduce 203) on IDENT
+314: shift/reduce conflict (shift 12, reduce 203) on NULLLITERAL
+314: shift/reduce conflict (shift 13, reduce 203) on INTLITERAL
+314: shift/reduce conflict (shift 14, reduce 203) on CHARLITERAL
+314: shift/reduce conflict (shift 15, reduce 203) on FLOATLITERAL
+314: shift/reduce conflict (shift 16, reduce 203) on STRINGLITERAL
+314: shift/reduce conflict (shift 17, reduce 203) on LP
+314: shift/reduce conflict (shift 209, reduce 203) on LC
+314: shift/reduce conflict (shift 151, reduce 203) on SM
+state 314
+	ForStatement : FOR LP ForInitOpt SM ExpressionOpt SM ForUpdateOpt RP . Statement  (114)
+	ForStatementNoShortIf : FOR LP ForInitOpt SM ExpressionOpt SM ForUpdateOpt RP . StatementNoShortIf  (115)
+	Semicolon : .  (203)
+
+	BREAK  shift 203
+	FOR  shift 280
+	IF  shift 281
+	RETURN  shift 206
+	TRUE  shift 8
+	FALSE  shift 9
+	WHILE  shift 282
+	IDENT  shift 250
+	NULLLITERAL  shift 12
+	INTLITERAL  shift 13
+	CHARLITERAL  shift 14
+	FLOATLITERAL  shift 15
+	STRINGLITERAL  shift 16
+	LP  shift 17
+	LC  shift 209
+	SM  shift 151
+	BOOL  reduce 203
+	STRING  reduce 203
+	DOUBLE  reduce 203
+	ELSE  reduce 203
+	INT  reduce 203
+	TABLE  reduce 203
+	LIST  reduce 203
+	RC  reduce 203
+
+	QualifiedName  goto 251
+	Statement  goto 306
+	NoLocalVariableBlock  goto 215
+	StatementNoShortIf  goto 315
+	StatementWithoutTrailingSubstatement  goto 285
+	ExpressionStatement  goto 217
+	StatementExpression  goto 218
+	IfThenStatement  goto 219
+	IfThenElseStatement  goto 220
+	IfThenElseStatementNoShortIf  goto 286
+	WhileStatement  goto 221
+	WhileStatementNoShortIf  goto 287
+	ForStatement  goto 222
+	ForStatementNoShortIf  goto 288
+	EmptyStatement  goto 223
+	BreakStatement  goto 224
+	ReturnStatement  goto 225
+	Assignable  goto 33
+	Assignment  goto 226
+	ArrayAccess  goto 43
+	MethodInvocation  goto 227
+	FieldAccess  goto 45
+	PrimaryNoNewArray  goto 46
+	Primary  goto 228
+	Literal  goto 49
+	BoolLiteral  goto 50
+	Semicolon  goto 230
+
+
+state 315
+	ForStatementNoShortIf : FOR LP ForInitOpt SM ExpressionOpt SM ForUpdateOpt RP StatementNoShortIf .  (115)
+
+	.  reduce 115
+
+
+Rules never reduced:
+	GlobalVariablesOpt : GlobalVariables  (2)
+	GlobalVariablesOpt :  (3)
+	GlobalVariables : GlobalVariable  (4)
+	GlobalVariables : GlobalVariables GlobalVariable  (5)
+	ClassVariablesOpt : ClassVariables  (38)
+	ClassVariablesOpt :  (39)
+	ClassVariables : ClassVariable  (40)
+	ClassVariables : ClassVariables ClassVariable  (41)
+	FunctionHeader : Type IDENT  (66)
+	FunctionHeader : VOID IDENT  (67)
+	DimsOpt : Dims  (121)
+	DimsOpt :  (122)
+	Dims : LB RB  (123)
+	Dims : Dims LB RB  (124)
+	SwapExpression : AssignmentExpression  (172)
+	SwapExpression : Assignable SWAP Assignable  (173)
+	LocalVariablesOpt : LocalVariables  (188)
+	LocalVariablesOpt :  (189)
+	LocalVariables : LocalVariable  (190)
+	LocalVariables : LocalVariables LocalVariable  (191)
+	Name : SimpleName  (195)
+	Name : QualifiedName  (196)
+	SimpleName : IDENT  (197)
+
+
+State 11 contains 1 shift/reduce conflict, 1 reduce/reduce conflict.
+State 31 contains 1 shift/reduce conflict.
+State 38 contains 1 shift/reduce conflict.
+State 39 contains 1 shift/reduce conflict.
+State 63 contains 1 shift/reduce conflict.
+State 65 contains 1 shift/reduce conflict.
+State 67 contains 1 shift/reduce conflict.
+State 68 contains 1 shift/reduce conflict.
+State 100 contains 1 shift/reduce conflict.
+State 107 contains 1 reduce/reduce conflict.
+State 148 contains 1 shift/reduce conflict.
+State 150 contains 1 reduce/reduce conflict.
+State 178 contains 22 shift/reduce conflicts, 1 reduce/reduce conflict.
+State 203 contains 1 shift/reduce conflict.
+State 206 contains 9 shift/reduce conflicts.
+State 209 contains 16 shift/reduce conflicts, 1 reduce/reduce conflict.
+State 212 contains 22 shift/reduce conflicts, 1 reduce/reduce conflict.
+State 218 contains 1 shift/reduce conflict.
+State 247 contains 1 shift/reduce conflict.
+State 254 contains 16 shift/reduce conflicts, 1 reduce/reduce conflict.
+State 259 contains 1 shift/reduce conflict.
+State 276 contains 16 shift/reduce conflicts.
+State 277 contains 16 shift/reduce conflicts.
+State 294 contains 16 shift/reduce conflicts.
+State 302 contains 16 shift/reduce conflicts.
+State 304 contains 16 shift/reduce conflicts.
+State 305 contains 16 shift/reduce conflicts.
+State 311 contains 16 shift/reduce conflicts.
+State 314 contains 16 shift/reduce conflicts.
+
+
+63 terminals, 103 nonterminals
+210 grammar rules, 316 states

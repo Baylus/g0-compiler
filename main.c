@@ -21,6 +21,11 @@ HW #1: Lexical Analyzer
 #include "token.h"
 #include "tokenlist.h"
 
+#include "tree.h"
+
+extern int yyparse();	// g0gram.y
+extern tree* yytree;		// g0gram.y
+
 extern int yylex();		// g0.l
 extern struct token* yytoken;	// g0.l
 extern FILE* yyin;		// g0.l
@@ -75,12 +80,18 @@ int main(int argc, char** argv)
 		}
 		
 		int toknum = 0;
-		while ( (toknum = yylex()) != 0 ){
-			addToken(yytoken);
-		}
-		printList();
-		deleteList();
+		// while ( (toknum = yylex()) != 0 ){
+		// 	addToken(yytoken);
+		// }
+		// printList();
+		// deleteList();
 		
+		if ( yyparse() == 0 )
+		{
+			printList( yytree, 0 );
+			postTraversal( yytree, 0, deleteTree );
+		}
+
 		fclose(yyin);
 		yyin = NULL;
 		// ++i;	// move onto next

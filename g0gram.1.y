@@ -2,14 +2,15 @@
  * g0 Grammar
  * Derived from the Godiva Grammar, which was in turn
  * based on the Java grammar in Gosling/Joy/Steele, Chapter 19
+
+
+ SAVING THIS TEMPORARILY WHILE WORKING OUT ISSUES.
  */
 
 %{
 #include <stdio.h>
 #include "tree.h"
 // #include ""
-
-int yydebug = 1;
 tree* yytree = NULL;
 
 %}
@@ -30,7 +31,7 @@ tree* yytree = NULL;
 
  *
  */
-%token < node > BOOL BREAK CLASS STRING
+%token < node > BOOLEAN BREAK CLASS STRING
 %token < node > DOUBLE ELSE FOR
 %token < node > IF INT RETURN
 %token < node > TABLE LIST
@@ -38,10 +39,10 @@ tree* yytree = NULL;
 %token < node > VOID WHILE IDENT CONTINUE
 %token < node > NULLLITERAL INTLITERAL
 %token < node > CHARLITERAL FLOATLITERAL STRINGLITERAL
-%token < node > LP RP LC RC LB RB SM CM DOT ASN LT GT BANG SHARP
+%token < node > LP RP LC RC LB RB SM CM DOT ASN LT GT BANG
 %token < node > EQ NE LE GE ANDAND OROR PLUS MINUS MUL DIV AND OR
 %token < node > MOD PLASN MIASN SWAP
-%token < node > DROLL BAD_TOKEN CLASS_NAME
+%token < node > DROLL BAD_TOKEN
 
 /*
  * each nonterminal is declared.  nonterminals correspond to internal nodes
@@ -67,21 +68,11 @@ tree* yytree = NULL;
 %type < node > ArrayAccess MethodInvocation FieldAccess PrimaryNoNewArray Primary
 %type < node > ArgumentList ArgumentListOpt Dims DimsOpt
 %type < node > ConditionalAndExpression 
-%type < node > Literal ClassVariablesOpt ClassBlockUnitListOpt
+%type < node > Literal
 %type < node > LocalVariablesOpt LocalVariables LocalVariable
 %type < node > FormalParameterListOpt FormalParameterList FormalParameter
-%type < node > BoolLiteral Semicolon 
-%type < node > Type PrimitiveType ArrayType ListType TableType
-
-%left SWAP MIASN PLASN ASN
-%left OROR
-%left ANDAND
-%left NE EQ
-%left GT GE LT LE
-%left PLUS MINUS
-%left DROLL MOD DIV MUL
-%left SHARP UDROLL UNEGATE UMINUS
-%left PAREN SUB
+%type < node > BoolLiteral Semicolon Epsilon
+%type < node > Type PrimitiveType ClassType ArrayType ListType TableType
 
 /*
  * the start symbol, Goal, may seem to be here for rhetorical purposes,
@@ -100,11 +91,12 @@ ProductionRule:
 
 Program:
         CompilationUnitsOpt { yytree = $1; }
+      | Epsilon
       ;
 
 GlobalVariablesOpt:
         GlobalVariables
-      | { $$ = NULL; }
+      | Epsilon
       ;
 
 GlobalVariables:
@@ -122,11 +114,12 @@ VariableDeclaratorList:
       ;
 
 Type:
-        CLASS_NAME
+        ClassType
       | ArrayType
       | PrimitiveType
       | ListType
       | TableType
+      | { $$ = NULL; printf("Error: Type name expected."); }
       ;
 
 ListType:
@@ -142,7 +135,7 @@ TableType:
 
 PrimitiveType:
         INT
-      | BOOL
+      | BOOLEAN
       | DOUBLE
       | STRING
       ;
@@ -153,9 +146,13 @@ ArrayType:
       | ArrayType LB RB
       ;
 
+ClassType:
+        IDENT
+      ;
+
 CompilationUnitsOpt:
         CompilationUnits
-      | { $$ = NULL; }
+      | Epsilon
       ;
 
 CompilationUnits:
@@ -184,7 +181,7 @@ ClassBlock:
 
 ClassVariablesOpt:
         ClassVariables
-      | { $$ = NULL; }
+      | Epsilon
       ;
 
 ClassVariables:
@@ -198,7 +195,7 @@ ClassVariable:
 
 ClassBlockUnitListOpt:
         ClassBlockUnitList
-      | { $$ = NULL; }
+      | Epsilon
       ;
 
 ClassBlockUnitList:
@@ -247,8 +244,7 @@ Function:
       ;
 
 FunctionPrototype:
-        Type IDENT LP TypeListOpt RP Semicolon
-      | VOID IDENT LP TypeListOpt RP Semicolon
+        FunctionHeader LP TypeListOpt RP Semicolon
       ;
 
 TypeListOpt:
@@ -262,13 +258,12 @@ TypeList:
       ;
 
 FunctionHeader:
-        Type IDENT  %prec UMINUS
+        Type IDENT
       | VOID IDENT
       ;
 
 FunctionDefinition:
-        Type IDENT LP FormalParameterListOpt RP FunctionBody
-      | VOID IDENT LP FormalParameterListOpt RP FunctionBody
+        FunctionHeader LP FormalParameterListOpt RP FunctionBody
       ;
 
 FunctionBody:
@@ -428,7 +423,7 @@ Dims:
 
 ArgumentListOpt:
 	  ArgumentList 
-	| { $$ = NULL; } ;
+	| Epsilon ;
 
 ArgumentList:
 	  Expression
@@ -547,7 +542,7 @@ Expression:
 		
 FormalParameterListOpt:
         FormalParameterList
-      | { $$ = NULL; }
+      | Epsilon
       ;
 
 FormalParameterList:
@@ -561,7 +556,7 @@ FormalParameter:
 
 LocalVariablesOpt:
         LocalVariables
-      | { $$ = NULL; }
+      | Epsilon
       ;
 
 LocalVariables:
@@ -574,7 +569,7 @@ LocalVariable:
       ;
 
 VariableDeclaratorId:
-        IDENT %prec PLUS
+        IDENT
       | VariableDeclaratorId LB RB
       ;
 
@@ -595,14 +590,15 @@ QualifiedName:
 BoolLiteral:
         TRUE
       | FALSE
+      | { $$ = NULL; printf("ERROR: Expected BoolLiteral"); }
       ;
 
 Semicolon:
         SM
-      | { $$ = NULL; }
+      | Epsilon
       ;
 
-
+Epsilon: { $$ = NULL; };
 
 Literal:
 		  INTLITERAL
