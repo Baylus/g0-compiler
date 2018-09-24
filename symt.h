@@ -43,7 +43,7 @@ ident* lookUp( char* name);
 long hash( char* n );
 
 // Linked List functions.
-ident* addIdent( identList l, ident* i );
+ident* addIdent( identList* l, ident* i );
 ident *searchList(identList l, char *name);
 
 

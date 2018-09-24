@@ -71,7 +71,7 @@ ident *addIdentifier(char *name, int code, int lineno)
 	i->typeCode = code;
 	i->lineno = lineno;
 
-	return addIdent( hashTable[ hash(name) % HASH_TABLE_SIZE ], i );
+	return addIdent( &hashTable[ hash(name) % HASH_TABLE_SIZE ], i );
 }
 
 ident *lookUp(char *name)
@@ -104,7 +104,7 @@ long hash(char *n)
 
 
 // Linked List functions.
-ident *addIdent(identList l, ident *i)
+ident *addIdent(identList* l, ident *i)
 {
 	/*
 	 *
@@ -124,17 +124,17 @@ ident *addIdent(identList l, ident *i)
 	n->info = i;
 	n->next = NULL;
 
-	if ( l.head == NULL ) {
+	if ( l->head == NULL ) {
 		// Add to empty list
-		l.head = n;
-		l.tail = n;
+		l->head = n;
+		l->tail = n;
 	}
 	else 
 	{
-		l.tail->next = n;
-		l.tail = l.tail->next;
+		l->tail->next = n;
+		l->tail = l->tail->next;
 	}
-	l.size++;
+	l->size++;
 	return i;
 }
 

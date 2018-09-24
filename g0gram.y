@@ -53,7 +53,7 @@ extern void yyerror(char* s); //g0lex.l
 %type < node > ClassHeader ClassBlock ClassVariable ClassBlockUnitList ClassBlockUnit
 %type < node > MethodDeclaration ConstructorDeclaration ConstructorDeclarator ConstructorBody
 %type < node > VariableDeclaratorId MethodDeclarator 
-%type < node > TypeList MethodHeader MethodBody
+%type < node > TypeList MethodHeader MethodBody ClassVariableList
 %type < node > Block BlockStatementList BlockStatement Statement
 %type < node > NoLocalVariableBlock NoLocalVariableBlockStatementList NoLocalVariableBlockStatement Statement
 %type < node > StatementNoShortIf StatementWithoutTrailingSubstatement ExpressionStatement
@@ -160,7 +160,7 @@ ClassDeclaration:
       ;
 
 ClassHeader:
-        CLASS IDENT			{ $$ = alctree( "Class header", 110, 2, $1, $2 ); }
+        CLASS CLASS_NAME			{ $$ = alctree( "Class header", 110, 2, $1, $2 ); }
       ;
 
 ClassBlock:
@@ -168,8 +168,13 @@ ClassBlock:
       | LC RC					{ $$ = alctree( "Empty class block", 121, 2, $1, $2 ); }
       ;
 
+ClassVariableList:
+	 IDENT		{ $$ = $1; }
+	| ClassVariableList CM IDENT		{ $$ = alctree( "Class variable list", 129, 3, $1, $2, $3 ); }
+	;
+
 ClassVariable:
-        Type IDENT Semicolon			{ $$ = alctree( "Class variable", 130, 3, $1, $2, $3 ); }
+      Type ClassVariableList Semicolon	{ $$ = alctree( "Class variable list", 131, 3, $1, $2, $3 ); }
       | Type Assignment { yyerror("Parse error"); }
       ;
 
@@ -456,6 +461,7 @@ SwapExpression:
 
 Assignment:
      Assignable AssignmentOperator ConditionalOrExpression		{ $$ = alctree( "Assign", 690, 3, $1, $2, $3 ); }
+     | Assignable AssignmentOperator Assignment				{ $$ = alctree( "Recursive Assign", 690, 3, $1, $2, $3 ); }
    ;
 
 Assignable:

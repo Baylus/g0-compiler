@@ -92,7 +92,6 @@ int main(int argc, char** argv)
 			treeprint( yytree, 0 );
 			postTraversal( yytree, 0, deleteTree );
 		}
-
 		destroyTables();
 		fclose(yyin);
 		yyin = NULL;

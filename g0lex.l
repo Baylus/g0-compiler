@@ -61,7 +61,7 @@ struct token* yytoken = NULL;
 "int"                   { return yytok(INT); }
 "list"						{ return yytok(LIST); }
 "return"                { return yytok(RETURN); }
-"d"/({ID}|{D}*)			{ return yytok(DROLL); }
+d/({D}*)			{ return yytok(DROLL); }
 "string"						{ return yytok(STRING); }
 "table"						{ return yytok(TABLE); }
 "void"                  { return yytok(VOID); }
@@ -209,6 +209,9 @@ int yytok( int i )
 		perror("Failed to allocate memory for token!");
 		exit(-1);
 	}
+	static int isClass = 0;
+
+	if (i == CLASS) isClass = 1;
 
 	if ( i == IDENT )
 	{
@@ -216,9 +219,10 @@ int yytok( int i )
 		struct Identifier* p = lookUp( yytext );
 		if ( p == NULL )
 		{
+			fprintf(stderr, "New Identifer found!\n");
 			// New identifier
 			// yylval still holds the tree node for the previous token.
-			p = addIdentifier( yytext, yylval.node->code, yylineno );
+			p = addIdentifier( yytext, isClass ? CLASS_NAME : IDENT, yylineno );
 		}
 		// Construct token.
 		t->lineno = yylineno;
@@ -227,10 +231,12 @@ int yytok( int i )
 		t->filename = filename;
 		// If typeCode of token before identifier was first declared
 		// was of type "CLASS", then make this variable a class name.
-		t->category = (p->typeCode == CLASS ) ? CLASS_NAME : IDENT;
+		t->category = p->typeCode;
 
 		// Return proper integer code.
 		yylval.node = addLeaf(t->category, t);
+		fprintf(stderr, "%d int code!\n", t->category);
+		isClass = 0;
 		return t->category;
 	}
 
@@ -256,6 +262,7 @@ int yytok( int i )
 	// Give token to YACC
 	// yytoken = t;
 	yylval.node = addLeaf(i, t);
+	if ( i != CLASS) isClass = 0;
 	return i;
 }
 
