@@ -10,6 +10,8 @@ HW #2: Syntax Analysis
 #ifndef SYM_T_H
 #define SYM_T_H
 
+#define HASH_TABLE_SIZE 41
+
 #include <stdlib.h>
 
 typedef struct Identifier
@@ -22,17 +24,15 @@ typedef struct Identifier
 	// Create a linked list to store local variables.
 } ident;
 
-#define HASH_TABLE_SIZE 41
-
 typedef struct IdentListNode {
-	ident* info = NULL;
-	IdentListNode* next = NULL;
+	ident* info;
+	struct IdentListNode* next;
 } listNode;
 
 typedef struct IdentifierLinkedList {
-	IdentListNode* head = NULL;
-	IdentListNode* tail = NULL;
-	int size = 0;
+	listNode* head;
+	listNode* tail;
+	int size;
 } identList;
 
 identList hashTable[HASH_TABLE_SIZE] = {};

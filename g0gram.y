@@ -69,7 +69,7 @@ tree* yytree = NULL;
 %type < node > ConditionalAndExpression 
 %type < node > Literal ClassVariablesOpt ClassBlockUnitListOpt
 %type < node > LocalVariablesOpt LocalVariables LocalVariable
-%type < node > FormalParameterListOpt FormalParameterList FormalParameter
+%type < node >  FormalParameterList FormalParameter
 %type < node > BoolLiteral Semicolon 
 %type < node > Type PrimitiveType ArrayType ListType TableType
 
@@ -222,7 +222,8 @@ MethodHeader:
       ;
 
 MethodDeclarator:
-        IDENT LP FormalParameterListOpt RP
+        IDENT LP FormalParameterList RP
+      | IDENT LP RP
       ;
 
 MethodBody:
@@ -234,7 +235,8 @@ ConstructorDeclaration:
       ;
 
 ConstructorDeclarator:
-        IDENT LP FormalParameterListOpt RP
+        CLASS_NAME LP FormalParameterList RP
+      | CLASS_NAME LP RP
       ;
 
 ConstructorBody:
@@ -248,12 +250,13 @@ Function:
 
 FunctionPrototype:
         Type IDENT LP TypeListOpt RP Semicolon
+      | Type IDENT LP RP Semicolon
       | VOID IDENT LP TypeListOpt RP Semicolon
+      | VOID IDENT LP RP Semicolon
       ;
 
 TypeListOpt:
         TypeList
-      | { $$ = NULL; }
       ;
 
 TypeList:
@@ -267,8 +270,10 @@ FunctionHeader:
       ;
 
 FunctionDefinition:
-        Type IDENT LP FormalParameterListOpt RP FunctionBody
-      | VOID IDENT LP FormalParameterListOpt RP FunctionBody
+        Type IDENT LP FormalParameterList RP FunctionBody
+      | Type IDENT LP RP FunctionBody
+      | VOID IDENT LP FormalParameterList RP FunctionBody
+      | VOID IDENT LP RP FunctionBody
       ;
 
 FunctionBody:
@@ -281,7 +286,6 @@ Block:
 
 BlockStatementListOpt:
         BlockStatementList
-      | { $$ = NULL; }
       ;
 
 BlockStatementList:
@@ -545,10 +549,6 @@ Expression:
        AssignmentExpression
    ;
 		
-FormalParameterListOpt:
-        FormalParameterList
-      | { $$ = NULL; }
-      ;
 
 FormalParameterList:
         FormalParameter
