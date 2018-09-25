@@ -73,6 +73,7 @@ int main(int argc, char** argv)
 	for ( ; i < argc ; ++i) {
 		yyfilename = addExtension( argv[i] );
 		filenames[i - 1] = yyfilename;
+		printf( "\nParsing file: %s\n", yyfilename );
 		
 		// yyin = fopen(filename.c_str(), "r");
 		yyin = fopen(yyfilename, "r");
@@ -94,7 +95,7 @@ int main(int argc, char** argv)
 			treeprint( yytree, 0 );
 			// postTraversal( yytree, 0, deleteTree );
 		}
-		destroyTables();
+		// destroyTables();
 		fclose(yyin);
 		yyin = NULL;
 		// ++i;	// move onto next

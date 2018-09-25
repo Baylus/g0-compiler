@@ -1,5 +1,4 @@
-int x 
-x = 12
+int x = 12
 
 void main ()
 {

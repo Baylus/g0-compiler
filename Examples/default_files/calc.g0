@@ -17,7 +17,7 @@ void main()
   choice = 1
   while (choice != 0) {
     printMenu();
-    choice = read();
+    cin >> choice;
 
     // assume choice is valid
     validChoice = 1;
@@ -41,7 +41,7 @@ void main()
     }
     if (validChoice) {
       // if choice is valid, print the answer
-      write("\nAnswer = " + answer )
+      write("\nAnswer = " answer )
     }
   }
 }

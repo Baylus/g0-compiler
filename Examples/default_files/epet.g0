@@ -40,9 +40,9 @@ class pet {
 
    /* Member function print(), prints information about a pet. */
    void print(){
-      write( "\nYour pet "  + name +  " is " )
-      write( "Happy: " + happy )
-      write( "Hungry: " + hunger )
+      write( "\nYour pet "  name  " is " )
+      write( "Happy: "  happy )
+      write( "Hungry: "  hunger )
       }
 
    /* Member function check_health(), checks the health of a pet. */

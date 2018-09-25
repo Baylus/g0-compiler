@@ -1,7 +1,6 @@
 void main()
 {
-   double dd 
-   dd = 0.0
+   double dd = 0.0
    dd += 1
    write(dd)
 }

@@ -67,7 +67,7 @@ extern void yyerror(char* s); //g0lex.l
 %type < node > ArrayAccess MethodInvocation FieldAccess PrimaryNoNewArray Primary
 %type < node > ArgumentList
 %type < node > ConditionalAndExpression 
-%type < node > Literal  ConcatentationExpresssion
+%type < node > Literal  ConcatentationExpresssion ExplicitConcatExpression
 %type < node > LocalVariable
 %type < node >  FormalParameterList FormalParameter
 %type < node > BoolLiteral Semicolon 
@@ -379,6 +379,7 @@ PrimaryNoNewArray:
    | LP Expression RP		{ $$ = alctree( "Primary", 540, 3, $1, $2, $3 ); }
    | MethodInvocation       { $$ = $1; }
    | Assignable       { $$ = $1; }
+   | ConcatentationExpresssion { $$ = $1; }
    ;
 
 FieldAccess:
@@ -419,15 +420,15 @@ MultiplicativeExpression:
    | MultiplicativeExpression DROLL UnaryExpression		{ $$ = alctree( "Dice Roll Expression", 613, 3, $1, $2, $3 ); }
    ;
 
-ConcatentationExpresssion:
-	 STRINGLITERAL PLUS Name					{ $$ = alctree( "Concat Expr", 800, 3, $1, $2, $3 ); }
+ExplicitConcatExpression:
+	STRINGLITERAL PLUS Name					{ $$ = alctree( "Concat Expr", 800, 3, $1, $2, $3 ); }
 	| Name PLUS STRINGLITERAL					{ $$ = alctree( "Concat Expr", 801, 3, $1, $2, $3 ); }
-	| STRINGLITERAL STRINGLITERAL					{ $$ = alctree( "Concat Expr", 802, 2, $1, $2 ); }
-	| Name STRINGLITERAL						{ $$ = alctree( "Concat Expr", 803, 2, $1, $2 ); }
-	| STRINGLITERAL Name						{ $$ = alctree( "Concat Expr", 804, 2, $1, $2 ); }
-	| Name Name							{ $$ = alctree( "Concat Expr", 805, 2, $1, $2 ); }
-	| ConcatentationExpresssion Name				{ $$ = alctree( "Concat Expr", 806, 2, $1, $2 ); }
-	| ConcatentationExpresssion STRINGLITERAL			{ $$ = alctree( "Concat Expr", 807, 2, $1, $2 ); }
+	| ConcatentationExpresssion PLUS Name				{ $$ = alctree( "Concat Expr", 806, 2, $1, $2 ); }
+	| ConcatentationExpresssion PLUS STRINGLITERAL			{ $$ = alctree( "Concat Expr", 807, 2, $1, $2 ); }
+	;
+
+ConcatentationExpresssion:
+	  ExplicitConcatExpression 		{ $$ = $1; }
 	;
 
 AdditiveExpression:
