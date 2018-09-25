@@ -41,7 +41,7 @@ void main()
     }
     if (validChoice) {
       // if choice is valid, print the answer
-      write("\nAnswer = " + answer )
+      write("\nAnswer = " answer )
     }
   }
 }
