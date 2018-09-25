@@ -9,7 +9,7 @@
 #include "tree.h"
 // #include ""
 
-int yydebug = 1;
+// int yydebug = 1;
 tree* yytree = NULL;
 extern void yyerror(char* s); //g0lex.l
 %}
@@ -375,7 +375,6 @@ ArgumentList:
 
 Primary:
      PrimaryNoNewArray       { $$ = $1; }
-   | ConcatentationExpresssion { $$ = $1; }
    ;
 
 ArrayInitializer:
@@ -407,6 +406,7 @@ ArrayAccess:
 
 PostFixExpression:
      Primary       { $$ = $1; }
+   | ConcatentationExpresssion { $$ = $1; }
    ;
 
 UnaryExpression:
@@ -429,12 +429,15 @@ MultiplicativeExpression:
    ;
 
 ImplicitConcatExpression:
-	  STRINGLITERAL Name					{ $$ = alctree( "Imp. Concat Expr (str + var)", 810, 2, $1, $2 ); }
-	| Name STRINGLITERAL					{ $$ = alctree( "Imp. Concat Expr (var + str)", 811, 2, $1, $2 ); }
+	  STRINGLITERAL Name				{ $$ = alctree( "Imp. Concat Expr (str + var)", 810, 2, $1, $2 ); }
+	| STRINGLITERAL MethodInvocation			{ $$ = alctree( "Imp. Concat Expr (str + method)", 811, 2, $1, $2 ); }
+	| Name STRINGLITERAL				{ $$ = alctree( "Imp. Concat Expr (var + str)", 812, 2, $1, $2 ); }
+	| MethodInvocation STRINGLITERAL			{ $$ = alctree( "Imp. Concat Expr (method + str)", 813, 2, $1, $2 ); }
 	// | Name Name						{ yyerror("syntax error"); fprintf(stderr, "implicit string concatenation must have a string literal in the first two values\n"); exit(2); }
 	| STRINGLITERAL STRINGLITERAL				{ yyerror("syntax error"); fprintf(stderr, "implicit string concatenation not allowed between two string literals\n"); exit(2); }
-	| ConcatentationExpresssion Name			{ $$ = alctree( "Imp. Concat Expr list (+name)", 812, 2, $1, $2 ); }
-	| ConcatentationExpresssion STRINGLITERAL		{ $$ = alctree( "Imp. Concat Expr list (+string)", 813, 2, $1, $2 ); }
+	| ConcatentationExpresssion Name			{ $$ = alctree( "Imp. Concat Expr list (+name)", 814, 2, $1, $2 ); }
+	| ConcatentationExpresssion MethodInvocation		{ $$ = alctree( "Imp. Concat Expr list (+method)", 815, 2, $1, $2 ); }
+	| ConcatentationExpresssion STRINGLITERAL		{ $$ = alctree( "Imp. Concat Expr list (+string)", 816, 2, $1, $2 ); }
 	;
 
 ExplicitConcatExpression:
