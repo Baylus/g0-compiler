@@ -89,6 +89,7 @@ d/({D}*)			{ return yytok(DROLL); }
 "["                     { return yytok(LB); }
 "]"                     { return yytok(RB); }
 ";"                     { return yytok(SM); }
+":"                     { return yytok(COLON); }
 ","                     { return yytok(CM); }
 "."                     { return yytok(DOT); }
 

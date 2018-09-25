@@ -40,8 +40,9 @@ extern void yyerror(char* s); //g0lex.l
 %token < node > CHARLITERAL FLOATLITERAL STRINGLITERAL
 %token < node > LP RP LC RC LB RB SM CM DOT ASN LT GT BANG SHARP
 %token < node > EQ NE LE GE ANDAND OROR PLUS MINUS MUL DIV AND OR
-%token < node > MOD PLASN MIASN SWAP
+%token < node > MOD PLASN MIASN SWAP COLON
 %token < node > DROLL BAD_TOKEN CLASS_NAME
+%token END 0 "end of file"
 
 /*
  * each nonterminal is declared.  nonterminals correspond to internal nodes
@@ -68,7 +69,7 @@ extern void yyerror(char* s); //g0lex.l
 %type < node > ArgumentList
 %type < node > ConditionalAndExpression 
 %type < node > Literal  ConcatentationExpresssion ExplicitConcatExpression ImplicitConcatExpression
-%type < node > LocalVariable
+%type < node > LocalVariable ArrayInitializer
 %type < node >  FormalParameterList FormalParameter
 %type < node > BoolLiteral Semicolon 
 %type < node > Type PrimitiveType ArrayType ListType TableType
@@ -326,6 +327,7 @@ IfThenElseStatementNoShortIf:
 
 WhileStatement:
         WHILE LP Expression RP Statement	{ $$ = alctree( "while", 420, 5, $1, $2, $3, $4, $5 ); }
+	| IDENT NoLocalVariableBlock WHILE LP Expression RP Semicolon				{ yyerror("syntax error"); fprintf(stderr, "do-while loops not supported in g0!\n"); exit(2); }
       ;
 
 WhileStatementNoShortIf:
@@ -373,14 +375,19 @@ ArgumentList:
 
 Primary:
      PrimaryNoNewArray       { $$ = $1; }
+   | ConcatentationExpresssion { $$ = $1; }
    ;
+
+ArrayInitializer:
+	PrimaryNoNewArray			{ $$ = $1; }
+	| ArrayInitializer CM PrimaryNoNewArray { $$ = alctree( "Array Initializer List", 539, 3, $1, $2, $3 ); }
+	;
 
 PrimaryNoNewArray:
      Literal       { $$ = $1; }
    | LP Expression RP		{ $$ = alctree( "Paren Expr", 540, 3, $1, $2, $3 ); }
    | MethodInvocation       { $$ = $1; }
    | Assignable       { $$ = $1; }
-   | ConcatentationExpresssion { $$ = $1; }
    ;
 
 FieldAccess:
@@ -424,7 +431,8 @@ MultiplicativeExpression:
 ImplicitConcatExpression:
 	  STRINGLITERAL Name					{ $$ = alctree( "Imp. Concat Expr (str + var)", 810, 2, $1, $2 ); }
 	| Name STRINGLITERAL					{ $$ = alctree( "Imp. Concat Expr (var + str)", 811, 2, $1, $2 ); }
-	// | STRINGLITERAL STRINGLITERAL				{ yyerror("syntax error"); fprintf(stderr, "implicit string concatenation not allower between two string literals\n"); exit(2); }
+	// | Name Name						{ yyerror("syntax error"); fprintf(stderr, "implicit string concatenation must have a string literal in the first two values\n"); exit(2); }
+	| STRINGLITERAL STRINGLITERAL				{ yyerror("syntax error"); fprintf(stderr, "implicit string concatenation not allowed between two string literals\n"); exit(2); }
 	| ConcatentationExpresssion Name			{ $$ = alctree( "Imp. Concat Expr list (+name)", 812, 2, $1, $2 ); }
 	| ConcatentationExpresssion STRINGLITERAL		{ $$ = alctree( "Imp. Concat Expr list (+string)", 813, 2, $1, $2 ); }
 	;
@@ -479,7 +487,8 @@ AssignmentExpression:
 
 Assignment:
      Assignable AssignmentOperator ConditionalOrExpression		{ $$ = alctree( "Assign", 690, 3, $1, $2, $3 ); }
-     | Assignable AssignmentOperator Assignment				{ $$ = alctree( "Recursive Assign", 690, 3, $1, $2, $3 ); }
+     | Assignable AssignmentOperator Assignment				{ $$ = alctree( "Recursive Assign", 691, 3, $1, $2, $3 ); }
+     | Assignable AssignmentOperator LC ArrayInitializer RC       { $$ = alctree( "Array Initializer", 692, 5, $1, $2, $3, $4, $5 ); }
    ;
 
 SwapExpression:
