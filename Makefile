@@ -4,7 +4,7 @@
 YACC=yacc
 LEX=flex
 CC=cc
-CFLAGS=
+CFLAGS=-g -Wall
 
 all: g0
 
@@ -39,7 +39,7 @@ g0.o: main.c
 	$(CC) -c $(CFLAGS) $<
 
 test: g0
-	perl check.pl
+	perl check.pl Examples/
 
 clean:
 	rm -f g0 *.o

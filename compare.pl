@@ -21,7 +21,7 @@ foreach my $fname (@list) {
 	my $keyout = "Answers/" . $d . "/" . $fname . ".key";
 	my $checkresults = "results/" . $d . "/" . $fname . ".diff_results.txt";
 	# system("valgind -v -v -v --leak-check=full --track-origins=yes ./g0 Examples/$fname > $myout");
-	# system("./g0 $d/$fname &> $myout");
-	system("./g0 $d/$fname");
-	# system("diff $keyout $myout > $checkresults");
+	system("./g0 $d/$fname &> $myout");
+	# system("./g0 $d/$fname");
+	system("diff $keyout $myout > $checkresults");
 }

@@ -84,11 +84,6 @@ int main(int argc, char** argv)
 		}
 		
 		int toknum = 0;
-		// while ( (toknum = yylex()) != 0 ){
-		// 	addToken(yytoken);
-		// }
-		// printList();
-		// deleteList();
 		
 		if ( yyparse() == 0 )
 		{
@@ -98,7 +93,6 @@ int main(int argc, char** argv)
 		// destroyTables();
 		fclose(yyin);
 		yyin = NULL;
-		// ++i;	// move onto next
 	}
 	
 	return 0;

@@ -38,7 +38,8 @@ void printToken(struct token *t)
 		case STRINGLITERAL:
 			printf("%s", t->sval);
 			break;
-			// default:
+		default:
+			printf("%s", t->text);
 			// perror("ERROR: tokenlist.c, func: printToken(): unknown category\n\n");
 			// exit(-1);
 	}

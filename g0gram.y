@@ -9,7 +9,7 @@
 #include "tree.h"
 // #include ""
 
-// int yydebug = 1;
+int yydebug = 1;
 tree* yytree = NULL;
 extern void yyerror(char* s); //g0lex.l
 %}
@@ -379,7 +379,7 @@ PrimaryNoNewArray:
    | LP Expression RP		{ $$ = alctree( "Primary", 540, 3, $1, $2, $3 ); }
    | MethodInvocation       { $$ = $1; }
    | Assignable       { $$ = $1; }
-//    | ConcatentationExpresssion { $$ = $1; }
+   | ConcatentationExpresssion { $$ = $1; }
    ;
 
 FieldAccess:
@@ -421,10 +421,10 @@ MultiplicativeExpression:
    ;
 
 ExplicitConcatExpression:
-	STRINGLITERAL PLUS Name					{ $$ = alctree( "Concat Expr", 800, 3, $1, $2, $3 ); }
-	| Name PLUS STRINGLITERAL					{ $$ = alctree( "Concat Expr", 801, 3, $1, $2, $3 ); }
-	| ConcatentationExpresssion PLUS Name				{ $$ = alctree( "Concat Expr", 806, 2, $1, $2 ); }
-	| ConcatentationExpresssion PLUS STRINGLITERAL			{ $$ = alctree( "Concat Expr", 807, 2, $1, $2 ); }
+	STRINGLITERAL PLUS Name					{ $$ = alctree( "Ex Concat Expr (str + var)", 800, 3, $1, $2, $3 ); }
+	| Name PLUS STRINGLITERAL					{ $$ = alctree( "Ex Concat Expr (var + str)", 801, 3, $1, $2, $3 ); }
+	| ConcatentationExpresssion PLUS Name				{ $$ = alctree( "Ex Concat Expr list (+name)", 802, 3, $1, $2, $3 ); }
+	| ConcatentationExpresssion PLUS STRINGLITERAL			{ $$ = alctree( "Ex Concat Expr list (+string)", 803, 3, $1, $2, $3 ); }
 	;
 
 ConcatentationExpresssion:
