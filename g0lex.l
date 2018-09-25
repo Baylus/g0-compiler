@@ -43,7 +43,7 @@ struct token* yytoken = NULL;
 %%
 
 "/*"                    { comment(); }
-"//".*					{ ++yylineno; /* Do Nothing, Eat up rest of line. */ }
+"//".*					{ /* Do Nothing, Eat up rest of line. */ }
 ^{W}#.*\n               { yyerror("Godiva has no #preprocessor direcives. Are you feeding it C/C++ code?"); }
 
 \n                      { ++yylineno; }
@@ -211,6 +211,8 @@ int yytok( int i )
 	}
 	static int isClass = 0;
 
+	// fprintf(stderr, "token: %s\n", yytext);
+
 	if (i == CLASS) isClass = 1;
 
 	if ( i == IDENT )
@@ -219,7 +221,7 @@ int yytok( int i )
 		struct Identifier* p = lookUp( yytext );
 		if ( p == NULL )
 		{
-			fprintf(stderr, "New Identifer found!\n");
+			// fprintf(stderr, "New Identifer found!\n");
 			// New identifier
 			// yylval still holds the tree node for the previous token.
 			p = addIdentifier( yytext, isClass ? CLASS_NAME : IDENT, yylineno );
@@ -235,7 +237,7 @@ int yytok( int i )
 
 		// Return proper integer code.
 		yylval.node = addLeaf(t->category, t);
-		fprintf(stderr, "%d int code!\n", t->category);
+		// fprintf(stderr, "%d int code!\n", t->category);
 		isClass = 0;
 		return t->category;
 	}

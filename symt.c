@@ -10,6 +10,7 @@ HW #2: Syntax Analysis
 #include <stdlib.h>	// NULL
 #include <stdio.h>	//fprintf
 #include <string.h>	// stdup
+#include <stdint.h>	// uint32_t
 
 #include "symt.h"
 
@@ -86,14 +87,14 @@ ident *lookUp(char *name)
 	return p;
 }
 
-long hash(char *n)
+uint32_t hash(char *n)
 {
 	/*
 	 *
 	 * 
 	 * 
 	 */
-	long hashAddress = 0;
+	uint32_t hashAddress = 0;
 	int counter;
 	for (counter = 0; n[counter] != '\0'; counter++)
 	{
@@ -128,13 +129,14 @@ ident *addIdent(identList* l, ident *i)
 		// Add to empty list
 		l->head = n;
 		l->tail = n;
+		l->size = 1;
 	}
 	else 
 	{
 		l->tail->next = n;
 		l->tail = l->tail->next;
+		l->size++;
 	}
-	l->size++;
 	return i;
 }
 

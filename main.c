@@ -43,7 +43,8 @@ char* addExtension( char* f ) {
 	int i = 0;
 	while (p[i] != '\0') {
 		if (p[i] == '.') needsExtension = 0;
-		n[i] = p[i++];
+		n[i] = p[i];
+		++i;
 	}
 	if (needsExtension) {
 		n[i++] = '.';
@@ -51,7 +52,7 @@ char* addExtension( char* f ) {
 		n[i++] = '0';
 	}
 	n[i] = '\0';	// Null terminate string.
-	n = realloc(n, strlen(n));
+	n = realloc(n, i + 1);
 	if (n == NULL) {
 		perror("Couldnt reallocate memory for filename");
 		exit(-1);
@@ -76,7 +77,8 @@ int main(int argc, char** argv)
 		// yyin = fopen(filename.c_str(), "r");
 		yyin = fopen(yyfilename, "r");
 		if ( yyin == NULL ) {
-			printf("Error: Failed to open file %s", yyfilename);
+			printf("Error: Failed to open file %s\n", yyfilename);
+			perror("Error with opening file\n");
 			exit(-1);
 		}
 		
@@ -90,7 +92,7 @@ int main(int argc, char** argv)
 		if ( yyparse() == 0 )
 		{
 			treeprint( yytree, 0 );
-			postTraversal( yytree, 0, deleteTree );
+			// postTraversal( yytree, 0, deleteTree );
 		}
 		destroyTables();
 		fclose(yyin);

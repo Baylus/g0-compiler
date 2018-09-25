@@ -9,7 +9,7 @@
 #include "tree.h"
 // #include ""
 
-int yydebug = 1;
+// int yydebug = 1;
 tree* yytree = NULL;
 extern void yyerror(char* s); //g0lex.l
 %}
@@ -67,7 +67,7 @@ extern void yyerror(char* s); //g0lex.l
 %type < node > ArrayAccess MethodInvocation FieldAccess PrimaryNoNewArray Primary
 %type < node > ArgumentList
 %type < node > ConditionalAndExpression 
-%type < node > Literal  
+%type < node > Literal  ConcatentationExpresssion
 %type < node > LocalVariable
 %type < node >  FormalParameterList FormalParameter
 %type < node > BoolLiteral Semicolon 
@@ -408,16 +408,27 @@ UnaryExpression:
 UnaryExpressionNotPlusMinus:
      PostFixExpression       { $$ = $1; }
    | BANG UnaryExpression		{ $$ = alctree( "UnaryExpressionNo+-", 600, 2, $1, $2 ); }
-   | DROLL UnaryExpression		{ $$ = alctree( "UnaryExpressionNo+-", 601, 2, $1, $2 ); }
+   | DROLL UnaryExpression		{ $$ = alctree( "Unary Dice roll", 601, 2, $1, $2 ); }
    ;
 
 MultiplicativeExpression:
      UnaryExpression       { $$ = $1; }
    | MultiplicativeExpression MUL UnaryExpression		{ $$ = alctree( "Multiplicative Expression", 610, 3, $1, $2, $3 ); }
-   | MultiplicativeExpression DIV UnaryExpression		{ $$ = alctree( "Multiplicative Expression", 611, 3, $1, $2, $3 ); }
-   | MultiplicativeExpression MOD UnaryExpression		{ $$ = alctree( "Multiplicative Expression", 612, 3, $1, $2, $3 ); }
-   | MultiplicativeExpression DROLL UnaryExpression		{ $$ = alctree( "Multiplicative Expression", 613, 3, $1, $2, $3 ); }
+   | MultiplicativeExpression DIV UnaryExpression		{ $$ = alctree( "Division Expression", 611, 3, $1, $2, $3 ); }
+   | MultiplicativeExpression MOD UnaryExpression		{ $$ = alctree( "Modulus Expression", 612, 3, $1, $2, $3 ); }
+   | MultiplicativeExpression DROLL UnaryExpression		{ $$ = alctree( "Dice Roll Expression", 613, 3, $1, $2, $3 ); }
    ;
+
+ConcatentationExpresssion:
+	 STRINGLITERAL PLUS Name					{ $$ = alctree( "Concat Expr", 800, 3, $1, $2, $3 ); }
+	| Name PLUS STRINGLITERAL					{ $$ = alctree( "Concat Expr", 801, 3, $1, $2, $3 ); }
+	| STRINGLITERAL STRINGLITERAL					{ $$ = alctree( "Concat Expr", 802, 2, $1, $2 ); }
+	| Name STRINGLITERAL						{ $$ = alctree( "Concat Expr", 803, 2, $1, $2 ); }
+	| STRINGLITERAL Name						{ $$ = alctree( "Concat Expr", 804, 2, $1, $2 ); }
+	| Name Name							{ $$ = alctree( "Concat Expr", 805, 2, $1, $2 ); }
+	| ConcatentationExpresssion Name				{ $$ = alctree( "Concat Expr", 806, 2, $1, $2 ); }
+	| ConcatentationExpresssion STRINGLITERAL			{ $$ = alctree( "Concat Expr", 807, 2, $1, $2 ); }
+	;
 
 AdditiveExpression:
      MultiplicativeExpression       { $$ = $1; }
@@ -454,15 +465,15 @@ AssignmentExpression:
    | Assignment       { $$ = $1; }
    ;
 
-SwapExpression:
-    AssignmentExpression       { $$ = $1; }
-    | Assignable SWAP Assignable		{ $$ = alctree( "Swap", 680, 3, $1, $2, $3 ); }
-    ;
-
 Assignment:
      Assignable AssignmentOperator ConditionalOrExpression		{ $$ = alctree( "Assign", 690, 3, $1, $2, $3 ); }
      | Assignable AssignmentOperator Assignment				{ $$ = alctree( "Recursive Assign", 690, 3, $1, $2, $3 ); }
    ;
+
+SwapExpression:
+    AssignmentExpression       { $$ = $1; }
+    | Assignable SWAP Assignable		{ $$ = alctree( "Swap", 680, 3, $1, $2, $3 ); }
+    ;
 
 Assignable:
      Name       { $$ = $1; }

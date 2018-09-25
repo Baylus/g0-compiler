@@ -119,13 +119,14 @@ void deleteTree( tree* t )
 	{
 		if (t->token != NULL)
 		{
-			free(t->token->text);
-			if (t->token->category)
+			if (t->token->category != IDENT || t->token->category != CLASS_NAME)
+				free(t->token->text);
+			if (t->token->category == STRINGLITERAL)
 				free(t->token->sval);
 			free(t->token);
 		}
 	}
-	free(t);
+	// free(t);
 }
 
 void postTraversal(tree *t, int depth, void (*f)(tree *))

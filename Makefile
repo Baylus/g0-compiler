@@ -33,7 +33,7 @@ y.tab.h: g0gram.y
 	$(YACC) -d g0gram.y
 
 g0.o: main.c
-	$(CC) -c main.c -o g0.o
+	$(CC) -c $(CFLAGS) main.c -o g0.o
 
 .c.o:
 	$(CC) -c $(CFLAGS) $<

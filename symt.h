@@ -13,6 +13,7 @@ HW #2: Syntax Analysis
 #define HASH_TABLE_SIZE 41
 
 #include <stdlib.h>
+#include <stdint.h> // uint32_t
 
 typedef struct Identifier
 {
@@ -40,7 +41,7 @@ void destroyTables();
 
 ident *addIdentifier(char *name, int code, int lineno);
 ident* lookUp( char* name);
-long hash( char* n );
+uint32_t hash(char *n);
 
 // Linked List functions.
 ident* addIdent( identList* l, ident* i );
