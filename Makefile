@@ -4,7 +4,7 @@
 YACC=yacc
 LEX=flex
 CC=cc
-CFLAGS=-g -Wall
+CFLAGS=
 
 all: g0
 
@@ -44,9 +44,12 @@ test: g0
 clean:
 	rm -f g0 *.o
 	rm -f g0lex.c g0gram.c g0gram.h
+	rm -fr hw2
 
-submitfiles = main.c token.h tokenlist.h tokenlist.c g0.l Makefile
+submitfiles = main.c token.h g0lex.l g0gram.y symt.c symt.h tree.c tree.h Makefile
 submit: $(submitfiles)
-	mkdir hw2
-	cp -T hw2/ $(submitfiles)
-	gzip hw2/
+	zip hw2.zip $(submitfiles)
+	# cat $(submitfiles) | gzip > hw2.gz
+	# mkdir hw2
+	# cp  $(submitfiles) hw2/
+	# gzip hw2/

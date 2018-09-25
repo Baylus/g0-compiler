@@ -379,7 +379,7 @@ PrimaryNoNewArray:
    | LP Expression RP		{ $$ = alctree( "Primary", 540, 3, $1, $2, $3 ); }
    | MethodInvocation       { $$ = $1; }
    | Assignable       { $$ = $1; }
-   | ConcatentationExpresssion { $$ = $1; }
+//    | ConcatentationExpresssion { $$ = $1; }
    ;
 
 FieldAccess:

@@ -8,5 +8,5 @@ void main()
    x = 6
    y = 6
    f(x)
-   write( "x should be 7; it is "  x )
+   write( "x should be 7; it is " + x )
 }
