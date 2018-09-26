@@ -4,7 +4,7 @@
 YACC=yacc
 LEX=flex
 CC=cc
-CFLAGS=-g -Wall
+CFLAGS=
 
 all: g0
 

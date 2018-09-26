@@ -68,7 +68,7 @@ extern void yyerror(char* s); //g0lex.l
 %type < node > ArrayAccess MethodInvocation FieldAccess PrimaryNoNewArray Primary
 %type < node > ArgumentList
 %type < node > ConditionalAndExpression 
-%type < node > Literal  ConcatentationExpresssion ExplicitConcatExpression ImplicitConcatExpression
+%type < node > Literal  ConcatentationExpresssion ImplicitConcatExpression
 %type < node > LocalVariable ArrayInitializer
 %type < node >  FormalParameterList FormalParameter
 %type < node > BoolLiteral Semicolon 
@@ -438,13 +438,6 @@ ImplicitConcatExpression:
 	| ConcatentationExpresssion Name			{ $$ = alctree( "Imp. Concat Expr list (+name)", 814, 2, $1, $2 ); }
 	| ConcatentationExpresssion MethodInvocation		{ $$ = alctree( "Imp. Concat Expr list (+method)", 815, 2, $1, $2 ); }
 	| ConcatentationExpresssion STRINGLITERAL		{ $$ = alctree( "Imp. Concat Expr list (+string)", 816, 2, $1, $2 ); }
-	;
-
-ExplicitConcatExpression:
-	STRINGLITERAL PLUS Name						{ $$ = alctree( "Ex Concat Expr (str + var)", 800, 3, $1, $2, $3 ); }
-	| Name PLUS STRINGLITERAL					{ $$ = alctree( "Ex Concat Expr (var + str)", 801, 3, $1, $2, $3 ); }
-	| ConcatentationExpresssion PLUS Name				{ $$ = alctree( "Ex Concat Expr list (+name)", 802, 3, $1, $2, $3 ); }
-	| ConcatentationExpresssion PLUS STRINGLITERAL			{ $$ = alctree( "Ex Concat Expr list (+string)", 803, 3, $1, $2, $3 ); }
 	;
 
 ConcatentationExpresssion:
