@@ -176,7 +176,7 @@ ClassVariableList:
 
 ClassVariable:
       Type ClassVariableList Semicolon	{ $$ = alctree( "Class variable list", 131, 3, $1, $2, $3 ); }
-      | Type Assignment { yyerror("Parse error"); }
+      | Type Assignment { yyerror("syntax error"); }
       ;
 
 ClassBlockUnitList:

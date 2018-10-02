@@ -27,10 +27,11 @@ ID						{L}({L}|{D})*
 #include "token.h"
 #include "tree.h"
 #include "symt.h"
-#include "y.tab.h"
+#include "g0gram.h"
 
 void comment();
 int yytok( int i );
+// void yyerror(char*, int);
 void yyerror(char*);
 
 
@@ -47,7 +48,7 @@ struct token* yytoken = NULL;
 ^{W}#.*\n               { yyerror("Godiva has no #preprocessor direcives. Are you feeding it C/C++ code?"); }
 
 \n                      { ++yylineno; }
-[ \t\f]+                { }
+[ \t\f\r]+                { }
 
 "null"                  { return yytok(NULLLITERAL); }
 "false"                 { return yytok(FALSE); }
@@ -112,7 +113,7 @@ d/({D}*)			{ return yytok(DROLL); }
 "-="                    { return yytok(MIASN); }
 "#"                     { return yytok(SHARP); }
 
-.                       {  }
+.                       { yyerror("lexical error"); }
 
 %%
 
@@ -277,6 +278,17 @@ void yyerror(char *s)
 {
    fprintf(stderr, "%s:%d: %s before '%s' token\n",
 	   yyfilename, yylineno, s, yytext);
+
+	if (s[0] == 'l')
+	{
+		// "lexical error"
+		exit(1);
+	}
+	else 
+	{
+		// other errors.
+		exit(2);
+	}
 }
 
 void comment()

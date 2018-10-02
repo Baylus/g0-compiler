@@ -10,7 +10,7 @@ HW #2: Syntax Analysis
 
 #include "tree.h"
 #include "token.h"
-#include "y.tab.h"
+#include "g0gram.h"
 #include <stdarg.h> // va_start()
 #include <stdlib.h> // size_t
 #include <stdio.h>  // stderr

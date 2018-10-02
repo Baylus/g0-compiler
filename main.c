@@ -19,7 +19,6 @@ HW #1: Lexical Analyzer
 #include <string.h>	// strlen(),
 
 #include "token.h"
-#include "tokenlist.h"
 
 #include "tree.h"
 #include "symt.h"
@@ -42,7 +41,14 @@ char* addExtension( char* f ) {
 	char* p = f;
 	int i = 0;
 	while (p[i] != '\0') {
-		if (p[i] == '.') needsExtension = 0;
+		if (p[i] == '.') 
+			needsExtension = 0;
+		else if ( p[i] == '/' )
+		{
+			// if path is "../Examples/calc", then the dots dont denote extensions.
+			// 	Account for this fact by resetting the boolean when '/' encountered
+			needsExtension = 1;
+		}
 		n[i] = p[i];
 		++i;
 	}

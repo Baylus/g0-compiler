@@ -18,7 +18,7 @@ g0gram.c g0gram.h: g0gram.y
 	mv -f y.tab.c g0gram.c
 	mv -f y.tab.h g0gram.h
 
-g0lex.c: g0lex.l y.tab.h tree.h
+g0lex.c: g0lex.l g0gram.h tree.h
 	$(LEX) -t g0lex.l >g0lex.c
 
 g0lex.o: g0gram.h
@@ -27,10 +27,7 @@ symt.o: symt.h
 
 type.o: type.h
 
-tree.o: tree.h token.h y.tab.h
-
-y.tab.h: g0gram.y
-	$(YACC) -d g0gram.y
+tree.o: tree.h token.h g0gram.h
 
 g0.o: main.c
 	$(CC) -c $(CFLAGS) main.c -o g0.o
