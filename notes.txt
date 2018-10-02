@@ -1,0 +1,121 @@
+-d does something with production rules
+	dumps .h file for external files to use "#define"'s to allow for 
+	communication between different parts of the compiler
+	
+	
+Dont use YACC associativity specifiers to resolve grammar ambiguity.
+	Regular method of splitting rules apart creates O(n) where n is the number of
+		tokens. This is especially good as the number of tokens increases.
+	The associativity specifiers create slower performance of parsing.
+
+
+	
+Theres a
+	"#define YYDEBUG 1": allows debugging code to be compiled
+	"int yydebug = 1;"
+	
+	
+	
+bison -dvt:
+	all of output, time and other stuff, look into it.
+	
+	
+Wednesday, September 19th, 2018
+
+Epsilon production can be used for error handling.
+i.e. {$$ = NULL; printf("Error: ')' expected!\n");}
+
+bison -v creates a large file that describes which yystate values are
+	associated with which production rules.
+	
+Tool called Merr
+
+Context-Free Grammar Rule:
+
+key: E = "Epsilon"
+
+Program: E;
+Program: DeclarationList;
+DeclearationList: 
+		  Declaration DeclarationList 
+		| Declaration
+		;
+Declaration:
+		  VariableDeclaration
+		;
+VaraibleDeclaration:
+		  Type VariableList
+		;
+VariableList:
+		  Variable
+		| Variable COMMA VariableList
+		;
+Variable:
+		  IDENTIFIER 
+		| IDENTIFIER ASSIGN VALUE
+		;
+
+		
+FunctionDeclaration: FunctionHeader FunctionBody;
+FunctionHeader:	Type IDENTIFIER	LEFTPAREN ParameterList RIGHTPAREN
+FunctionBody: LEFTCURLYBRACE StatementList RIGHTCURLYBRACE
+
+
+# NOTE: Look into difference between expression and statement for grammar production
+
+StatementList: Statement StatementList | Statement;
+Statement: IfStatement | WhileStatement | FunctionCall | AssignmentStatement;
+
+
+# NOTE G0, Variable Declaration statements are required to be at the start of a function.
+
+Q: Should we allow local scopes for blocks?
+A: No, We are not going to allow variable declarations inside of code blocks.
+
+Recommended method of accomplishing tree construction is to use the tree struct in lecture notes,
+and to make it such that if the tree node contains a nkids integer, which if 0, token*
+should be checked to see if there is a token stored in the tree node.
+
+Apparently Unaries can be excluded to solve the issue.
+
+In order to assign
+
+Examples of initializers:
+art.g0
+if1.g0
+
+My input string terminals:
+
+
+VariableDeclaration:
+        PrimitiveType VarName
+		| ClassType VarName
+      | 
+      ;
+\
+Statement:
+		VarName
+		;
+	  
+VarName:
+	IDENTIFIER	{ alctree("varname", 420, 2/*Children*/ , $-1/*Type*/, $1); }
+
+Type:
+        ClassType
+      | ArrayType
+      | PrimitiveType
+      | { $$ = NULL; printf("Error: Type name expected."); }
+      ;
+	  
+	  
+	  
+Semantic Analysis:
+Midterm stuff;
+Two Types of Attributes:
+synthesized
+	attributes computed from information contained within one's children. These are generally easy to compute, even on-the-fly during parsing.
+inherited
+	attributes computed from information obtained from one's parent or siblings These are generally harder to compute. 
+Compilers may be able to jump through hoops to compute some inherited attributes during parsing,
+ but depending on the semantic rules this may not be possible in general. 
+Compilers resort to tree traversals to move semantic information around the tree to where it will be used.

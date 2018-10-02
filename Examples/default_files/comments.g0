@@ -2,7 +2,7 @@ void main(){
 
     "This is /*not a comment*/"
     /* This is a comment  */
-    /* We do not support these nested comments */
+    /* We do not support /* these nested comments */ */
     /* This also contains a //nested comment */
     
     "Keep this string" // this is a comment "//... "

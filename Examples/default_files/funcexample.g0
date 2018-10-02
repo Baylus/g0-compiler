@@ -17,8 +17,7 @@ double myfunc(double x, double y)
 
 double goof(double branflakes)
 {
-    double bf2 
-	 bf2 = branflakes + 2.0
-    write( "bf2 is " bf2 )
+    double bf2 = branflakes + 2.0
+    write( "bf2 is "  bf2 )
     return goof(bf2)
 }

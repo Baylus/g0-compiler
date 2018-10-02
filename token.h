@@ -9,6 +9,8 @@ HW #1: Lexical Analyzer
 #ifndef TOKEN
 #define TOKEN
 
+#include "symt.h"
+
 struct token {
 	int category;   /* the integer code returned by yylex */
 	char *text;     /* the actual string (lexeme) matched */
@@ -18,7 +20,8 @@ struct token {
 	   int ival;       /* for integer constants, store binary value here */
 	   double dval;	   /* for real constants, store binary value here */
 	   char *sval;     /* for string constants, malloc space, de-escape, store */
-					   /*    the string (less quotes and after escapes) here */	   
+					   /*    the string (less quotes and after escapes) here */	 
+		ident* tval;	/* The information about the identifier */
 	};
 };
 #endif

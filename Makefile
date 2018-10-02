@@ -1,46 +1,52 @@
-cc = gcc
-ccopts = -ly
-lex = lex
-lexopts =
-lexgens = lex.yy.c
-yacc = yacc
-yaccopts = -d
-yaccgens = y.tab.c y.tab.h
-prj = g0
+#
+# g0 Makefile
+#
+YACC=yacc
+LEX=flex
+CC=cc
+CFLAGS=
 
-g0: main.o tokenlist.o lex.yy.o
-	gcc -o g0 main.o tokenlist.o lex.yy.o
-	
-main.o: token.h tokenlist.h ytab.h
-	gcc -c -g main.c
-	
-tokenlist.o: token.h tokenlist.h ytab.h
-	gcc -c -g tokenlist.c
+all: g0
 
-lex.yy.o: lex.yy.c ytab.h token.h
-	gcc -c -g lex.yy.c
-	
-lex.yy.c: g0.l
-	flex g0.l
+FILES=g0.o g0gram.o g0lex.o tree.o symt.o
 
-submitfiles = main.c token.h tokenlist.h tokenlist.c g0.l makefile
-submit: $(submitfiles)
-	mkdir hw1
-	cp -T hw1/ $(submitfiles)
-	gzip hw1/
-	
+g0: ${FILES}
+	cc -o g0 ${FILES}
+
+g0gram.c g0gram.h: g0gram.y
+	$(YACC) -dtv --verbose g0gram.y
+	mv -f y.tab.c g0gram.c
+	mv -f y.tab.h g0gram.h
+
+g0lex.c: g0lex.l g0gram.h tree.h
+	$(LEX) -t g0lex.l >g0lex.c
+
+g0lex.o: g0gram.h
+
+symt.o: symt.h
+
+type.o: type.h
+
+tree.o: tree.h token.h g0gram.h
+
+g0.o: main.c
+	$(CC) -c $(CFLAGS) main.c -o g0.o
+
+.c.o:
+	$(CC) -c $(CFLAGS) $<
+
+test: g0
+	perl check.pl Examples/
+
 clean:
-	rm main.o tokenlist.o lex.yy.o lex.yy.c
-	rm -R hw1/
-	
-# complex: $(lexgens) $(yaccgens)
-	# $(cc) $(lexgens) $(yaccgens) $(ccopts) -o $(prj)
+	rm -f g0 *.o
+	rm -f g0lex.c g0gram.c g0gram.h
+	rm -fr hw2
 
-# clean:
-	# rm $(lexgens) $(yaccgens) $(prj)
-
-# $(yaccgens): $(prj).y sym.h
-	# $(yacc) $(yaccopts) $(prj).y
-
-# $(lexgens): $(prj).l $(yaccgens) sym.h
-	# $(lex) $(lexopts) $(prj).l
+submitfiles = main.c token.h g0lex.l g0gram.y symt.c symt.h tree.c tree.h Makefile
+submit: $(submitfiles)
+	zip hw2.zip $(submitfiles)
+	# cat $(submitfiles) | gzip > hw2.gz
+	# mkdir hw2
+	# cp  $(submitfiles) hw2/
+	# gzip hw2/

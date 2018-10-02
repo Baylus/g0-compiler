@@ -19,11 +19,16 @@ HW #1: Lexical Analyzer
 #include <string.h>	// strlen(),
 
 #include "token.h"
-#include "tokenlist.h"
+
+#include "tree.h"
+#include "symt.h"
+extern int yyparse();	// g0gram.y
+extern tree* yytree;		// g0gram.y
 
 extern int yylex();		// g0.l
 extern struct token* yytoken;	// g0.l
 extern FILE* yyin;		// g0.l
+extern char* yyfilename;	//g0lex.l
 
 char* filename;
 char* addExtension( char* f ) {
@@ -36,8 +41,16 @@ char* addExtension( char* f ) {
 	char* p = f;
 	int i = 0;
 	while (p[i] != '\0') {
-		if (p[i] == '.') needsExtension = 0;
-		n[i] = p[i++];
+		if (p[i] == '.') 
+			needsExtension = 0;
+		else if ( p[i] == '/' )
+		{
+			// if path is "../Examples/calc", then the dots dont denote extensions.
+			// 	Account for this fact by resetting the boolean when '/' encountered
+			needsExtension = 1;
+		}
+		n[i] = p[i];
+		++i;
 	}
 	if (needsExtension) {
 		n[i++] = '.';
@@ -45,7 +58,7 @@ char* addExtension( char* f ) {
 		n[i++] = '0';
 	}
 	n[i] = '\0';	// Null terminate string.
-	n = realloc(n, strlen(n));
+	n = realloc(n, i + 1);
 	if (n == NULL) {
 		perror("Couldnt reallocate memory for filename");
 		exit(-1);
@@ -64,26 +77,28 @@ int main(int argc, char** argv)
 	// int files = argc - 1;
 	int i = 1;
 	for ( ; i < argc ; ++i) {
-		filename = addExtension( argv[i] );
-		filenames[i - 1] = filename;
+		yyfilename = addExtension( argv[i] );
+		filenames[i - 1] = yyfilename;
+		printf( "\nParsing file: %s\n", yyfilename );
 		
 		// yyin = fopen(filename.c_str(), "r");
-		yyin = fopen(filename, "r");
+		yyin = fopen(yyfilename, "r");
 		if ( yyin == NULL ) {
-			printf("Error: Failed to open file %s", filename);
+			printf("Error: Failed to open file %s\n", yyfilename);
+			perror("Error with opening file\n");
 			exit(-1);
 		}
 		
 		int toknum = 0;
-		while ( (toknum = yylex()) != 0 ){
-			addToken(yytoken);
-		}
-		printList();
-		deleteList();
 		
+		if ( yyparse() == 0 )
+		{
+			treeprint( yytree, 0 );
+			// postTraversal( yytree, 0, deleteTree );
+		}
+		// destroyTables();
 		fclose(yyin);
 		yyin = NULL;
-		// ++i;	// move onto next
 	}
 	
 	return 0;

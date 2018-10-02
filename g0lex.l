@@ -1,4 +1,15 @@
-
+%{
+/*
+Baylus Tunnicliff
+9/5/2018
+CS 445 - Compiler Design (g0 - subset of Godiva)
+HW #2: Syntax Analysis
+"g0.l"
+	Lex Specification
+	Used for lexical analysis. (AKA Scanning)
+	Creates token nodes for BISON to place into the tree.
+*/
+%}
 
 
 O                       [0-7]
@@ -14,10 +25,15 @@ ID						{L}({L}|{D})*
 
 %{
 #include "token.h"
-#include "ytab.h"
+#include "tree.h"
+#include "symt.h"
+#include "g0gram.h"
 
-int comment();
+void comment();
 int yytok( int i );
+// void yyerror(char*, int);
+void yyerror(char*);
+
 
 extern char* filename;	// main.c
 
@@ -28,15 +44,15 @@ struct token* yytoken = NULL;
 %%
 
 "/*"                    { comment(); }
-"//".*					{ ++yylineno; /* Do Nothing, Eat up rest of line. */ }
+"//".*					{ /* Do Nothing, Eat up rest of line. */ }
 ^{W}#.*\n               { yyerror("Godiva has no #preprocessor direcives. Are you feeding it C/C++ code?"); }
 
 \n                      { ++yylineno; }
-[ \t\f]+                { }
+[ \t\f\r]+                { }
 
 "null"                  { return yytok(NULLLITERAL); }
-"false"                 { return yytok(BOOLFALSE); }
-"true"                  { return yytok(BOOLTRUE); }
+"false"                 { return yytok(FALSE); }
+"true"                  { return yytok(TRUE); }
 "break"                 { return yytok(BREAK); }
 "class"                 { return yytok(CLASS); }
 "double"                { return yytok(DOUBLE); }
@@ -44,15 +60,16 @@ struct token* yytoken = NULL;
 "for"                   { return yytok(FOR); }
 "if"                    { return yytok(IF); }
 "int"                   { return yytok(INT); }
-"list"					{ return yytok(LIST); }
+"list"						{ return yytok(LIST); }
 "return"                { return yytok(RETURN); }
-"d"/({ID}|{D}*)			{ return yytok(DROLL); }
-"string"				{ return yytok(STRING); }
-"table"					{ return yytok(TABLE); }
+d/({D}*)			{ return yytok(DROLL); }
+"string"						{ return yytok(STRING); }
+"table"						{ return yytok(TABLE); }
 "void"                  { return yytok(VOID); }
 "while"                 { return yytok(WHILE); }
+"bool"                  { return yytok(BOOL); }
 
-{ID}          			{ return yytok(IDENTIFIER); }
+{ID}          				{ return yytok(IDENT); }
 
 0[xX]{H}+{IS}?          { return yytok(INTLITERAL); }
 0{O}+{IS}?              { return yytok(INTLITERAL); }
@@ -73,6 +90,7 @@ struct token* yytoken = NULL;
 "["                     { return yytok(LB); }
 "]"                     { return yytok(RB); }
 ";"                     { return yytok(SM); }
+":"                     { return yytok(COLON); }
 ","                     { return yytok(CM); }
 "."                     { return yytok(DOT); }
 
@@ -93,6 +111,7 @@ struct token* yytoken = NULL;
 "%"                     { return yytok(MOD); }
 "+="                    { return yytok(PLASN); }
 "-="                    { return yytok(MIASN); }
+"#"                     { return yytok(SHARP); }
 
 .                       { yyerror("lexical error"); }
 
@@ -113,8 +132,6 @@ char* convertEscapes( const char* s ) {
 	// Dont do it this way, because it just wastes time copying all the data when
 	//	we already have to do that. So just calloc the space.
 	char* t = strdup(s);
-	//char* t = calloc( oldLength, sizeof(char) );
-	//char* t = malloc( oldLength * sizeof(char) );
 	if (t == NULL) {
 		perror("Failed to allocate memory for strdup in function convertEscapes");
 		exit(-1);
@@ -194,7 +211,39 @@ int yytok( int i )
 		perror("Failed to allocate memory for token!");
 		exit(-1);
 	}
-	
+	static int isClass = 0;
+
+	// fprintf(stderr, "token: %s\n", yytext);
+
+	if (i == CLASS) isClass = 1;
+
+	if ( i == IDENT )
+	{
+		// Identifier found.
+		struct Identifier* p = lookUp( yytext );
+		if ( p == NULL )
+		{
+			// fprintf(stderr, "New Identifer found!\n");
+			// New identifier
+			// yylval still holds the tree node for the previous token.
+			p = addIdentifier( yytext, isClass ? CLASS_NAME : IDENT, yylineno );
+		}
+		// Construct token.
+		t->lineno = yylineno;
+		t->tval = p;
+		t->text = p->name;
+		t->filename = filename;
+		// If typeCode of token before identifier was first declared
+		// was of type "CLASS", then make this variable a class name.
+		t->category = p->typeCode;
+
+		// Return proper integer code.
+		yylval.node = addLeaf(t->category, t);
+		// fprintf(stderr, "%d int code!\n", t->category);
+		isClass = 0;
+		return t->category;
+	}
+
 	t->category = i;
 	t->text = strdup(yytext);
 	t->lineno = yylineno;
@@ -214,7 +263,10 @@ int yytok( int i )
 			// yyerror("Unknown yylval for given integer category.");
 	}
 	
-	yytoken = t;
+	// Give token to YACC
+	// yytoken = t;
+	yylval.node = addLeaf(i, t);
+	if ( i != CLASS) isClass = 0;
 	return i;
 }
 
@@ -222,14 +274,24 @@ int yytok( int i )
 // I feel like theres no way this really works, this also might hurt me because
 // yyerror might be defined by lex if i dont provide a definition for it, 
 // which this is doing.
-yyerror (s)
-     char *s;
+void yyerror(char *s)
 {
-  fprintf (stderr, "%s\n", s);
-  exit(1);	// Exit upon lexical errors.
+   fprintf(stderr, "%s:%d: %s before '%s' token\n",
+	   yyfilename, yylineno, s, yytext);
+
+	if (s[0] == 'l')
+	{
+		// "lexical error"
+		exit(1);
+	}
+	else 
+	{
+		// other errors.
+		exit(2);
+	}
 }
 
-comment()
+void comment()
 {
 	
 	int splat_seen = 0;
@@ -253,8 +315,6 @@ comment()
 				++yylineno;
 				break;
 			case 0: {
-			   // yychar = BAD_TOKEN;
-			   // yyerror("Unterminated comment");
 			   exit(-(++errors));
 			   }
 	   }
