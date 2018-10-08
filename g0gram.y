@@ -66,7 +66,7 @@ extern void yyerror(char* s); //g0lex.l
 %type < node > EqualityExpression RelationalExpression AdditiveExpression MultiplicativeExpression 
 %type < node > SwapExpression UnaryExpressionNotPlusMinus UnaryExpression PostFixExpression 
 %type < node > ArrayAccess MethodInvocation FieldAccess PrimaryNoNewArray Primary
-%type < node > ArgumentList
+%type < node > ArgumentList ExpressionOpt
 %type < node > ConditionalAndExpression 
 %type < node > Literal  ConcatentationExpresssion ImplicitConcatExpression
 %type < node > LocalVariable ArrayInitializer
@@ -303,7 +303,7 @@ StatementWithoutTrailingSubstatement:
 
 ExpressionStatement:
         StatementExpression Semicolon		{ $$ = alctree( "Expression Stmt", 370, 2, $1, $2 ); }
-	| SwapExpression Semicolon		{ $$ = alctree( "Swap Expr Stmt", 371, 2, $1, $2 ); }
+	    | SwapExpression Semicolon		{ $$ = alctree( "Swap Expr Stmt", 371, 2, $1, $2 ); }
       ;
 
 StatementExpression:
@@ -336,18 +336,25 @@ WhileStatementNoShortIf:
 
 ForInit:
         StatementExpressionList       { $$ = $1; }
+      | { $$ = NULL; }
+      ;
+
+ExpressionOpt:
+        Expression
+      | { $$ = NULL; }
       ;
 
 ForUpdate:
         StatementExpressionList       { $$ = $1; }
+      | { $$ = NULL; }
       ;
 
 ForStatement:
-        FOR LP ForInit SM Expression SM ForUpdate RP Statement	{ $$ = alctree( "for stmt", 460, 9, $1, $2, $3, $4, $5, $6, $7, $8, $9 ); }
+        FOR LP ForInit SM ExpressionOpt SM ForUpdate RP Statement	{ $$ = alctree( "for stmt", 460, 9, $1, $2, $3, $4, $5, $6, $7, $8, $9 ); }
       ;
 
 ForStatementNoShortIf:
-        FOR LP ForInit SM Expression SM ForUpdate RP StatementNoShortIf	{ $$ = alctree( "for stmt (no short if)", 470, 9, $1, $2, $3, $4, $5, $6, $7, $8, $9 ); }
+        FOR LP ForInit SM ExpressionOpt SM ForUpdate RP StatementNoShortIf	{ $$ = alctree( "for stmt (no short if)", 470, 9, $1, $2, $3, $4, $5, $6, $7, $8, $9 ); }
       ;
 
 StatementExpressionList:
