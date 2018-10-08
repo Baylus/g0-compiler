@@ -496,7 +496,9 @@ Assignment:
    ;
 
 SwapExpression:
-     Assignable SWAP Assignable		{ $$ = alctree( "Swap", 680, 3, $1, $2, $3 ); }
+      Assignable SWAP Assignable		{ $$ = alctree( "Swap", 680, 3, $1, $2, $3 ); }
+    | Assignable SWAP Assignment		{ $$ = alctree( "Swap w/ Assign", 681, 3, $1, $2, $3 ); }
+    | Assignable SWAP SwapExpression		{ $$ = alctree( "Multiple Swap", 682, 3, $1, $2, $3 ); }
     ;
 
 Assignable:
@@ -512,8 +514,9 @@ AssignmentOperator:
    ;
 
 Expression:
-       AssignmentExpression       { $$ = $1; }
-   ;
+        SwapExpression
+      | AssignmentExpression
+      ;
 		
 
 FormalParameterList:

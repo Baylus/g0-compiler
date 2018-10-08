@@ -111,6 +111,7 @@ d/({D}*)			{ return yytok(DROLL); }
 "%"                     { return yytok(MOD); }
 "+="                    { return yytok(PLASN); }
 "-="                    { return yytok(MIASN); }
+":=:"							{ return yytok(SWAP); }
 "#"                     { return yytok(SHARP); }
 
 .                       { yyerror("lexical error"); }
