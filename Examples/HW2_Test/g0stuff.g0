@@ -1,0 +1,108 @@
+/*	
+	multi line 
+	comment 				
+*/
+// single line comment
+
+bool logicalValue
+// global scope variable declaration
+int x, y45, g0var, d6Var
+double dubVal
+void assignments()
+{	// automatic semi-colon insertion 
+	a = 1
+	b += 2
+	c -= 3
+}
+
+void Operators()
+{
+	int w, x, y, z, q
+	x = -1
+	if(x < y && y <= z || z < q && q != x) {
+	   x :=: y :=: z
+	}
+	else {
+	   w = x + y * z / q - 4
+	   }
+	logicalValue = true
+}
+
+void WhileStuff()
+{
+	int x
+	x = 0
+	while(x < 20){
+	   x += d6
+          break
+	  }
+}
+
+void RollTheDice()
+{
+	d6Var = d6
+	y45 = 4d5
+	return
+}
+
+void main()
+{
+	RollTheDice()
+	write("stuff" and "things")
+	g0var = read()
+}
+
+// class syntax
+class pet
+{
+	// class scope variable declaration
+	int hunger
+	int happy
+	pet()
+	{
+		hunger = 0
+		happy = 0
+	}
+	void play()
+	{
+		int choice
+		write("what should we play?")
+		write("Fetch(1) \n Roll over (2)")
+		choice = read()
+		if (choice == 1) {
+		   happy += 10
+		   }
+		else if (choice == 2) {
+		   hunger += 1
+		   }
+		else {
+		   write("invalid choice")
+		   }
+	}
+}
+// class variable declaration
+void MakeAPet()
+{
+	// local scope variable declaration
+	pet p
+	p = pet()
+	p.play()
+	write(p.happy)
+}
+
+string stringOps()
+{
+	string S, S1, S2
+	S1 = "One"
+	S2 = S1 "Two"	// implicit concatenation
+	return S2
+}
+
+list listOps()
+{
+	int length
+	list L, L1, L2
+	L = [1, 2, 3]
+	length = #L
+	return L
+}

@@ -119,3 +119,72 @@ inherited
 Compilers may be able to jump through hoops to compute some inherited attributes during parsing,
  but depending on the semantic rules this may not be possible in general. 
 Compilers resort to tree traversals to move semantic information around the tree to where it will be used.
+
+10/3/2018
+HW 3 Type checking - G0 reference guide supplementation.
+No idea of initializing global variables prior to the start of main.
+
+Must have class constructor.
+
+Final Code generation: 
+	Multiple possible targets for
+	
+Implicit classes that allow you to have functions that do nothing (?)
+
+Integers will be converted to doubles.
+
+int x
+
+write( "the value is " x )
+
+No need for prototypes, its okay if you have them.
+
+Lists are supposed to be in JSON format.
+
+List concatenation
+	We should allow L1 += i [ where i is an element which to be appended to the list ]
+	Not require L1 i [ again, where i is an element ]
+	
+	How do we remove elements from a list?
+		Good Question.
+	
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+

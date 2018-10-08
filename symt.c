@@ -55,7 +55,7 @@ void destroyTables()
 
 ident *addIdentifier(char *name, int code, int lineno)
 {
-	/*
+	/* Adds given identifier into
 	 *
 	 * Uses:
 	 * 	name: str, name of identifier

@@ -1,0 +1,24 @@
+// This tests the sample pet class in the g0 reference
+
+class pet {
+   int hunger
+   int happy
+   pet() {
+     hunger = 0
+     happy = 0
+   }
+   void play() {
+      int choice
+      write("What should we play?")
+      write( "Fetch (1) \n Roll over (2)" )
+      choice = read()
+      if (choice == 1) { happy += 10 }
+      else if (choice == 2) { hunger += 1 }
+      }
+}
+
+int main() {
+	pet myDog
+	myDog = pet()
+	myDog.play()
+}

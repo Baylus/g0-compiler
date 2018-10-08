@@ -398,6 +398,7 @@ MethodInvocation:
    | Name LP RP					{ $$ = alctree( "Method call", 561, 3, $1, $2, $3 ); }
    | Primary DOT IDENT LP ArgumentList RP	{ $$ = alctree( "Method call", 562, 6, $1, $2, $3, $4, $5, $6 ); }
    | Primary DOT IDENT LP  RP			{ $$ = alctree( "Method call", 563, 5, $1, $2, $3, $4, $5 ); }
+   | CLASS_NAME LP RP			{ $$ = alctree( "Class Constructor Call", 564, 1, $1 ); }
    ;
 
 ArrayAccess:
