@@ -394,6 +394,7 @@ PrimaryNoNewArray:
    | LP Expression RP		{ $$ = alctree( "Paren Expr", 540, 3, $1, $2, $3 ); }
    | MethodInvocation       { $$ = $1; }
    | Assignable       { $$ = $1; }
+   | SHARP IDENT    { $$ = alctree( "List Size", 541, 1, $2); }
    ;
 
 FieldAccess:
