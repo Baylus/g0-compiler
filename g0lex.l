@@ -289,7 +289,7 @@ int yytok( int i )
 		struct Identifier* p = lookUp( yytext );
 		if ( p == NULL )
 		{
-			fprintf(stderr, "New Identifer found!\n");
+			// fprintf(stderr, "New Identifer found!\n");
 			// New identifier
 			// yylval still holds the tree node for the previous token.
 			p = addIdentifier( yytext, isClass ? CLASS_NAME : IDENT, yylineno );
