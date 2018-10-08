@@ -30,15 +30,23 @@ ID						{L}({L}|{D})*
 #include "g0gram.h"
 
 void comment();
+int lex( int, int, int);
 int yytok( int i );
 // void yyerror(char*, int);
 void yyerror(char*);
 
+extern int yydebug;
+
+struct token* lastToken = NULL;
 
 extern char* filename;	// main.c
 
 struct token* yytoken = NULL;
 // int yylineno = 1;
+// Boolean value to store the 
+
+int firstOnLine = 0;
+
 %}
 
 %%
@@ -47,72 +55,72 @@ struct token* yytoken = NULL;
 "//".*					{ /* Do Nothing, Eat up rest of line. */ }
 ^{W}#.*\n               { yyerror("Godiva has no #preprocessor direcives. Are you feeding it C/C++ code?"); }
 
-\n                      { ++yylineno; }
+\n                      { ++yylineno; firstOnLine = 1;  }
 [ \t\f\r]+                { }
 
-"null"                  { return yytok(NULLLITERAL); }
-"false"                 { return yytok(FALSE); }
-"true"                  { return yytok(TRUE); }
-"break"                 { return yytok(BREAK); }
-"class"                 { return yytok(CLASS); }
-"double"                { return yytok(DOUBLE); }
-"else"                  { return yytok(ELSE); }
-"for"                   { return yytok(FOR); }
-"if"                    { return yytok(IF); }
-"int"                   { return yytok(INT); }
-"list"						{ return yytok(LIST); }
-"return"                { return yytok(RETURN); }
-d/({D}*)			{ return yytok(DROLL); }
-"string"						{ return yytok(STRING); }
-"table"						{ return yytok(TABLE); }
-"void"                  { return yytok(VOID); }
-"while"                 { return yytok(WHILE); }
-"bool"                  { return yytok(BOOL); }
+"null"                  { return lex( 0, 1, NULLLITERAL); }
+"false"                 { return lex( 0, 1, FALSE); }
+"true"                  { return lex( 0, 1, TRUE); }
+"break"                 { return lex( 0, 1, BREAK); }
+"class"                 { return lex( 1, 0, CLASS); }
+"double"                { return lex( 1, 0, DOUBLE); }
+"else"                  { return lex( 0, 0, ELSE); }
+"for"                   { return lex( 1, 0, FOR); }
+"if"                    { return lex( 1, 0, IF); }
+"int"                   { return lex( 1, 0, INT); }
+"list"						{ return lex( 1, 0, LIST); }
+"return"                { return lex( 1, 1, RETURN); }
+d/({D}*)						{ return lex( 0, 0, DROLL); }
+"string"						{ return lex( 1, 0, STRING); }
+"table"						{ return lex( 1, 0, TABLE); }
+"void"                  { return lex( 1, 0, VOID); }
+"while"                 { return lex( 1, 0, WHILE); }
+"bool"                  { return lex( 1, 0, BOOL); }
 
-{ID}          				{ return yytok(IDENT); }
+{ID}          				{ return lex( 1, 1, IDENT); }
 
-0[xX]{H}+{IS}?          { return yytok(INTLITERAL); }
-0{O}+{IS}?              { return yytok(INTLITERAL); }
-{D}+{IS}?               { return yytok(INTLITERAL); }
+0[xX]{H}+{IS}?          { return lex( 0, 1, INTLITERAL); }
+0{O}+{IS}?              { return lex( 0, 1, INTLITERAL); }
+{D}+{IS}?               { return lex( 0, 1, INTLITERAL); }
 
-'(\\.|[^\\'])+'         { return yytok(CHARLITERAL); }
+'(\\.|[^\\'])+'         { return lex( 0, 1, CHARLITERAL); }
 
-{D}+{E}{FS}?            { return yytok(FLOATLITERAL); }
-{D}*"."{D}+({E})?{FS}?  { return yytok(FLOATLITERAL); }
-{D}+"."{D}*({E})?{FS}?  { return yytok(FLOATLITERAL); }
+{D}+{E}{FS}?            { return lex( 0, 1, FLOATLITERAL); }
+{D}*"."{D}+({E})?{FS}?  { return lex( 0, 1, FLOATLITERAL); }
+{D}+"."{D}*({E})?{FS}?  { return lex( 0, 1, FLOATLITERAL); }
 
-{LIT}                   { return yytok(STRINGLITERAL); }
+{LIT}                   { return lex( 0, 1, STRINGLITERAL); }
 
-"("                     { return yytok(LP); }
-")"                     { return yytok(RP); }
-"{"                     { return yytok(LC); }
-"}"                     { return yytok(RC); }
-"["                     { return yytok(LB); }
-"]"                     { return yytok(RB); }
-";"                     { return yytok(SM); }
-":"                     { return yytok(COLON); }
-","                     { return yytok(CM); }
-"."                     { return yytok(DOT); }
+"("                     { return lex( 0, 0, LP); }
+")"                     { return lex( 0, 1, RP); }
+"{"                     { return lex( 0, 0, LC); }
+"}"                     { return lex( 0, 0, RC); }
+"["                     { return lex( 0, 0, LB); }
+"]"                     { return lex( 0, 1, RB); }
+";"                     { return lex( 0, 0, SM); }
+":"                     { return lex( 0, 0, COLON); }
+","                     { return lex( 0, 0, CM); }
+"."                     { return lex( 0, 0, DOT); }
 
-"="                     { return yytok(ASN); }
-"<"                     { return yytok(LT); }
-">"                     { return yytok(GT); }
-"!"                     { return yytok(BANG); }
-"=="                    { return yytok(EQ); }
-"!="                    { return yytok(NE); }
-"<="                    { return yytok(LE); }
-">="                    { return yytok(GE); }
-"&&"                    { return yytok(ANDAND); }
-"||"                    { return yytok(OROR); }
-"+"                     { return yytok(PLUS); }
-"-"                     { return yytok(MINUS); }
-"*"                     { return yytok(MUL); }
-"/"                     { return yytok(DIV); }
-"%"                     { return yytok(MOD); }
-"+="                    { return yytok(PLASN); }
-"-="                    { return yytok(MIASN); }
-":=:"							{ return yytok(SWAP); }
-"#"                     { return yytok(SHARP); }
+"="                     { return lex( 0, 0, ASN); }
+"<"                     { return lex( 0, 0, LT); }
+">"                     { return lex( 0, 0, GT); }
+"!"                     { return lex( 0, 0, BANG); }
+"=="                    { return lex( 0, 0, EQ); }
+"!="                    { return lex( 0, 0, NE); }
+"<="                    { return lex( 0, 0, LE); }
+">="                    { return lex( 0, 0, GE); }
+"&&"                    { return lex( 0, 0, ANDAND); }
+"||"                    { return lex( 0, 0, OROR); }
+"+"                     { return lex( 0, 0, PLUS); }
+"-"                     { return lex( 0, 0, MINUS); }
+"*"                     { return lex( 0, 0, MUL); }
+"/"                     { return lex( 0, 0, DIV); }
+"%"                     { return lex( 0, 0, MOD); }
+"+="                    { return lex( 0, 0, PLASN); }
+"-="                    { return lex( 0, 0, MIASN); }
+":=:"							{ return lex( 0, 0, SWAP); }
+"#"                     { return lex( 0, 0, SHARP); }
 
 .                       { yyerror("lexical error"); }
 
@@ -187,6 +195,61 @@ char* convertEscapes( const char* s ) {
 	return t;
 }
 
+int lex(int validBeginner, int validEnder, int type)
+{
+	/*
+		Handles some semi-colon insertion. 
+
+
+	 */
+	
+	static int beginner = 0, ender = 0;
+	beginner = validBeginner;
+	// printf("Scanner: ", yytext);
+
+	// If we saved last token and returned a semi-colon last time
+	if(lastToken != NULL)	
+	{	// THEN return saved token
+		int tcat = lastToken->category;
+		yylval.node = addLeaf(tcat, lastToken);
+		lastToken = NULL;
+		ender = validEnder;
+		firstOnLine = 0;
+		return tcat;
+	}	
+	else
+	{
+		yytok(type);
+		// If first-on-a-line AND this iteration's yytoken is a valid expression beginner and last iteration's yytoken was a valid expression ending
+		// or if last iterations yytoken is a valid expression ender and this token is a right brace
+		if( (firstOnLine && beginner && ender) )
+		{
+		// THEN save_token: return a semi-colon
+			lastToken = yytoken;
+			struct token* semiToken = malloc( sizeof( struct token) );
+			semiToken->category = SM;
+			semiToken->text = ";";
+			semiToken->lineno = yylineno - 1;
+			semiToken->filename = filename;
+
+			// yylval.tok = semiToken;
+			yylval.node = addLeaf( SM, semiToken);
+			yyless(0);	// put back the token that yylex() grabbed this iteration
+			ender = validEnder;
+			firstOnLine = 0;
+			return SM;
+		}
+		else
+		{ // no semi-colon insertion, return the actual token grabbed this iteration of yylex
+			// yylval.tok = yytoken;
+			yylval.node = addLeaf( yytoken->category, yytoken);
+			ender = validEnder;
+			firstOnLine = 0;
+			return yytoken->category;
+		}
+	}
+}
+
 int yytok( int i )
 {
 	/* 
@@ -213,8 +276,10 @@ int yytok( int i )
 		exit(-1);
 	}
 	static int isClass = 0;
-
-	// fprintf(stderr, "token: %s\n", yytext);
+	
+	// print if yydebug is turned on.
+	if (yydebug)
+		fprintf(stderr, "token: %s\n", yytext);
 
 	if (i == CLASS) isClass = 1;
 
@@ -224,7 +289,7 @@ int yytok( int i )
 		struct Identifier* p = lookUp( yytext );
 		if ( p == NULL )
 		{
-			// fprintf(stderr, "New Identifer found!\n");
+			fprintf(stderr, "New Identifer found!\n");
 			// New identifier
 			// yylval still holds the tree node for the previous token.
 			p = addIdentifier( yytext, isClass ? CLASS_NAME : IDENT, yylineno );
@@ -239,7 +304,8 @@ int yytok( int i )
 		t->category = p->typeCode;
 
 		// Return proper integer code.
-		yylval.node = addLeaf(t->category, t);
+		yytoken = t;
+		// yylval.node = addLeaf(t->category, t);
 		// fprintf(stderr, "%d int code!\n", t->category);
 		isClass = 0;
 		return t->category;
@@ -265,8 +331,8 @@ int yytok( int i )
 	}
 	
 	// Give token to YACC
-	// yytoken = t;
-	yylval.node = addLeaf(i, t);
+	yytoken = t;
+	// yylval.node = addLeaf(i, t);
 	if ( i != CLASS) isClass = 0;
 	return i;
 }
@@ -314,6 +380,7 @@ void comment()
 				break;
 			case '\n':
 				++yylineno;
+				firstOnLine = 1;
 				break;
 			case 0: {
 			   exit(-(++errors));
@@ -321,7 +388,6 @@ void comment()
 	   }
 
 	}
-
 }
 
 int yywrap() { return 1; }

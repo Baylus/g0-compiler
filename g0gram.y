@@ -490,15 +490,15 @@ AssignmentExpression:
    ;
 
 Assignment:
-     Assignable AssignmentOperator ConditionalOrExpression		{ $$ = alctree( "Assign", 690, 3, $1, $2, $3 ); }
-     | Assignable AssignmentOperator Assignment				{ $$ = alctree( "Recursive Assign", 691, 3, $1, $2, $3 ); }
-     | Assignable AssignmentOperator LC ArrayInitializer RC       { $$ = alctree( "Array Initializer", 692, 5, $1, $2, $3, $4, $5 ); }
+     Assignable AssignmentOperator ConditionalOrExpression		{ $$ = alctree( "Assign", 680, 3, $1, $2, $3 ); }
+     | Assignable AssignmentOperator Assignment				{ $$ = alctree( "Recursive Assign", 681, 3, $1, $2, $3 ); }
+     | Assignable AssignmentOperator LC ArrayInitializer RC       { $$ = alctree( "Array Initializer", 682, 5, $1, $2, $3, $4, $5 ); }
    ;
 
 SwapExpression:
-      Assignable SWAP Assignable		{ $$ = alctree( "Swap", 680, 3, $1, $2, $3 ); }
-    | Assignable SWAP Assignment		{ $$ = alctree( "Swap w/ Assign", 681, 3, $1, $2, $3 ); }
-    | Assignable SWAP SwapExpression		{ $$ = alctree( "Multiple Swap", 682, 3, $1, $2, $3 ); }
+      Assignable SWAP Assignable		{ $$ = alctree( "Swap", 690, 3, $1, $2, $3 ); }
+    | Assignable SWAP Assignment		{ $$ = alctree( "Swap w/ Assign", 691, 3, $1, $2, $3 ); }
+    | Assignable SWAP SwapExpression		{ $$ = alctree( "Multiple Swap", 692, 3, $1, $2, $3 ); }
     ;
 
 Assignable:

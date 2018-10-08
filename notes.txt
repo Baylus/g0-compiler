@@ -149,7 +149,48 @@ List concatenation
 		Good Question.
 	
 
+HW 2 Revision...
+For adding semicolon insertion,
+What are legal enders/beginners,
 
+BOOL BREAK CLASS STRING
+%token < node > DOUBLE ELSE FOR
+%token < node > IF INT RETURN
+%token < node > TABLE LIST
+%token < node > THIS TRUE FALSE
+%token < node > VOID WHILE IDENT CONTINUE
+%token < node > NULLLITERAL INTLITERAL
+%token < node > CHARLITERAL FLOATLITERAL STRINGLITERAL
+%token < node > LP RP LC RC LB RB SM CM DOT ASN LT GT BANG SHARP
+%token < node > EQ NE LE GE ANDAND OROR PLUS MINUS MUL DIV AND OR
+%token < node > MOD PLASN MIASN SWAP COLON
+%token < node > DROLL BAD_TOKEN CLASS_NAME
+
+enders:
+NULLLITERAL
+INTLITERAL
+CHARLITERAL
+FLOATLITERAL
+STRINGLITERAL
+IDENT
+RETURN
+RC
+RP
+CONTINUE
+
+beginners:
+BOOL
+CLASS
+STRING
+DOUBLE
+INT
+TABLE
+LIST
+IDENT
+FOR
+IF
+WHILE 
+RETURN
 
 
 
