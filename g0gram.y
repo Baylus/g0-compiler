@@ -11,7 +11,11 @@
 
 // int yydebug = 1;
 tree* yytree = NULL;
-extern void yyerror(char* s); //g0lex.l
+extern char *yyfilename;
+extern int yylineno;
+extern int yylex(void);	/* call this function once for each token */
+
+void yyerror(char* s); //g0lex.l
 %}
 
 /*
@@ -41,7 +45,7 @@ extern void yyerror(char* s); //g0lex.l
 %token < node > LP RP LC RC LB RB SM CM DOT ASN LT GT BANG SHARP
 %token < node > EQ NE LE GE ANDAND OROR PLUS MINUS MUL DIV AND OR
 %token < node > MOD PLASN MIASN SWAP COLON
-%token < node > DROLL BAD_TOKEN CLASS_NAME
+%token < node > DROLL BAD_TOKEN CLASS_NAME CLASS_TYPE
 %token END 0 "end of file"
 
 /*
@@ -65,7 +69,7 @@ extern void yyerror(char* s); //g0lex.l
 %type < node > Expression AssignmentOperator Assignable Assignment ConditionalOrExpression 
 %type < node > EqualityExpression RelationalExpression AdditiveExpression MultiplicativeExpression 
 %type < node > SwapExpression UnaryExpressionNotPlusMinus UnaryExpression PostFixExpression 
-%type < node > ArrayAccess MethodInvocation FieldAccess PrimaryNoNewArray Primary
+%type < node > ListTableAccess MethodInvocation FieldAccess Primary
 %type < node > ArgumentList ExpressionOpt
 %type < node > ConditionalAndExpression 
 %type < node > Literal  ConcatentationExpresssion ImplicitConcatExpression
@@ -73,6 +77,8 @@ extern void yyerror(char* s); //g0lex.l
 %type < node >  FormalParameterList FormalParameter
 %type < node > BoolLiteral Semicolon 
 %type < node > Type PrimitiveType ArrayType ListType TableType
+%type < node > ListAssignment DefaultTableMap ListValues LegalValue
+%type < node > concatOpt concat
 
 %left SWAP MIASN PLASN ASN
 %left OROR
@@ -303,7 +309,7 @@ StatementWithoutTrailingSubstatement:
 
 ExpressionStatement:
         StatementExpression Semicolon		{ $$ = alctree( "Expression Stmt", 370, 2, $1, $2 ); }
-	    | SwapExpression Semicolon		{ $$ = alctree( "Swap Expr Stmt", 371, 2, $1, $2 ); }
+	    // | SwapExpression Semicolon		{ $$ = alctree( "Swap Expr Stmt", 371, 2, $1, $2 ); }
       ;
 
 StatementExpression:
@@ -381,21 +387,18 @@ ArgumentList:
 	;
 
 Primary:
-     PrimaryNoNewArray       { $$ = $1; }
+     Literal       { $$ = $1; }
+    | LP Expression RP		{ $$ = alctree( "Paren Expr", 540, 3, $1, $2, $3 ); }
+    | MethodInvocation       { $$ = $1; }
+    | FieldAccess
+    | ListTableAccess
+    | SHARP IDENT    { $$ = alctree( "List Size", 541, 1, $2); }
    ;
 
 ArrayInitializer:
-	PrimaryNoNewArray			{ $$ = $1; }
-	| ArrayInitializer CM PrimaryNoNewArray { $$ = alctree( "Array Initializer List", 539, 3, $1, $2, $3 ); }
+	Primary			{ $$ = $1; }
+	| ArrayInitializer CM Primary { $$ = alctree( "Array Initializer List", 539, 3, $1, $2, $3 ); }
 	;
-
-PrimaryNoNewArray:
-     Literal       { $$ = $1; }
-   | LP Expression RP		{ $$ = alctree( "Paren Expr", 540, 3, $1, $2, $3 ); }
-   | MethodInvocation       { $$ = $1; }
-   | Assignable       { $$ = $1; }
-   | SHARP IDENT    { $$ = alctree( "List Size", 541, 1, $2); }
-   ;
 
 FieldAccess:
      Primary DOT IDENT		{ $$ = alctree( "Field Access", 550, 3, $1, $2, $3 ); }
@@ -409,13 +412,16 @@ MethodInvocation:
    | CLASS_NAME LP RP			{ $$ = alctree( "Class Constructor Call", 564, 1, $1 ); }
    ;
 
-ArrayAccess:
-     PrimaryNoNewArray LB Expression RB		{ $$ = alctree( "Array Access", 570, 4, $1, $2, $3, $4 ); }
+ListTableAccess:
+     Primary LB Expression RB		{ $$ = alctree( "Array Access", 570, 4, $1, $2, $3, $4 ); }
+    | Name LB Expression RB		{ $$ = alctree( "Array Access", 571, 4, $1, $2, $3, $4 ); }
+    | Name LB Expression COLON Expression RB		{ $$ = alctree( "Array Access", 572, 6, $1, $2, $3, $4, $5, $6 ); }
    ;
 
 PostFixExpression:
      Primary       { $$ = $1; }
-   | ConcatentationExpresssion { $$ = $1; }
+     | Name
+  //  | ConcatentationExpresssion { $$ = $1; }
    ;
 
 UnaryExpression:
@@ -488,12 +494,16 @@ ConditionalOrExpression:
 AssignmentExpression:
      ConditionalOrExpression       { $$ = $1; }
    | Assignment       { $$ = $1; }
+   | ListAssignment       { $$ = $1; }
+  //  | DefaultTableMap       { $$ = $1; }
+  //  | ConcatentationExpresssion { $$ = $1; }
+   | concatOpt
    ;
 
 Assignment:
-     Assignable AssignmentOperator ConditionalOrExpression		{ $$ = alctree( "Assign", 680, 3, $1, $2, $3 ); }
-     | Assignable AssignmentOperator Assignment				{ $$ = alctree( "Recursive Assign", 681, 3, $1, $2, $3 ); }
-     | Assignable AssignmentOperator LC ArrayInitializer RC       { $$ = alctree( "Array Initializer", 682, 5, $1, $2, $3, $4, $5 ); }
+     Assignable AssignmentOperator AssignmentExpression		{ $$ = alctree( "Assign", 680, 3, $1, $2, $3 ); }
+    //  | Assignable AssignmentOperator Assignment				{ $$ = alctree( "Recursive Assign", 681, 3, $1, $2, $3 ); }
+    //  | Assignable AssignmentOperator LC ArrayInitializer RC       { $$ = alctree( "Array Initializer", 682, 5, $1, $2, $3, $4, $5 ); }
    ;
 
 SwapExpression:
@@ -502,21 +512,53 @@ SwapExpression:
     | Assignable SWAP SwapExpression		{ $$ = alctree( "Multiple Swap", 692, 3, $1, $2, $3 ); }
     ;
 
-Assignable:
-     Name       { $$ = $1; }
-   | FieldAccess       { $$ = $1; }
-   | ArrayAccess       { $$ = $1; }
-   ;
-
 AssignmentOperator:
      ASN		{ $$ = $1; }
    | PLASN		{ $$ = $1; }
    | MIASN		{ $$ = $1; }
+   | SWAP
    ;
 
+Assignable:
+     Name       { $$ = $1; }
+   | FieldAccess       { $$ = $1; }
+   | ListTableAccess       { $$ = $1; }
+   | DefaultTableMap       { $$ = $1; }
+   ;
+
+concatOpt:	  concat concat { $$ = alctree( "String concatenation", 840, 2, $1, $2); }
+		| concatOpt concat      { $$ = alctree( "String concatenation", 841, 2, $1, $2); }
+		;
+
+concat:		  Name
+		| Primary
+		;
+
+ListAssignment:
+        LB ListValues RB  { $$ = alctree( "List Assignment", 850, 1, $2); }
+      ;
+
+ListValues:
+        LegalValue
+      | ListValues CM LegalValue { $$ = alctree( "List Values List", 820, 2, $1, $3 ); }
+      ;
+
+LegalValue:
+        INTLITERAL
+      | FLOATLITERAL
+      | STRINGLITERAL
+      | IDENT
+      | CLASS_TYPE
+      ;
+
+DefaultTableMap:
+        Name LB RB  { $$ = alctree( "Default Table Mapping", 830, 1, $1 ); }
+      ;
+
+
 Expression:
-        SwapExpression
-      | AssignmentExpression
+         AssignmentExpression
+      // |  SwapExpression
       ;
 		
 
@@ -581,3 +623,11 @@ ProductionRule:
       ;
 
  */
+
+%%
+
+void yyerror(char const *s)
+{
+   printf("\n%s, file:%s, line: %d\n", s, yyfilename, yylineno);
+   exit(2);	
+}
