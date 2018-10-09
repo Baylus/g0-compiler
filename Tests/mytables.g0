@@ -1,0 +1,58 @@
+
+
+int main() {
+
+   return 0;
+}
+
+int MakeTables() {
+   table x
+   table<int> y
+   table <int, string> z
+   
+   x["hello"] = 1
+   x["world"] = 3
+
+   y["im"] = 9
+   y["alive"] = 5
+   
+   z[2] = "2^1"
+   z[4] = "2^2"
+
+   // concatTables( x, y )
+   // concatTables( y, x )
+
+   // This should return a type error, 
+   //    the tables have different element/index values
+   // concatTables( x, z )
+}
+
+// table concatTables( table a, table b) {
+//    return 
+// }
+
+int setDefault() {
+   table x
+
+   write( "\nSetting default mapping for x\n" )
+   x[] = -1
+}
+
+int removeMapping() {
+   table y
+   y["test"] = 3
+   
+   write("\nRemoving mapping \"test\" from y")
+   y -= "test"
+}
+
+int tableSize() {
+   table z
+
+   return #z
+}
+
+bool testMapping() {
+   table a
+   return a["false"]
+}

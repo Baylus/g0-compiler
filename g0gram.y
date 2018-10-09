@@ -69,10 +69,10 @@ extern void yyerror(char* s); //g0lex.l
 %type < node > ArgumentList ExpressionOpt
 %type < node > ConditionalAndExpression 
 %type < node > Literal  ConcatentationExpresssion ImplicitConcatExpression
-%type < node > LocalVariable ArrayInitializer
+%type < node > LocalVariable ListInitializer
 %type < node >  FormalParameterList FormalParameter
 %type < node > BoolLiteral Semicolon 
-%type < node > Type PrimitiveType ArrayType ListType TableType
+%type < node > Type PrimitiveType ListType TableType
 
 %left SWAP MIASN PLASN ASN
 %left OROR
@@ -114,7 +114,6 @@ VariableDeclaratorList:
 
 Type:
         CLASS_NAME       { $$ = $1; }
-      | ArrayType       { $$ = $1; }
       | PrimitiveType       { $$ = $1; }
       | ListType       { $$ = $1; }
       | TableType       { $$ = $1; }
@@ -136,12 +135,6 @@ PrimitiveType:
       | BOOL		{ $$ = $1; }
       | DOUBLE		{ $$ = $1; }
       | STRING		{ $$ = $1; }
-      ;
-
-ArrayType:
-        PrimitiveType LB RB		{ $$ = alctree( "Array Type", 70, 3, $1, $2, $3 ); }
-      | Name LB RB			{ $$ = alctree( "Array Type", 71, 3, $1, $2, $3 ); }
-      | ArrayType LB RB			{ $$ = alctree( "Array Type", 72, 3, $1, $2, $3 ); }
       ;
 
 CompilationUnits:
@@ -384,9 +377,9 @@ Primary:
      PrimaryNoNewArray       { $$ = $1; }
    ;
 
-ArrayInitializer:
+ListInitializer:
 	PrimaryNoNewArray			{ $$ = $1; }
-	| ArrayInitializer CM PrimaryNoNewArray { $$ = alctree( "Array Initializer List", 539, 3, $1, $2, $3 ); }
+	| ListInitializer CM PrimaryNoNewArray { $$ = alctree( "List items", 539, 3, $1, $2, $3 ); }
 	;
 
 PrimaryNoNewArray:
@@ -491,9 +484,8 @@ AssignmentExpression:
    ;
 
 Assignment:
-     Assignable AssignmentOperator ConditionalOrExpression		{ $$ = alctree( "Assign", 680, 3, $1, $2, $3 ); }
-     | Assignable AssignmentOperator Assignment				{ $$ = alctree( "Recursive Assign", 681, 3, $1, $2, $3 ); }
-     | Assignable AssignmentOperator LC ArrayInitializer RC       { $$ = alctree( "Array Initializer", 682, 5, $1, $2, $3, $4, $5 ); }
+     Assignable AssignmentOperator AssignmentExpression		{ $$ = alctree( "Assign", 680, 3, $1, $2, $3 ); }
+     | Assignable AssignmentOperator LB ListInitializer RB       { $$ = alctree( "List Initializer", 681, 5, $1, $2, $3, $4, $5 ); }
    ;
 
 SwapExpression:

@@ -21,7 +21,8 @@ FS                      (f|F|l|L)
 IS                      (u|U|l|L)
 W                       [ \t\f]*
 LIT                     \"(\\.|[^\\"])*\"
-ID						{L}({L}|{D})* 
+ID						{L}({L}|{D}){0,11}
+BAD_ID						{L}({L}|{D}){12}({L}|{D})* 
 
 %{
 #include "token.h"
@@ -57,6 +58,7 @@ int firstOnLine = 0;
 
 \n                      { ++yylineno; firstOnLine = 1;  }
 [ \t\f\r]+                { }
+{BAD_ID}						{ yyerror("Identifer is too long, max length is 12 characters."); }
 
 "null"                  { return lex( 0, 1, NULLLITERAL); }
 "false"                 { return lex( 0, 1, FALSE); }
@@ -122,7 +124,7 @@ d/({D}*)						{ return lex( 0, 0, DROLL); }
 ":=:"							{ return lex( 0, 0, SWAP); }
 "#"                     { return lex( 0, 0, SHARP); }
 
-.                       { yyerror("lexical error"); }
+.                       { yyerror("Unrecognized character."); }
 
 %%
 
@@ -200,7 +202,18 @@ int lex(int validBeginner, int validEnder, int type)
 	/*
 		Handles some semi-colon insertion. 
 
+		Inserts semi-colons where they belong based on last
+		token's validEnder value and most recent token's 
+		validBeginner value. If they match, semi-colon is
+		inserted, the most recent token read is placed into
+		lastToken, and yyless is used to place the input back 
+		onto lex's input to read back again on the next call to
+		yylex().
 
+		Uses:
+			yylineno
+			lastToken - holds the most recent token parsed that was placed
+								back on the stack before inserting a semi-colon.
 	 */
 	
 	static int beginner = 0, ender = 0;
@@ -343,19 +356,9 @@ int yytok( int i )
 // which this is doing.
 void yyerror(char *s)
 {
-   fprintf(stderr, "%s:%d: %s before '%s' token\n",
+   fprintf(stderr, "lexical error:\n%s:%d: %s before '%s' token\n",
 	   yyfilename, yylineno, s, yytext);
-
-	if (s[0] == 'l')
-	{
-		// "lexical error"
-		exit(1);
-	}
-	else 
-	{
-		// other errors.
-		exit(2);
-	}
+	exit(1);
 }
 
 void comment()
