@@ -12,3 +12,14 @@ Edge Case Details:
 Swap expressions:
     I am not supporting "z = ( x :=: y )" assignments.. It just doesnt make any sense.
     I am only going to allow statements such as "x :=: y;" or without the semicolon.
+    
+    
+Changes that were made since initial submission:
+Semicolon insertion was added, still supports optional semi-colons. This means that the semi-colons should work for the majority of stuff, just add the insertion rules wherever necessary.
+
+    
+    
+Succeeds using the /Examples/HW2_Test/*,
+
+.../HW2_Test/g0stuff.g0 was modified to comment out the one line on 105: "L = [1, 2, 3]" that broke the grammar because it was not supported yet.
+
