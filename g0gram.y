@@ -12,6 +12,7 @@
 // int yydebug = 1;
 tree* yytree = NULL;
 extern void yyerror(char* s); //g0lex.l
+int yylex();
 %}
 
 /*

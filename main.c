@@ -89,7 +89,7 @@ int main(int argc, char** argv)
 			exit(-1);
 		}
 		
-		int toknum = 0;
+		// int toknum = 0;
 		
 		if ( yyparse() == 0 )
 		{
@@ -101,5 +101,12 @@ int main(int argc, char** argv)
 		yyin = NULL;
 	}
 	
+	for ( i = 1; i < argc; ++i )
+	{
+		free( filenames[i - 1] );
+		filenames[i - 1] = NULL;
+	}
+
+
 	return 0;
 }

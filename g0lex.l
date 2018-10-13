@@ -11,6 +11,7 @@ HW #2: Syntax Analysis
 */
 %}
 
+%option nounput
 
 O                       [0-7]
 D                       [0-9]
