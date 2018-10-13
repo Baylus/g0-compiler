@@ -12,6 +12,7 @@
 // int yydebug = 1;
 tree* yytree = NULL;
 extern void yyerror(char* s); //g0lex.l
+int yylex();
 %}
 
 /*
@@ -69,10 +70,10 @@ extern void yyerror(char* s); //g0lex.l
 %type < node > ArgumentList ExpressionOpt
 %type < node > ConditionalAndExpression 
 %type < node > Literal  ConcatentationExpresssion ImplicitConcatExpression
-%type < node > LocalVariable ArrayInitializer
+%type < node > LocalVariable ListInitializer
 %type < node >  FormalParameterList FormalParameter
 %type < node > BoolLiteral Semicolon 
-%type < node > Type PrimitiveType ArrayType ListType TableType
+%type < node > Type PrimitiveType ListType TableType
 
 %left SWAP MIASN PLASN ASN
 %left OROR
@@ -114,7 +115,6 @@ VariableDeclaratorList:
 
 Type:
         CLASS_NAME       { $$ = $1; }
-      | ArrayType       { $$ = $1; }
       | PrimitiveType       { $$ = $1; }
       | ListType       { $$ = $1; }
       | TableType       { $$ = $1; }
@@ -136,12 +136,6 @@ PrimitiveType:
       | BOOL		{ $$ = $1; }
       | DOUBLE		{ $$ = $1; }
       | STRING		{ $$ = $1; }
-      ;
-
-ArrayType:
-        PrimitiveType LB RB		{ $$ = alctree( "Array Type", 70, 3, $1, $2, $3 ); }
-      | Name LB RB			{ $$ = alctree( "Array Type", 71, 3, $1, $2, $3 ); }
-      | ArrayType LB RB			{ $$ = alctree( "Array Type", 72, 3, $1, $2, $3 ); }
       ;
 
 CompilationUnits:
@@ -384,9 +378,9 @@ Primary:
      PrimaryNoNewArray       { $$ = $1; }
    ;
 
-ArrayInitializer:
+ListInitializer:
 	PrimaryNoNewArray			{ $$ = $1; }
-	| ArrayInitializer CM PrimaryNoNewArray { $$ = alctree( "Array Initializer List", 539, 3, $1, $2, $3 ); }
+	| ListInitializer CM PrimaryNoNewArray { $$ = alctree( "List items", 539, 3, $1, $2, $3 ); }
 	;
 
 PrimaryNoNewArray:
@@ -456,33 +450,32 @@ ConcatentationExpresssion:
 
 AdditiveExpression:
      MultiplicativeExpression       { $$ = $1; }
-   | AdditiveExpression PLUS MultiplicativeExpression		{ $$ = alctree( "Sum Expr", 620, 3, $1, $2, $3 ); }
-   | AdditiveExpression MINUS MultiplicativeExpression		{ $$ = alctree( "Difference Expr", 621, 3, $1, $2, $3 ); }
- //  | AdditiveExpression MultiplicativeExpression		{ $$ = alctree( "Implicit Concat.", 622, 2, $1, $2 ); }
+   | AdditiveExpression PLUS MultiplicativeExpression		  { $$ = alctree( "Sum Expr", 620, 2, $1, $3 ); }
+   | AdditiveExpression MINUS MultiplicativeExpression		{ $$ = alctree( "Difference Expr", 621, 2, $1, $3 ); }
    ;
 
 RelationalExpression:
      AdditiveExpression       { $$ = $1; }
-   | RelationalExpression LT AdditiveExpression		{ $$ = alctree( "less Expr", 630, 3, $1, $2, $3 ); }
-   | RelationalExpression LE AdditiveExpression		{ $$ = alctree( "less/eq Expr", 631, 3, $1, $2, $3 ); }
-   | RelationalExpression GT AdditiveExpression		{ $$ = alctree( "great Expr", 632, 3, $1, $2, $3 ); }
-   | RelationalExpression GE AdditiveExpression		{ $$ = alctree( "great/eq Expr", 633, 3, $1, $2, $3 ); }
+   | RelationalExpression LT AdditiveExpression		{ $$ = alctree( "less Expr", 630, 2, $1, $3 ); }
+   | RelationalExpression LE AdditiveExpression		{ $$ = alctree( "less/eq Expr", 631, 2, $1, $3 ); }
+   | RelationalExpression GT AdditiveExpression		{ $$ = alctree( "great Expr", 632, 2, $1, $3 ); }
+   | RelationalExpression GE AdditiveExpression		{ $$ = alctree( "great/eq Expr", 633, 2, $1, $3 ); }
    ;
 
 EqualityExpression:
      RelationalExpression       { $$ = $1; }
-   | EqualityExpression EQ RelationalExpression		{ $$ = alctree( "'==' Expr", 640, 3, $1, $2, $3 ); }
-   | EqualityExpression NE RelationalExpression		{ $$ = alctree( "'!=' Expr", 641, 3, $1, $2, $3 ); }
+   | EqualityExpression EQ RelationalExpression		{ $$ = alctree( "'==' Expr", 640, 2, $1, $3 ); }
+   | EqualityExpression NE RelationalExpression		{ $$ = alctree( "'!=' Expr", 641, 2, $1, $3 ); }
    ;
 
 ConditionalAndExpression:
      EqualityExpression       { $$ = $1; }
-   | ConditionalAndExpression ANDAND EqualityExpression		{ $$ = alctree( "AND", 650, 3, $1, $2, $3 ); }
+   | ConditionalAndExpression ANDAND EqualityExpression		{ $$ = alctree( "AND", 650, 2, $1, $3 ); }
    ;
 
 ConditionalOrExpression:
      ConditionalAndExpression       { $$ = $1; }
-   | ConditionalOrExpression OROR ConditionalAndExpression		{ $$ = alctree( "OR", 660, 3, $1, $2, $3 ); }
+   | ConditionalOrExpression OROR ConditionalAndExpression		{ $$ = alctree( "OR", 660, 2, $1, $3 ); }
    ;
 
 AssignmentExpression:
@@ -491,15 +484,14 @@ AssignmentExpression:
    ;
 
 Assignment:
-     Assignable AssignmentOperator ConditionalOrExpression		{ $$ = alctree( "Assign", 680, 3, $1, $2, $3 ); }
-     | Assignable AssignmentOperator Assignment				{ $$ = alctree( "Recursive Assign", 681, 3, $1, $2, $3 ); }
-     | Assignable AssignmentOperator LC ArrayInitializer RC       { $$ = alctree( "Array Initializer", 682, 5, $1, $2, $3, $4, $5 ); }
+     Assignable AssignmentOperator AssignmentExpression		{ $$ = alctree( "Assign", 680, 3, $1, $2, $3 ); }
+     | Assignable AssignmentOperator LB ListInitializer RB       { $$ = alctree( "List Initializer", 681, 3, $1, $2, $4); }
    ;
 
 SwapExpression:
-      Assignable SWAP Assignable		{ $$ = alctree( "Swap", 690, 3, $1, $2, $3 ); }
-    | Assignable SWAP Assignment		{ $$ = alctree( "Swap w/ Assign", 691, 3, $1, $2, $3 ); }
-    | Assignable SWAP SwapExpression		{ $$ = alctree( "Multiple Swap", 692, 3, $1, $2, $3 ); }
+      Assignable SWAP Assignable		{ $$ = alctree( "Swap", 690, 2, $1, $3 ); }
+    | Assignable SWAP Assignment		{ $$ = alctree( "Swap w/ Assign", 691, 2, $1, $3 ); }
+    | Assignable SWAP SwapExpression		{ $$ = alctree( "Multiple Swap", 692, 2, $1, $3 ); }
     ;
 
 Assignable:

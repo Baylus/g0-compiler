@@ -102,7 +102,7 @@ list listOps()
 {
 	int length
 	list L, L1, L2
-	//L = [1, 2, 3]
+	L = [1, 2, 3]
 	length = #L
 	return L
 }
