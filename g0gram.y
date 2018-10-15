@@ -11,7 +11,15 @@
 
 // int yydebug = 1;
 tree* yytree = NULL;
-extern void yyerror(char* s); //g0lex.l
+extern char* yyfilename;  // g0lex.l
+extern int yylineno;
+extern char* yytext;
+// extern void yyerror(char* s); //g0lex.l
+void yyerror( char* s ){
+  fprintf(stderr, "Syntax error:\n%s:%d: %s before '%s' token\n",
+	   yyfilename, yylineno, s, yytext);
+	exit(2);
+}
 int yylex();
 %}
 
@@ -110,7 +118,7 @@ GlobalVariable:
 
 VariableDeclaratorList:
         VariableDeclaratorId       				{ $$ = $1; }
-      | VariableDeclaratorList CM VariableDeclaratorId		{ $$ = alctree( "var list", 113, 3, $1, $2, $3 ); }
+      | VariableDeclaratorList CM VariableDeclaratorId		{ $$ = alctree( "var list", 113, 2, $1, $3 ); }
       ;
 
 Type:
@@ -122,13 +130,13 @@ Type:
 
 ListType:
         LIST				{ $$ = $1; }
-      | LIST LT PrimitiveType GT	{ $$ = alctree( "list", 125, 4, $1, $2, $3, $4 ); }
+      | LIST LT PrimitiveType GT	{ $$ = alctree( "list", 125, 2, $1, $3); }
       ;
 
 TableType:
         TABLE						{ $$ = $1; }
-      | TABLE LT PrimitiveType GT			{ $$ = alctree( "table", 130, 4, $1, $2, $3, $4 ); }
-      | TABLE LT PrimitiveType CM PrimitiveType GT	{ $$ = alctree( "table", 131, 5, $1, $2, $3, $4, $5 ); }
+      | TABLE LT PrimitiveType GT			{ $$ = alctree( "table", 130, 2, $1, $3); }
+      | TABLE LT PrimitiveType CM PrimitiveType GT	{ $$ = alctree( "table", 131, 3, $1, $3, $5 ); }
       ;
 
 PrimitiveType:
@@ -165,12 +173,12 @@ ClassBlock:
 
 ClassVariableList:
 	 IDENT		{ $$ = $1; }
-	| ClassVariableList CM IDENT		{ $$ = alctree( "Class variable list", 168, 3, $1, $2, $3 ); }
+	| ClassVariableList CM IDENT		{ $$ = alctree( "Class variable list", 168, 2, $1, $3 ); }
 	;
 
 ClassVariable:
-      Type ClassVariableList Semicolon	{ $$ = alctree( "Class variable list", 172, 3, $1, $2, $3 ); }
-      | Type Assignment { yyerror("syntax error"); }
+      Type ClassVariableList Semicolon	{ $$ = alctree( "Class variable", 172, 2, $1, $2 ); }
+      | Type Assignment { yyerror("syntax error\nInitializers not allowed in declarations"); }
       ;
 
 ClassBlockUnitList:
@@ -194,8 +202,8 @@ MethodHeader:
       ;
 
 MethodDeclarator:
-        IDENT LP FormalParameterList RP	{ $$ = alctree( "Method declarator", 197, 4, $1, $2, $3, $4 ); }
-      | IDENT LP RP			{ $$ = alctree( "Method declarator", 198, 3, $1, $2, $3 ); }
+        IDENT LP FormalParameterList RP	{ $$ = alctree( "Method declarator", 197, 2, $1, $3); }
+      | IDENT LP RP			{ $$ = alctree( "Method declarator", 198, 1, $1 ); }
       ;
 
 MethodBody:
@@ -207,8 +215,8 @@ ConstructorDeclaration:
       ;
 
 ConstructorDeclarator:
-        CLASS_NAME LP FormalParameterList RP	{ $$ = alctree( "Constructor Header", 210, 4, $1, $2, $3, $4 ); }
-      | CLASS_NAME LP RP			{ $$ = alctree( "Constructor Header", 211, 3, $1, $2, $3 ); }
+        CLASS_NAME LP FormalParameterList RP	{ $$ = alctree( "Constructor Header", 210, 2, $1, $3 ); }
+      | CLASS_NAME LP RP			{ $$ = alctree( "Constructor Header", 211, 1, $1 ); }
       ;
 
 ConstructorBody:
@@ -221,10 +229,10 @@ Function:
       ;
 
 FunctionPrototype:
-        Type IDENT LP TypeList RP Semicolon	{ $$ = alctree( "func proto", 224, 6, $1, $2, $3, $4, $5, $6 ); }
-      | Type IDENT LP RP Semicolon		{ $$ = alctree( "func proto", 225, 5, $1, $2, $3, $4, $5 ); }
-      | VOID IDENT LP TypeList RP Semicolon	{ $$ = alctree( "func proto", 226, 6, $1, $2, $3, $4, $5, $6 ); }
-      | VOID IDENT LP RP Semicolon		{ $$ = alctree( "func proto", 227, 5, $1, $2, $3, $4, $5 ); }
+        Type IDENT LP TypeList RP Semicolon	{ $$ = alctree( "func proto", 224, 3, $1, $2, $4 ); }
+      | Type IDENT LP RP Semicolon		{ $$ = alctree( "func proto", 225, 2, $1, $2 ); }
+      | VOID IDENT LP TypeList RP Semicolon	{ $$ = alctree( "func proto", 226, 3, $1, $2, $4 ); ); }
+      | VOID IDENT LP RP Semicolon		{ $$ = alctree( "func proto", 227, 2, $1, $2 ); }
       ;
 
 TypeList:
@@ -233,10 +241,10 @@ TypeList:
       ;
 
 FunctionDefinition:
-        Type IDENT LP FormalParameterList RP FunctionBody	{ $$ = alctree( "func defn", 236, 6, $1, $2, $3, $4, $5, $6 ); }
-      | Type IDENT LP RP FunctionBody				{ $$ = alctree( "func defn", 237, 5, $1, $2, $3, $4, $5 ); }
-      | VOID IDENT LP FormalParameterList RP FunctionBody	{ $$ = alctree( "func defn", 238, 6, $1, $2, $3, $4, $5, $6 ); }
-      | VOID IDENT LP RP FunctionBody				{ $$ = alctree( "func defn", 239, 5, $1, $2, $3, $4, $5 ); }
+        Type IDENT LP FormalParameterList RP FunctionBody	{ $$ = alctree( "func defn", 236, 4, $1, $2, $4, $6 ); }
+      | Type IDENT LP RP FunctionBody				{ $$ = alctree( "func defn", 237, 3, $1, $2, $5 ); }
+      | VOID IDENT LP FormalParameterList RP FunctionBody	{ $$ = alctree( "func defn", 238, 4, $1, $2, $4, $6 ); }
+      | VOID IDENT LP RP FunctionBody				{ $$ = alctree( "func defn", 239, 3, $1, $2, $5 ); }
       ;
 
 FunctionBody:

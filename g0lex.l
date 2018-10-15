@@ -30,6 +30,7 @@ BAD_ID						{L}({L}|{D}){12}({L}|{D})*
 #include "tree.h"
 #include "symt.h"
 #include "g0gram.h"
+#include "scope.h"
 
 void comment();
 int lex( int, int, int);
@@ -38,16 +39,17 @@ int yytok( int i );
 void yyerror(char*);
 
 extern int yydebug;
-
 struct token* lastToken = NULL;
-
 extern char* filename;	// main.c
-
 struct token* yytoken = NULL;
 // int yylineno = 1;
 // Boolean value to store the 
 
 int firstOnLine = 0;
+scope_t* yyscope = NULL;
+// Simple symbol list to contain the class_types in order to differentiate between
+// IDENT and CLASS_NAME.
+symList_t yyclasscheck[HASH_TABLE_SIZE];
 
 %}
 
@@ -80,7 +82,19 @@ d/({D}*)						{ return lex( 0, 0, DROLL); }
 "while"                 { return lex( 1, 0, WHILE); }
 "bool"                  { return lex( 1, 0, BOOL); }
 
-{ID}          				{ return lex( 1, 1, IDENT); }
+{ID}          				
+{ 
+	// Check if IDENT or CLASS_NAME
+	if ( lookUp( yyclasscheck, yytext ) )
+	{
+		// Class name found
+		return lex( 1, 0, CLASS_NAME );
+	}	
+	else 
+	{
+		return lex( 1, 1, IDENT); 
+	}
+}
 
 0[xX]{H}+{IS}?          { return lex( 0, 1, INTLITERAL); }
 0{O}+{IS}?              { return lex( 0, 1, INTLITERAL); }
@@ -297,32 +311,18 @@ int yytok( int i )
 
 	if (i == CLASS) isClass = 1;
 
-	if ( i == IDENT )
+	if ( i == IDENT && isClass )
 	{
-		// Identifier found.
-		struct Identifier* p = lookUp( yytext );
-		if ( p == NULL )
+		// add new CLASS_NAME
+		sym_t* p = addSym( yyclasscheck, yytext, yylineno );
+		if ( p == NULL ) 
 		{
-			// fprintf(stderr, "New Identifer found!\n");
-			// New identifier
-			// yylval still holds the tree node for the previous token.
-			p = addIdentifier( yytext, isClass ? CLASS_NAME : IDENT, yylineno );
+			printf( stderr, "Failed to add symbol (%s) to table.\n", yytext );
+			perror("error in func g0lex.l:lex(), 321:\n");
+			exit(-1);
 		}
-		// Construct token.
-		t->lineno = yylineno;
-		t->tval = p;
-		t->text = p->name;
-		t->filename = filename;
-		// If typeCode of token before identifier was first declared
-		// was of type "CLASS", then make this variable a class name.
-		t->category = p->typeCode;
-
-		// Return proper integer code.
-		yytoken = t;
-		// yylval.node = addLeaf(t->category, t);
-		// fprintf(stderr, "%d int code!\n", t->category);
 		isClass = 0;
-		return t->category;
+		i = CLASS_NAME;
 	}
 
 	t->category = i;

@@ -11,7 +11,7 @@ HW #1: Lexical Analyzer
 
 #include "symt.h"
 
-struct token {
+typedef struct token {
 	int category;   /* the integer code returned by yylex */
 	char *text;     /* the actual string (lexeme) matched */
 	int lineno;     /* the line number on which the token occurs */
@@ -21,7 +21,7 @@ struct token {
 	   double dval;	   /* for real constants, store binary value here */
 	   char *sval;     /* for string constants, malloc space, de-escape, store */
 					   /*    the string (less quotes and after escapes) here */	 
-		ident* tval;	/* The information about the identifier */
+		sym_t* tval;	/* The information about the identifier */
 	};
-};
+} tok_t;
 #endif

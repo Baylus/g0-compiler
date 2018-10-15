@@ -22,6 +22,7 @@ HW #1: Lexical Analyzer
 
 #include "tree.h"
 #include "symt.h"
+
 extern int yyparse();	// g0gram.y
 extern tree* yytree;		// g0gram.y
 
@@ -66,47 +67,89 @@ char* addExtension( char* f ) {
 	return n;
 }
 
+int checkCommandOptions(char* arg) {
+	/*  Checks the command argument given to see if
+	 *		it is a command option.
+	 *  Currently recognized options
+	 * 	"-t", "-T", or "--tree": Prints out the syntax tree generated for the given files
+	 * 	"-s", "-S", or "--symbol": Prints out the different symbol tables generated.
+	 * 
+	 * 
+	 */
+
+	if ((strcmp("-t", arg) == 0) || (strcmp("-T", arg) == 0) || (strcmp("--table", arg) == 0))
+	{
+		// tree requested.
+		return 1;
+	}
+	if ((strcmp("-s", arg) == 0) || (strcmp("-S", arg) == 0) || (strcmp("--symbol", arg) == 0))
+	{
+		// symbol requested.
+		return 2;
+	}
+	return 0;
+}
+
+
 int main(int argc, char** argv)
 {
 	char* filenames[argc - 1]; // allocate memory for the file names.
-	
+	int boolPrintTree = 0;
+	int boolPrintSymbol = 1;
+
 	if (argc < 2) {
 		printf("Error: No files to scan provided.\n");
 		exit(-1);
 	}
+
 	// int files = argc - 1;
 	int i = 1;
-	for ( ; i < argc ; ++i) {
-		yyfilename = addExtension( argv[i] );
+	for (i = 1; i < argc; ++i)
+	{
+		switch( checkCommandOptions(argv[i]) ){
+			case 1:
+				boolPrintTree = 1;
+				break;
+			case 2:
+				boolPrintSymbol = 1;
+				break;
+		}
+	}
+
+	for (i = 1; i < argc; ++i)
+	{
+		yyfilename = addExtension(argv[i]);
 		filenames[i - 1] = yyfilename;
-		printf( "\nParsing file: %s\n", yyfilename );
-		
+		printf("\nParsing file: %s\n", yyfilename);
+
 		// yyin = fopen(filename.c_str(), "r");
 		yyin = fopen(yyfilename, "r");
-		if ( yyin == NULL ) {
+		if (yyin == NULL)
+		{
 			printf("Error: Failed to open file %s\n", yyfilename);
 			perror("Error with opening file\n");
 			exit(-1);
 		}
-		
+
 		// int toknum = 0;
-		
-		if ( yyparse() == 0 )
+
+		if (yyparse() == 0)
 		{
-			treeprint( yytree, 0 );
+			if (boolPrintTree){
+				treeprint(yytree, 0);
+			}
 			// postTraversal( yytree, 0, deleteTree );
 		}
 		// destroyTables();
 		fclose(yyin);
 		yyin = NULL;
 	}
-	
-	for ( i = 1; i < argc; ++i )
+
+	for (i = 1; i < argc; ++i)
 	{
-		free( filenames[i - 1] );
+		free(filenames[i - 1]);
 		filenames[i - 1] = NULL;
 	}
-
 
 	return 0;
 }

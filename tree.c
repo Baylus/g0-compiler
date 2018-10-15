@@ -55,13 +55,20 @@ tree *alctree( char* label, int code, int nkids, ... )
 //    {
 //        treeSize += sizeof(tree *) * ( nkids );
 //    }
-   tree *ptr = malloc(sizeof(tree));
-   if (ptr == NULL) {fprintf(stderr, "alctree out of memory\n"); exit(1); }
-	ptr->kids = malloc( sizeof(tree *) * (nkids) );
-	if (ptr->kids == NULL)
+	// tree *ptr = malloc(sizeof(tree));
+	tree *ptr = calloc(1, sizeof(tree));
+	if (ptr == NULL) {fprintf(stderr, "alctree out of memory\n"); exit(1); }
+	// ptr->kids = malloc(sizeof(tree *) * (nkids));
+	if ( nkids > 0 )
 	{
-		fprintf(stderr, "alctree out of memory\n");
-		exit(1);
+		// Ensure nkids != 0, because depending on library implementation,
+		//		calloc doesnt behave the same way if nkids == 0
+		ptr->kids = calloc(nkids, sizeof(tree *));
+		if (ptr->kids == NULL)
+		{
+			fprintf(stderr, "alctree out of memory\n");
+			exit(1);
+		}
 	}
 	ptr->label = label;
    ptr->code = code;
