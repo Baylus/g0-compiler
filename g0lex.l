@@ -26,17 +26,20 @@ ID						{L}({L}|{D}){0,11}
 BAD_ID						{L}({L}|{D}){12}({L}|{D})* 
 
 %{
+#include <stdio.h>	// perror(),
+
 #include "token.h"
 #include "tree.h"
 #include "symt.h"
 #include "g0gram.h"
 #include "scope.h"
 
+int checkIdent();
 void comment();
 int lex( int, int, int);
 int yytok( int i );
-// void yyerror(char*, int);
-void yyerror(char*);
+// void lexError(char*, int);
+void lexError(char*);
 
 extern int yydebug;
 struct token* lastToken = NULL;
@@ -57,11 +60,11 @@ symList_t yyclasscheck[HASH_TABLE_SIZE];
 
 "/*"                    { comment(); }
 "//".*					{ /* Do Nothing, Eat up rest of line. */ }
-^{W}#.*\n               { yyerror("Godiva has no #preprocessor direcives. Are you feeding it C/C++ code?"); }
+^{W}#.*\n               { lexError("Godiva has no #preprocessor direcives. Are you feeding it C/C++ code?"); }
 
 \n                      { ++yylineno; firstOnLine = 1;  }
 [ \t\f\r]+                { }
-{BAD_ID}						{ yyerror("Identifer is too long, max length is 12 characters."); }
+{BAD_ID}						{ lexError("Identifer is too long, max length is 12 characters."); }
 
 "null"                  { return lex( 0, 1, NULLLITERAL); }
 "false"                 { return lex( 0, 1, FALSE); }
@@ -82,19 +85,7 @@ d/({D}*)						{ return lex( 0, 0, DROLL); }
 "while"                 { return lex( 1, 0, WHILE); }
 "bool"                  { return lex( 1, 0, BOOL); }
 
-{ID}          				
-{ 
-	// Check if IDENT or CLASS_NAME
-	if ( lookUp( yyclasscheck, yytext ) )
-	{
-		// Class name found
-		return lex( 1, 0, CLASS_NAME );
-	}	
-	else 
-	{
-		return lex( 1, 1, IDENT); 
-	}
-}
+{ID}          				{ return checkIdent(); }
 
 0[xX]{H}+{IS}?          { return lex( 0, 1, INTLITERAL); }
 0{O}+{IS}?              { return lex( 0, 1, INTLITERAL); }
@@ -139,13 +130,27 @@ d/({D}*)						{ return lex( 0, 0, DROLL); }
 ":=:"							{ return lex( 0, 0, SWAP); }
 "#"                     { return lex( 0, 0, SHARP); }
 
-.                       { yyerror("Unrecognized character."); }
+.                       { lexError("Unrecognized character."); }
 
 %%
 
 char *yyfilename = NULL;
 int yychar;
 int errors;
+
+int checkIdent()
+{
+	// Check if IDENT or CLASS_NAME
+	if ( lookUp( yyclasscheck, yytext ) )
+	{
+		// Class name found
+		return lex( 1, 0, CLASS_NAME );
+	}	
+	else 
+	{
+		return lex( 1, 1, IDENT); 
+	}
+}
 
 char* convertEscapes( const char* s ) {
 	/* 
@@ -317,7 +322,7 @@ int yytok( int i )
 		sym_t* p = addSym( yyclasscheck, yytext, yylineno );
 		if ( p == NULL ) 
 		{
-			printf( stderr, "Failed to add symbol (%s) to table.\n", yytext );
+			fprintf( stderr, "Failed to add symbol (%s) to table.\n", yytext );
 			perror("error in func g0lex.l:lex(), 321:\n");
 			exit(-1);
 		}
@@ -341,7 +346,7 @@ int yytok( int i )
 			t->dval = atof(yytext);
 			break;
 		// default:
-			// yyerror("Unknown yylval for given integer category.");
+			// lexError("Unknown yylval for given integer category.");
 	}
 	
 	// Give token to YACC
@@ -353,9 +358,9 @@ int yytok( int i )
 
 
 // I feel like theres no way this really works, this also might hurt me because
-// yyerror might be defined by lex if i dont provide a definition for it, 
+// lexError might be defined by lex if i dont provide a definition for it, 
 // which this is doing.
-void yyerror(char *s)
+void lexError(char *s)
 {
    fprintf(stderr, "lexical error:\n%s:%d: %s before '%s' token\n",
 	   yyfilename, yylineno, s, yytext);

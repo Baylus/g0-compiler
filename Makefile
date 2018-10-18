@@ -4,11 +4,11 @@
 YACC=yacc
 LEX=flex
 CC=cc
-CFLAGS= -Wall
+CFLAGS= -Wall -g
 
 all: g0
 
-FILES=g0.o g0gram.o g0lex.o tree.o symt.o
+FILES=g0.o g0gram.o g0lex.o tree.o symt.o processTree.o scope.o
 
 g0: ${FILES}
 	cc -o g0 ${FILES}
@@ -29,6 +29,8 @@ type.o: type.h
 
 tree.o: tree.h token.h g0gram.h
 
+scope.o: symt.h type.h token.h
+
 g0.o: main.c
 	$(CC) -c $(CFLAGS) main.c -o g0.o
 
@@ -41,12 +43,12 @@ test: g0
 clean:
 	rm -f g0 *.o
 	rm -f g0lex.c g0gram.c g0gram.h
-	rm -fr hw2
+	# rm -fr hw2
 	rm -fr testSubmit
 
-submitfiles = main.c token.h g0lex.l g0gram.y symt.c symt.h tree.c tree.h Makefile
+submitfiles = main.c token.h g0lex.l g0gram.y symt.c symt.h tree.c tree.h Makefile type.h scope.c scope.h processTree.h processTree.c
 submit: $(submitfiles)
-	zip hw2.zip $(submitfiles)
+	zip hw3.zip $(submitfiles)
 	mkdir testSubmit
-	cp hw2.zip testSubmit/
-	cd testSubmit && unzip hw2.zip && make
+	cp hw3.zip testSubmit/
+	cd testSubmit && unzip hw3.zip && make

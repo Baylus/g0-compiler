@@ -23,8 +23,11 @@ HW #1: Lexical Analyzer
 #include "tree.h"
 #include "symt.h"
 
+#include "processTree.h"	// semanticCheck(),
+
 extern int yyparse();	// g0gram.y
 extern tree* yytree;		// g0gram.y
+extern int yydebug;		// g0gram.y
 
 extern int yylex();		// g0.l
 extern struct token* yytoken;	// g0.l
@@ -87,6 +90,11 @@ int checkCommandOptions(char* arg) {
 		// symbol requested.
 		return 2;
 	}
+	if ((strcmp("-d", arg) == 0) || (strcmp("-D", arg) == 0) || (strcmp("--debug", arg) == 0))
+	{
+		// symbol requested.
+		return 3;
+	}
 	return 0;
 }
 
@@ -113,11 +121,16 @@ int main(int argc, char** argv)
 			case 2:
 				boolPrintSymbol = 1;
 				break;
+			case 3:
+				yydebug = 1;
+				break;
 		}
 	}
 
 	for (i = 1; i < argc; ++i)
 	{
+		if ( argv[i][0] == '-' )
+			continue;
 		yyfilename = addExtension(argv[i]);
 		filenames[i - 1] = yyfilename;
 		printf("\nParsing file: %s\n", yyfilename);
@@ -141,9 +154,15 @@ int main(int argc, char** argv)
 			// postTraversal( yytree, 0, deleteTree );
 		}
 		// destroyTables();
+
+		if (boolPrintSymbol)
+			semanticCheck(yytree, boolPrintSymbol);
+
 		fclose(yyin);
 		yyin = NULL;
 	}
+
+
 
 	for (i = 1; i < argc; ++i)
 	{

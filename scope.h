@@ -10,8 +10,12 @@ HW #3: Semantic Analysis
 #ifndef SCOPE_T_H
 #define SCOPE_T_H
 
+typedef struct Symbol sym_t;
+typedef struct SymbolLinkedList symList_t;
+
 #include "symt.h"
 #include "type.h"
+#include "token.h"
 
 typedef struct Scope
 {

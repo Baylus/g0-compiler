@@ -10,6 +10,7 @@ HW #3: Semantic Analysis
 #include "scope.h"
 #include "symt.h"
 #include "type.h"
+#include "token.h"
 #include <stdio.h>
 
 scope_t *create_scope(char *name, scope_t *parent)
@@ -19,6 +20,8 @@ scope_t *create_scope(char *name, scope_t *parent)
    n->scopeName = name;
    n->parentScope = parent;
    initTables(n->SymbolTable);
+
+   return n;
 }
 
 sym_t *scope_check(scope_t *s, char *name)

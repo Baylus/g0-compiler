@@ -6,20 +6,17 @@
 
 %{
 #include <stdio.h>
+#include <stdlib.h> //exit(),
 #include "tree.h"
 // #include ""
 
-// int yydebug = 1;
+int yydebug = 0;
 tree* yytree = NULL;
 extern char* yyfilename;  // g0lex.l
 extern int yylineno;
 extern char* yytext;
 // extern void yyerror(char* s); //g0lex.l
-void yyerror( char* s ){
-  fprintf(stderr, "Syntax error:\n%s:%d: %s before '%s' token\n",
-	   yyfilename, yylineno, s, yytext);
-	exit(2);
-}
+void yyerror( char* s );
 int yylex();
 %}
 
@@ -154,8 +151,8 @@ CompilationUnits:
 CompilationUnit:
         ClassDeclaration		{ $$ = $1; }
       | Function			{ $$ = $1; }
-      | AssignmentExpression		{ $$ = $1; }
-      | GlobalVariable			{ $$ = $1; }
+      | AssignmentExpression Semicolon		{ $$ = $1; }
+      | GlobalVariable Semicolon			{ $$ = $1; }
       ;
 
 ClassDeclaration:
@@ -231,13 +228,13 @@ Function:
 FunctionPrototype:
         Type IDENT LP TypeList RP Semicolon	{ $$ = alctree( "func proto", 224, 3, $1, $2, $4 ); }
       | Type IDENT LP RP Semicolon		{ $$ = alctree( "func proto", 225, 2, $1, $2 ); }
-      | VOID IDENT LP TypeList RP Semicolon	{ $$ = alctree( "func proto", 226, 3, $1, $2, $4 ); ); }
+      | VOID IDENT LP TypeList RP Semicolon	{ $$ = alctree( "func proto", 226, 3, $1, $2, $4 ); }
       | VOID IDENT LP RP Semicolon		{ $$ = alctree( "func proto", 227, 2, $1, $2 ); }
       ;
 
 TypeList:
         Type      			 { $$ = $1; }
-      | TypeList CM Type		{ $$ = alctree( "Type list", 232, 3, $1, $2, $3 ); }
+      | TypeList CM Type		{ $$ = alctree( "Type list", 232, 2, $1, $3 ); }
       ;
 
 FunctionDefinition:
@@ -397,22 +394,23 @@ PrimaryNoNewArray:
    | MethodInvocation       { $$ = $1; }
    | Assignable       { $$ = $1; }
    | SHARP IDENT    { $$ = alctree( "List Size", 391, 1, $2); }
+   | PrimaryNoNewArray LB Expression COLON Expression RB		{ $$ = alctree( "List Substring", 392, 3, $1, $3, $5 ); }
    ;
 
 FieldAccess:
-     Primary DOT IDENT		{ $$ = alctree( "Field Access", 395, 3, $1, $2, $3 ); }
+     Primary DOT IDENT		{ $$ = alctree( "Field Access", 395, 2, $1, $3 ); }
    ;
 
 MethodInvocation:
      Name LP ArgumentList RP			{ $$ = alctree( "Method call", 399, 4, $1, $2, $3, $4 ); }
    | Name LP RP					{ $$ = alctree( "Method call", 400, 3, $1, $2, $3 ); }
-   | Primary DOT IDENT LP ArgumentList RP	{ $$ = alctree( "Method call", 401, 6, $1, $2, $3, $4, $5, $6 ); }
-   | Primary DOT IDENT LP  RP			{ $$ = alctree( "Method call", 402, 5, $1, $2, $3, $4, $5 ); }
+   | Primary DOT IDENT LP ArgumentList RP	{ $$ = alctree( "Method call", 401, 3, $1, $3, $5 ); }
+   | Primary DOT IDENT LP  RP			{ $$ = alctree( "Method call", 402, 2, $1, $3 ); }
    | CLASS_NAME LP RP			{ $$ = alctree( "Class Constructor Call", 403, 1, $1 ); }
    ;
 
 ArrayAccess:
-     PrimaryNoNewArray LB Expression RB		{ $$ = alctree( "Array Access", 407, 4, $1, $2, $3, $4 ); }
+     PrimaryNoNewArray LB Expression RB		{ $$ = alctree( "Array Access", 407, 2, $1, $3 ); }
    ;
 
 PostFixExpression:
@@ -444,6 +442,7 @@ ImplicitConcatExpression:
 	| STRINGLITERAL MethodInvocation			{ $$ = alctree( "Imp. Concat Expr (str + method)", 436, 2, $1, $2 ); }
 	| Name STRINGLITERAL				{ $$ = alctree( "Imp. Concat Expr (var + str)", 437, 2, $1, $2 ); }
 	| MethodInvocation STRINGLITERAL			{ $$ = alctree( "Imp. Concat Expr (method + str)", 438, 2, $1, $2 ); }
+	| Name Name						{ $$ = alctree( "Imp. Concat Expr (var + var)", 439, 2, $1, $2); }
 	// | Name Name						{ yyerror("syntax error"); fprintf(stderr, "implicit string concatenation must have a string literal in the first two values\n"); exit(2); }
 	| STRINGLITERAL STRINGLITERAL				{ yyerror("syntax error"); fprintf(stderr, "implicit string concatenation not allowed between two string literals\n"); exit(2); }
 	| ConcatentationExpresssion Name			{ $$ = alctree( "Imp. Concat Expr list (+name)", 441, 2, $1, $2 ); }
@@ -494,6 +493,7 @@ AssignmentExpression:
 Assignment:
      Assignable AssignmentOperator AssignmentExpression		{ $$ = alctree( "Assign", 487, 3, $1, $2, $3 ); }
      | Assignable AssignmentOperator LB ListInitializer RB       { $$ = alctree( "List Initializer", 488, 3, $1, $2, $4); }
+    //  | Name LB RB ASN AssignmentExpression  { $$ = alctree( "Default table mapping", 489, 2, $1, $5 ); }
    ;
 
 SwapExpression:
@@ -503,9 +503,10 @@ SwapExpression:
     ;
 
 Assignable:
-     Name       { $$ = $1; }
-   | FieldAccess       { $$ = $1; }
-   | ArrayAccess       { $$ = $1; }
+     Name       
+   | FieldAccess       
+   | ArrayAccess       
+  //  | Name LB RB         { $$ = alctree( "Default table mapping", 508, 1, $1 ); }
    ;
 
 AssignmentOperator:
@@ -517,12 +518,14 @@ AssignmentOperator:
 Expression:
         SwapExpression
       | AssignmentExpression
+      // | Name LB RB ASN AssignmentExpression  { $$ = alctree( "Default table mapping", 489, 2, $1, $5 ); }
+      // | 
       ;
 		
 
 FormalParameterList:
         FormalParameter       { $$ = $1; }
-      | FormalParameterList CM FormalParameter		{ $$ = alctree( "Named param list", 517, 3, $1, $2, $3 ); }
+      | FormalParameterList CM FormalParameter		{ $$ = alctree( "Named param list", 517, 2, $1, $3 ); }
       ;
 
 FormalParameter:
@@ -548,7 +551,7 @@ SimpleName:
       ;
 
 QualifiedName:
-        Name DOT IDENT		{ $$ = alctree( "qualified name", 543, 3, $1, $2, $3 ); }
+        Name DOT IDENT		{ $$ = alctree( "qualified name", 543, 2, $1, $3 ); }
       ;
 
 BoolLiteral:
@@ -581,3 +584,11 @@ ProductionRule:
       ;
 
  */
+
+%%
+
+void yyerror( char* s ){
+  fprintf(stderr, "Syntax error:\n%s:%d: %s before '%s' token\n",
+	   yyfilename, yylineno, s, yylval.node->token->text);
+	exit(2);
+}

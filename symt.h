@@ -11,12 +11,14 @@ HW #2: Syntax Analysis
 #ifndef SYM_T_H
 #define SYM_T_H
 
+typedef struct Scope scope_t;
 
 #include <stdlib.h>
 #include <stdint.h> // uint32_t
 #include "token.h"
-#include "scope.h"	// scope_t
+// #include "scope.h"	// scope_t
 #include "type.h"	// type_t
+
 
 typedef struct Symbol
 {
@@ -32,7 +34,7 @@ typedef struct Symbol
 		{
 			// auxillary flags like "isconst"
 			int isconst;
-		};
+		} f;
 		// if symbol has a symboltable entry it owns.
 		scope_t* myScope;
 	} s;

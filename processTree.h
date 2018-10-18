@@ -16,7 +16,8 @@ HW #3: Semantic Analysis
 #include "scope.h"
 
 int generateSymbolTables( tree* t, int bool_print );
-
+int semanticCheck( tree* t, int print );
+int checkUndeclaredSymbols( tree* t, int print );
 
 
 #endif
