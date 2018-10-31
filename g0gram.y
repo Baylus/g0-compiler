@@ -6,12 +6,17 @@
 
 %{
 #include <stdio.h>
+#include <stdlib.h> //exit(),
 #include "tree.h"
 // #include ""
 
-// int yydebug = 1;
+int yydebug = 0;
 tree* yytree = NULL;
-extern void yyerror(char* s); //g0lex.l
+extern char* yyfilename;  // g0lex.l
+extern int yylineno;
+extern char* yytext;
+// extern void yyerror(char* s); //g0lex.l
+void yyerror( char* s );
 int yylex();
 %}
 
@@ -67,7 +72,7 @@ int yylex();
 %type < node > EqualityExpression RelationalExpression AdditiveExpression MultiplicativeExpression 
 %type < node > SwapExpression UnaryExpressionNotPlusMinus UnaryExpression PostFixExpression 
 %type < node > ArrayAccess MethodInvocation FieldAccess PrimaryNoNewArray Primary
-%type < node > ArgumentList ExpressionOpt
+%type < node > ArgumentList ExpressionOpt DefaultTableMapping
 %type < node > ConditionalAndExpression 
 %type < node > Literal  ConcatentationExpresssion ImplicitConcatExpression
 %type < node > LocalVariable ListInitializer
@@ -98,19 +103,26 @@ ProductionRule:
  */
 %start Program
 
+/* All the codes for these trees are the line # of the rule + 500,
+This prevents collisions with YACC token defines.
+
+ */
+
 %%
+
+
 
 Program:
         CompilationUnits { yytree = $1; }
       ;
 
 GlobalVariable:
-        Type VariableDeclaratorList Semicolon		{ $$ = alctree( "global var", 20, 3, $1, $2, $3 ); }
+        Type VariableDeclaratorList Semicolon		{ $$ = alctree( "global var", 613, 3, $1, $2, $3 ); }
       ;
 
 VariableDeclaratorList:
         VariableDeclaratorId       				{ $$ = $1; }
-      | VariableDeclaratorList CM VariableDeclaratorId		{ $$ = alctree( "var list", 30, 3, $1, $2, $3 ); }
+      | VariableDeclaratorList CM VariableDeclaratorId		{ $$ = alctree( "var list", 618, 2, $1, $3 ); }
       ;
 
 Type:
@@ -122,13 +134,13 @@ Type:
 
 ListType:
         LIST				{ $$ = $1; }
-      | LIST LT PrimitiveType GT	{ $$ = alctree( "list", 40, 4, $1, $2, $3, $4 ); }
+      | LIST LT PrimitiveType GT	{ $$ = alctree( "list", 630, 2, $1, $3); }
       ;
 
 TableType:
         TABLE						{ $$ = $1; }
-      | TABLE LT PrimitiveType GT			{ $$ = alctree( "table", 50, 4, $1, $2, $3, $4 ); }
-      | TABLE LT PrimitiveType CM PrimitiveType GT	{ $$ = alctree( "table", 51, 5, $1, $2, $3, $4, $5 ); }
+      | TABLE LT PrimitiveType GT			{ $$ = alctree( "table", 635, 2, $1, $3); }
+      | TABLE LT PrimitiveType CM PrimitiveType GT	{ $$ = alctree( "table", 636, 3, $1, $3, $5 ); }
       ;
 
 PrimitiveType:
@@ -140,42 +152,42 @@ PrimitiveType:
 
 CompilationUnits:
         CompilationUnit				{ $$ = $1; }
-      | CompilationUnits CompilationUnit	{ $$ = alctree( "Compilation Units", 80, 2, $1, $2 ); }
+      | CompilationUnits CompilationUnit	{ $$ = alctree( "Compilation Units", 143, 2, $1, $2 ); }
       ;
 
 CompilationUnit:
         ClassDeclaration		{ $$ = $1; }
       | Function			{ $$ = $1; }
-      | AssignmentExpression		{ $$ = $1; }
-      | GlobalVariable			{ $$ = $1; }
+      | AssignmentExpression Semicolon		{ $$ = $1; }
+      | GlobalVariable Semicolon			{ $$ = $1; }
       ;
 
 ClassDeclaration:
-        ClassHeader ClassBlock		{ $$ = alctree( "Class declaration", 100, 2, $1, $2 ); }
+        ClassHeader ClassBlock		{ $$ = alctree( "Class declaration", 659, 2, $1, $2 ); }
       ;
 
 ClassHeader:
-        CLASS CLASS_NAME			{ $$ = alctree( "Class header", 110, 2, $1, $2 ); }
+        CLASS CLASS_NAME			{ $$ = alctree( "Class header", 663, 2, $1, $2 ); }
       ;
 
 ClassBlock:
-        LC ClassBlockUnitList RC		{ $$ = alctree( "Class Block", 120, 3, $1, $2, $3 ); }
-      | LC RC					{ $$ = alctree( "Empty class block", 121, 2, $1, $2 ); }
+        LC ClassBlockUnitList RC		{ $$ = alctree( "Class Block", 162, 3, $1, $2, $3 ); }
+      | LC RC					{ $$ = alctree( "Empty class block", 163, 2, $1, $2 ); }
       ;
 
 ClassVariableList:
 	 IDENT		{ $$ = $1; }
-	| ClassVariableList CM IDENT		{ $$ = alctree( "Class variable list", 129, 3, $1, $2, $3 ); }
+	| ClassVariableList CM IDENT		{ $$ = alctree( "Class variable list", 673, 2, $1, $3 ); }
 	;
 
 ClassVariable:
-      Type ClassVariableList Semicolon	{ $$ = alctree( "Class variable list", 131, 3, $1, $2, $3 ); }
-      | Type Assignment { yyerror("syntax error"); }
+      Type ClassVariableList Semicolon	{ $$ = alctree( "Class variable", 677, 2, $1, $2 ); }
+      | Type Assignment { yyerror("syntax error\nInitializers not allowed in declarations"); }
       ;
 
 ClassBlockUnitList:
         ClassBlockUnit		{ $$ = $1; }
-      | ClassBlockUnitList ClassBlockUnit	{ $$ = alctree( "Class Block statements", 140, 2, $1, $2 ); }
+      | ClassBlockUnitList ClassBlockUnit	{ $$ = alctree( "Class Block statements", 178, 2, $1, $2 ); }
       ;
 
 ClassBlockUnit:
@@ -185,17 +197,17 @@ ClassBlockUnit:
       ;
 
 MethodDeclaration:
-        MethodHeader MethodBody		{ $$ = alctree( "Method", 160, 2, $1, $2 ); }
+        MethodHeader MethodBody		{ $$ = alctree( "Method", 693, 2, $1, $2 ); }
       ;
 
 MethodHeader:
-        Type MethodDeclarator		{ $$ = alctree( "Method header", 170, 2, $1, $2 ); }
-      | VOID MethodDeclarator		{ $$ = alctree( "Method header", 171, 2, $1, $2 ); }
+        Type MethodDeclarator		{ $$ = alctree( "Method header", 697, 2, $1, $2 ); }
+      | VOID MethodDeclarator		{ $$ = alctree( "Method header", 698, 2, $1, $2 ); }
       ;
 
 MethodDeclarator:
-        IDENT LP FormalParameterList RP	{ $$ = alctree( "Method declarator", 180, 4, $1, $2, $3, $4 ); }
-      | IDENT LP RP			{ $$ = alctree( "Method declarator", 181, 3, $1, $2, $3 ); }
+        IDENT LP FormalParameterList RP	{ $$ = alctree( "Method declarator", 197, 2, $1, $3); }
+      | IDENT LP RP			{ $$ = alctree( "Method declarator", 198, 1, $1 ); }
       ;
 
 MethodBody:
@@ -203,12 +215,12 @@ MethodBody:
       ;
 
 ConstructorDeclaration:
-         ConstructorDeclarator ConstructorBody		{ $$ = alctree( "Constructor delcaration", 200, 2, $1, $2 ); }
+         ConstructorDeclarator ConstructorBody		{ $$ = alctree( "Constructor delcaration", 711, 2, $1, $2 ); }
       ;
 
 ConstructorDeclarator:
-        CLASS_NAME LP FormalParameterList RP	{ $$ = alctree( "Constructor Header", 210, 4, $1, $2, $3, $4 ); }
-      | CLASS_NAME LP RP			{ $$ = alctree( "Constructor Header", 211, 3, $1, $2, $3 ); }
+        CLASS_NAME LP FormalParameterList RP	{ $$ = alctree( "Constructor Header", 715, 2, $1, $3 ); }
+      | CLASS_NAME LP RP			{ $$ = alctree( "Constructor Header", 716, 1, $1 ); }
       ;
 
 ConstructorBody:
@@ -221,22 +233,22 @@ Function:
       ;
 
 FunctionPrototype:
-        Type IDENT LP TypeList RP Semicolon	{ $$ = alctree( "func proto", 240, 6, $1, $2, $3, $4, $5, $6 ); }
-      | Type IDENT LP RP Semicolon		{ $$ = alctree( "func proto", 241, 5, $1, $2, $3, $4, $5 ); }
-      | VOID IDENT LP TypeList RP Semicolon	{ $$ = alctree( "func proto", 242, 6, $1, $2, $3, $4, $5, $6 ); }
-      | VOID IDENT LP RP Semicolon		{ $$ = alctree( "func proto", 243, 5, $1, $2, $3, $4, $5 ); }
+        Type IDENT LP TypeList RP Semicolon	{ $$ = alctree( "func proto", 729, 3, $1, $2, $4 ); }
+      | Type IDENT LP RP Semicolon		{ $$ = alctree( "func proto", 730, 2, $1, $2 ); }
+      | VOID IDENT LP TypeList RP Semicolon	{ $$ = alctree( "func proto", 731, 3, $1, $2, $4 ); }
+      | VOID IDENT LP RP Semicolon		{ $$ = alctree( "func proto", 732, 2, $1, $2 ); }
       ;
 
 TypeList:
         Type      			 { $$ = $1; }
-      | TypeList CM Type		{ $$ = alctree( "Type list", 250, 3, $1, $2, $3 ); }
+      | TypeList CM Type		{ $$ = alctree( "Type list", 737, 2, $1, $3 ); }
       ;
 
 FunctionDefinition:
-        Type IDENT LP FormalParameterList RP FunctionBody	{ $$ = alctree( "func defn", 260, 6, $1, $2, $3, $4, $5, $6 ); }
-      | Type IDENT LP RP FunctionBody				{ $$ = alctree( "func defn", 261, 5, $1, $2, $3, $4, $5 ); }
-      | VOID IDENT LP FormalParameterList RP FunctionBody	{ $$ = alctree( "func defn", 262, 6, $1, $2, $3, $4, $5, $6 ); }
-      | VOID IDENT LP RP FunctionBody				{ $$ = alctree( "func defn", 263, 5, $1, $2, $3, $4, $5 ); }
+        Type IDENT LP FormalParameterList RP FunctionBody	{ $$ = alctree( "func defn", 741, 4, $1, $2, $4, $6 ); }
+      | Type IDENT LP RP FunctionBody				{ $$ = alctree( "func defn", 742, 3, $1, $2, $5 ); }
+      | VOID IDENT LP FormalParameterList RP FunctionBody	{ $$ = alctree( "func defn", 743, 4, $1, $2, $4, $6 ); }
+      | VOID IDENT LP RP FunctionBody				{ $$ = alctree( "func defn", 744, 3, $1, $2, $5 ); }
       ;
 
 FunctionBody:
@@ -244,13 +256,13 @@ FunctionBody:
       ;
 
 Block:
-        LC BlockStatementList RC 		{ $$ = alctree( "Block", 280, 3, $1, $2, $3 ); }
-      | LC RC 					{ $$ = alctree( "Empty Block", 281, 2, $1, $2 ); }
+        LC BlockStatementList RC 		{ $$ = alctree( "Block", 247, 3, $1, $2, $3 ); }
+      | LC RC 					{ $$ = alctree( "Empty Block", 248, 2, $1, $2 ); }
       ;
 
 BlockStatementList:
         BlockStatement       			{ $$ = $1; }
-      | BlockStatementList BlockStatement		{ $$ = alctree( "Block stmt list", 290, 2, $1, $2 ); }
+      | BlockStatementList BlockStatement		{ $$ = alctree( "Block stmt list", 253, 2, $1, $2 ); }
       ;
 
 BlockStatement:
@@ -259,13 +271,13 @@ BlockStatement:
       ;
 
 NoLocalVariableBlock:
-        LC NoLocalVariableBlockStatementList RC 		{ $$ = alctree( "No local var block", 310 , 3, $1, $2, $3 ); }
-      | LC RC 							{ $$ = alctree( "Empty block", 311, 2, $1, $2 ); }
+        LC NoLocalVariableBlockStatementList RC 		{ $$ = alctree( "No local var block", 262 , 3, $1, $2, $3 ); }
+      | LC RC 							{ $$ = alctree( "Empty block", 263, 2, $1, $2 ); }
       ;
 
 NoLocalVariableBlockStatementList:
         NoLocalVariableBlockStatement       					{ $$ = $1; }
-      | NoLocalVariableBlockStatementList NoLocalVariableBlockStatement		{ $$ = alctree( "No local var statement list", 320, 2, $1, $2 ); }
+      | NoLocalVariableBlockStatementList NoLocalVariableBlockStatement		{ $$ = alctree( "No local var statement list", 268, 2, $1, $2 ); }
       ;
 
 NoLocalVariableBlockStatement:
@@ -296,8 +308,8 @@ StatementWithoutTrailingSubstatement:
       ;
 
 ExpressionStatement:
-        StatementExpression Semicolon		{ $$ = alctree( "Expression Stmt", 370, 2, $1, $2 ); }
-	    | SwapExpression Semicolon		{ $$ = alctree( "Swap Expr Stmt", 371, 2, $1, $2 ); }
+        StatementExpression Semicolon		{ $$ = alctree( "Expression Stmt", 299, 2, $1, $2 ); }
+	    | SwapExpression Semicolon		{ $$ = alctree( "Swap Expr Stmt", 300, 2, $1, $2 ); }
       ;
 
 StatementExpression:
@@ -306,26 +318,26 @@ StatementExpression:
       ;
 
 IfThenStatement:
-        IF LP Expression RP Statement	{ $$ = alctree( "If-then", 390, 5, $1, $2, $3, $4, $5 ); }
+        IF LP Expression RP Statement	{ $$ = alctree( "If-then", 309, 5, $1, $2, $3, $4, $5 ); }
       ;
 
 IfThenElseStatement:
         IF LP Expression RP StatementNoShortIf 
-            ELSE Statement		{ $$ = alctree( "if-then-else stmt", 400, 7, $1, $2, $3, $4, $5, $6 ); }
+            ELSE Statement		{ $$ = alctree( "if-then-else stmt", 314, 7, $1, $2, $3, $4, $5, $6 ); }
       ;
 
 IfThenElseStatementNoShortIf:
         IF LP Expression RP StatementNoShortIf
-            ELSE StatementNoShortIf		{ $$ = alctree( "if-then-else stmt (no short if)", 410, 7, $1, $2, $3, $4, $5, $6, $7 ); }
+            ELSE StatementNoShortIf		{ $$ = alctree( "if-then-else stmt (no short if)", 319, 7, $1, $2, $3, $4, $5, $6, $7 ); }
       ;
 
 WhileStatement:
-        WHILE LP Expression RP Statement	{ $$ = alctree( "while", 420, 5, $1, $2, $3, $4, $5 ); }
+        WHILE LP Expression RP Statement	{ $$ = alctree( "while", 323, 5, $1, $2, $3, $4, $5 ); }
 	| IDENT NoLocalVariableBlock WHILE LP Expression RP Semicolon				{ yyerror("syntax error"); fprintf(stderr, "do-while loops not supported in g0!\n"); exit(2); }
       ;
 
 WhileStatementNoShortIf:
-        WHILE LP Expression RP StatementNoShortIf		{ $$ = alctree( "While (No short if)", 430, 5, $1, $2, $3, $4, $5 ); }
+        WHILE LP Expression RP StatementNoShortIf		{ $$ = alctree( "While (No short if)", 328, 5, $1, $2, $3, $4, $5 ); }
       ;
 
 ForInit:
@@ -344,16 +356,16 @@ ForUpdate:
       ;
 
 ForStatement:
-        FOR LP ForInit SM ExpressionOpt SM ForUpdate RP Statement	{ $$ = alctree( "for stmt", 460, 9, $1, $2, $3, $4, $5, $6, $7, $8, $9 ); }
+        FOR LP ForInit SM ExpressionOpt SM ForUpdate RP Statement	{ $$ = alctree( "for stmt", 347, 9, $1, $2, $3, $4, $5, $6, $7, $8, $9 ); }
       ;
 
 ForStatementNoShortIf:
-        FOR LP ForInit SM ExpressionOpt SM ForUpdate RP StatementNoShortIf	{ $$ = alctree( "for stmt (no short if)", 470, 9, $1, $2, $3, $4, $5, $6, $7, $8, $9 ); }
+        FOR LP ForInit SM ExpressionOpt SM ForUpdate RP StatementNoShortIf	{ $$ = alctree( "for stmt (no short if)", 351, 9, $1, $2, $3, $4, $5, $6, $7, $8, $9 ); }
       ;
 
 StatementExpressionList:
         StatementExpression       { $$ = $1; }
-      | StatementExpressionList CM StatementExpression		{ $$ = alctree( "expression list", 480, 3, $1, $2, $3 ); }
+      | StatementExpressionList CM StatementExpression		{ $$ = alctree( "expression list", 356, 3, $1, $2, $3 ); }
       ;
 
 EmptyStatement:
@@ -361,17 +373,17 @@ EmptyStatement:
       ;
 
 BreakStatement:
-        BREAK Semicolon		{ $$ = alctree( "break", 500, 2, $1, $2 ); }
+        BREAK Semicolon		{ $$ = alctree( "break", 364, 2, $1, $2 ); }
       ;
 
 ReturnStatement:
-        RETURN Expression Semicolon		{ $$ = alctree( "return stmt", 510, 3, $1, $2, $3 ); }
-      | RETURN Semicolon			{ $$ = alctree( "return stmt", 511, 2, $1, $2 ); }
+        RETURN Expression Semicolon		{ $$ = alctree( "return stmt", 368, 3, $1, $2, $3 ); }
+      | RETURN Semicolon			{ $$ = alctree( "return stmt", 369, 2, $1, $2 ); }
       ;
 
 ArgumentList:
 	  Expression       { $$ = $1; }
-	| ArgumentList CM Expression		{ $$ = alctree( "arg list", 520, 3, $1, $2, $3 ); }
+	| ArgumentList CM Expression		{ $$ = alctree( "arg list", 374, 3, $1, $2, $3 ); }
 	;
 
 Primary:
@@ -380,31 +392,36 @@ Primary:
 
 ListInitializer:
 	PrimaryNoNewArray			{ $$ = $1; }
-	| ListInitializer CM PrimaryNoNewArray { $$ = alctree( "List items", 539, 3, $1, $2, $3 ); }
+	| ListInitializer CM PrimaryNoNewArray { $$ = alctree( "List items", 383, 3, $1, $2, $3 ); }
 	;
 
 PrimaryNoNewArray:
      Literal       { $$ = $1; }
-   | LP Expression RP		{ $$ = alctree( "Paren Expr", 540, 3, $1, $2, $3 ); }
+   | LP Expression RP		{ $$ = alctree( "Paren Expr", 388, 3, $1, $2, $3 ); }
    | MethodInvocation       { $$ = $1; }
    | Assignable       { $$ = $1; }
-   | SHARP IDENT    { $$ = alctree( "List Size", 541, 1, $2); }
+   | SHARP IDENT    { $$ = alctree( "List Size", 896, 1, $2); }
+   | PrimaryNoNewArray LB Expression COLON Expression RB		{ $$ = alctree( "List Substring", 392, 3, $1, $3, $5 ); }
    ;
 
 FieldAccess:
-     Primary DOT IDENT		{ $$ = alctree( "Field Access", 550, 3, $1, $2, $3 ); }
+     Primary DOT IDENT		{ $$ = alctree( "Field Access", 901, 2, $1, $3 ); }
    ;
 
 MethodInvocation:
-     Name LP ArgumentList RP			{ $$ = alctree( "Method call", 560, 4, $1, $2, $3, $4 ); }
-   | Name LP RP					{ $$ = alctree( "Method call", 561, 3, $1, $2, $3 ); }
-   | Primary DOT IDENT LP ArgumentList RP	{ $$ = alctree( "Method call", 562, 6, $1, $2, $3, $4, $5, $6 ); }
-   | Primary DOT IDENT LP  RP			{ $$ = alctree( "Method call", 563, 5, $1, $2, $3, $4, $5 ); }
-   | CLASS_NAME LP RP			{ $$ = alctree( "Class Constructor Call", 564, 1, $1 ); }
+     Name LP ArgumentList RP			{ $$ = alctree( "Method call", 399, 4, $1, $2, $3, $4 ); }
+   | Name LP RP					{ $$ = alctree( "Method call", 400, 3, $1, $2, $3 ); }
+   | Primary DOT IDENT LP ArgumentList RP	{ $$ = alctree( "Method call", 907, 3, $1, $3, $5 ); }
+   | Primary DOT IDENT LP  RP			{ $$ = alctree( "Method call", 908, 2, $1, $3 ); }
+   | CLASS_NAME LP RP			{ $$ = alctree( "Class Constructor Call", 403, 1, $1 ); }
    ;
 
 ArrayAccess:
-     PrimaryNoNewArray LB Expression RB		{ $$ = alctree( "Array Access", 570, 4, $1, $2, $3, $4 ); }
+     PrimaryNoNewArray LB Expression RB		{ $$ = alctree( "Array Access", 407, 2, $1, $3 ); }
+   ;
+
+DefaultTableMapping:
+     PrimaryNoNewArray LB RB		{ $$ = alctree( "Default table mapping", 417, 1, $1 ); }
    ;
 
 PostFixExpression:
@@ -413,34 +430,35 @@ PostFixExpression:
    ;
 
 UnaryExpression:
-     MINUS UnaryExpression		{ $$ = alctree( "UnaryExpression", 590, 2, $1, $2 ); }
+     MINUS UnaryExpression		{ $$ = alctree( "UnaryExpression", 416, 2, $1, $2 ); }
    | UnaryExpressionNotPlusMinus       { $$ = $1; }
    ;
 
 UnaryExpressionNotPlusMinus:
      PostFixExpression       { $$ = $1; }
-   | BANG UnaryExpression		{ $$ = alctree( "UnaryExpressionNo+-", 600, 2, $1, $2 ); }
-   | DROLL UnaryExpression		{ $$ = alctree( "Unary Dice roll", 601, 2, $1, $2 ); }
+   | BANG UnaryExpression		{ $$ = alctree( "UnaryExpressionNo+-", 422, 2, $1, $2 ); }
+   | DROLL UnaryExpression		{ $$ = alctree( "Unary Dice roll", 423, 2, $1, $2 ); }
    ;
 
 MultiplicativeExpression:
      UnaryExpression       { $$ = $1; }
-   | MultiplicativeExpression MUL UnaryExpression		{ $$ = alctree( "Multiplicative Expression", 610, 3, $1, $2, $3 ); }
-   | MultiplicativeExpression DIV UnaryExpression		{ $$ = alctree( "Division Expression", 611, 3, $1, $2, $3 ); }
-   | MultiplicativeExpression MOD UnaryExpression		{ $$ = alctree( "Modulus Expression", 612, 3, $1, $2, $3 ); }
-   | MultiplicativeExpression DROLL UnaryExpression		{ $$ = alctree( "Dice Roll Expression", 613, 3, $1, $2, $3 ); }
+   | MultiplicativeExpression MUL UnaryExpression		{ $$ = alctree( "Multiplicative Expression", 428, 3, $1, $2, $3 ); }
+   | MultiplicativeExpression DIV UnaryExpression		{ $$ = alctree( "Division Expression", 429, 3, $1, $2, $3 ); }
+   | MultiplicativeExpression MOD UnaryExpression		{ $$ = alctree( "Modulus Expression", 430, 3, $1, $2, $3 ); }
+   | MultiplicativeExpression DROLL UnaryExpression		{ $$ = alctree( "Dice Roll Expression", 431, 3, $1, $2, $3 ); }
    ;
 
 ImplicitConcatExpression:
-	  STRINGLITERAL Name				{ $$ = alctree( "Imp. Concat Expr (str + var)", 810, 2, $1, $2 ); }
-	| STRINGLITERAL MethodInvocation			{ $$ = alctree( "Imp. Concat Expr (str + method)", 811, 2, $1, $2 ); }
-	| Name STRINGLITERAL				{ $$ = alctree( "Imp. Concat Expr (var + str)", 812, 2, $1, $2 ); }
-	| MethodInvocation STRINGLITERAL			{ $$ = alctree( "Imp. Concat Expr (method + str)", 813, 2, $1, $2 ); }
+	  STRINGLITERAL Name				{ $$ = alctree( "Imp. Concat Expr (str + var)", 435, 2, $1, $2 ); }
+	| STRINGLITERAL MethodInvocation			{ $$ = alctree( "Imp. Concat Expr (str + method)", 436, 2, $1, $2 ); }
+	| Name STRINGLITERAL				{ $$ = alctree( "Imp. Concat Expr (var + str)", 437, 2, $1, $2 ); }
+	| MethodInvocation STRINGLITERAL			{ $$ = alctree( "Imp. Concat Expr (method + str)", 438, 2, $1, $2 ); }
+	| Name Name						{ $$ = alctree( "Imp. Concat Expr (var + var)", 439, 2, $1, $2); }
 	// | Name Name						{ yyerror("syntax error"); fprintf(stderr, "implicit string concatenation must have a string literal in the first two values\n"); exit(2); }
 	| STRINGLITERAL STRINGLITERAL				{ yyerror("syntax error"); fprintf(stderr, "implicit string concatenation not allowed between two string literals\n"); exit(2); }
-	| ConcatentationExpresssion Name			{ $$ = alctree( "Imp. Concat Expr list (+name)", 814, 2, $1, $2 ); }
-	| ConcatentationExpresssion MethodInvocation		{ $$ = alctree( "Imp. Concat Expr list (+method)", 815, 2, $1, $2 ); }
-	| ConcatentationExpresssion STRINGLITERAL		{ $$ = alctree( "Imp. Concat Expr list (+string)", 816, 2, $1, $2 ); }
+	| ConcatentationExpresssion Name			{ $$ = alctree( "Imp. Concat Expr list (+name)", 441, 2, $1, $2 ); }
+	| ConcatentationExpresssion MethodInvocation		{ $$ = alctree( "Imp. Concat Expr list (+method)", 442, 2, $1, $2 ); }
+	| ConcatentationExpresssion STRINGLITERAL		{ $$ = alctree( "Imp. Concat Expr list (+string)", 443, 2, $1, $2 ); }
 	;
 
 ConcatentationExpresssion:
@@ -450,32 +468,32 @@ ConcatentationExpresssion:
 
 AdditiveExpression:
      MultiplicativeExpression       { $$ = $1; }
-   | AdditiveExpression PLUS MultiplicativeExpression		  { $$ = alctree( "Sum Expr", 620, 2, $1, $3 ); }
-   | AdditiveExpression MINUS MultiplicativeExpression		{ $$ = alctree( "Difference Expr", 621, 2, $1, $3 ); }
+   | AdditiveExpression PLUS MultiplicativeExpression		  { $$ = alctree( "Sum Expr", 453, 2, $1, $3 ); }
+   | AdditiveExpression MINUS MultiplicativeExpression		{ $$ = alctree( "Difference Expr", 454, 2, $1, $3 ); }
    ;
 
 RelationalExpression:
      AdditiveExpression       { $$ = $1; }
-   | RelationalExpression LT AdditiveExpression		{ $$ = alctree( "less Expr", 630, 2, $1, $3 ); }
-   | RelationalExpression LE AdditiveExpression		{ $$ = alctree( "less/eq Expr", 631, 2, $1, $3 ); }
-   | RelationalExpression GT AdditiveExpression		{ $$ = alctree( "great Expr", 632, 2, $1, $3 ); }
-   | RelationalExpression GE AdditiveExpression		{ $$ = alctree( "great/eq Expr", 633, 2, $1, $3 ); }
+   | RelationalExpression LT AdditiveExpression		{ $$ = alctree( "less Expr", 459, 2, $1, $3 ); }
+   | RelationalExpression LE AdditiveExpression		{ $$ = alctree( "less/eq Expr", 460, 2, $1, $3 ); }
+   | RelationalExpression GT AdditiveExpression		{ $$ = alctree( "great Expr", 461, 2, $1, $3 ); }
+   | RelationalExpression GE AdditiveExpression		{ $$ = alctree( "great/eq Expr", 462, 2, $1, $3 ); }
    ;
 
 EqualityExpression:
      RelationalExpression       { $$ = $1; }
-   | EqualityExpression EQ RelationalExpression		{ $$ = alctree( "'==' Expr", 640, 2, $1, $3 ); }
-   | EqualityExpression NE RelationalExpression		{ $$ = alctree( "'!=' Expr", 641, 2, $1, $3 ); }
+   | EqualityExpression EQ RelationalExpression		{ $$ = alctree( "'==' Expr", 467, 2, $1, $3 ); }
+   | EqualityExpression NE RelationalExpression		{ $$ = alctree( "'!=' Expr", 468, 2, $1, $3 ); }
    ;
 
 ConditionalAndExpression:
      EqualityExpression       { $$ = $1; }
-   | ConditionalAndExpression ANDAND EqualityExpression		{ $$ = alctree( "AND", 650, 2, $1, $3 ); }
+   | ConditionalAndExpression ANDAND EqualityExpression		{ $$ = alctree( "AND", 473, 2, $1, $3 ); }
    ;
 
 ConditionalOrExpression:
      ConditionalAndExpression       { $$ = $1; }
-   | ConditionalOrExpression OROR ConditionalAndExpression		{ $$ = alctree( "OR", 660, 2, $1, $3 ); }
+   | ConditionalOrExpression OROR ConditionalAndExpression		{ $$ = alctree( "OR", 478, 2, $1, $3 ); }
    ;
 
 AssignmentExpression:
@@ -484,20 +502,23 @@ AssignmentExpression:
    ;
 
 Assignment:
-     Assignable AssignmentOperator AssignmentExpression		{ $$ = alctree( "Assign", 680, 3, $1, $2, $3 ); }
-     | Assignable AssignmentOperator LB ListInitializer RB       { $$ = alctree( "List Initializer", 681, 3, $1, $2, $4); }
+     Assignable AssignmentOperator AssignmentExpression		{ $$ = alctree( "Assign", 487, 3, $1, $2, $3 ); }
+     | Assignable AssignmentOperator LB ListInitializer RB       { $$ = alctree( "List Initializer", 488, 3, $1, $2, $4); }
+    //  | Name LB RB ASN AssignmentExpression  { $$ = alctree( "Default table mapping", 489, 2, $1, $5 ); }
    ;
 
 SwapExpression:
-      Assignable SWAP Assignable		{ $$ = alctree( "Swap", 690, 2, $1, $3 ); }
-    | Assignable SWAP Assignment		{ $$ = alctree( "Swap w/ Assign", 691, 2, $1, $3 ); }
-    | Assignable SWAP SwapExpression		{ $$ = alctree( "Multiple Swap", 692, 2, $1, $3 ); }
+      Assignable SWAP Assignable		{ $$ = alctree( "Swap", 492, 2, $1, $3 ); }
+    | Assignable SWAP Assignment		{ $$ = alctree( "Swap w/ Assign", 493, 2, $1, $3 ); }
+    | Assignable SWAP SwapExpression		{ $$ = alctree( "Multiple Swap", 494, 2, $1, $3 ); }
     ;
 
 Assignable:
-     Name       { $$ = $1; }
-   | FieldAccess       { $$ = $1; }
-   | ArrayAccess       { $$ = $1; }
+     Name       
+   | FieldAccess       
+   | ArrayAccess       
+   | DefaultTableMapping
+  //  | Name LB RB         { $$ = alctree( "Default table mapping", 508, 1, $1 ); }
    ;
 
 AssignmentOperator:
@@ -509,25 +530,27 @@ AssignmentOperator:
 Expression:
         SwapExpression
       | AssignmentExpression
+      // | Name LB RB ASN AssignmentExpression  { $$ = alctree( "Default table mapping", 489, 2, $1, $5 ); }
+      // | 
       ;
 		
 
 FormalParameterList:
         FormalParameter       { $$ = $1; }
-      | FormalParameterList CM FormalParameter		{ $$ = alctree( "Named param list", 730, 3, $1, $2, $3 ); }
+      | FormalParameterList CM FormalParameter		{ $$ = alctree( "Named param list", 1033, 2, $1, $3 ); }
       ;
 
 FormalParameter:
-        Type VariableDeclaratorId		{ $$ = alctree( "named parameter", 740, 2, $1, $2 ); }
+        Type VariableDeclaratorId		{ $$ = alctree( "named parameter", 1037, 2, $1, $2 ); }
       ;
 
 LocalVariable:
-        Type VariableDeclaratorList Semicolon		{ $$ = alctree( "local variable", 750, 3, $1, $2, $3 ); }
+        Type VariableDeclaratorList Semicolon		{ $$ = alctree( "local variable", 1041, 3, $1, $2, $3 ); }
       ;
 
 VariableDeclaratorId:
         IDENT 		{ $$ = $1; }
-      | VariableDeclaratorId LB RB		{ $$ = alctree( "variable declarator", 760, 3, $1, $2, $3 ); }
+      | VariableDeclaratorId LB RB		{ $$ = alctree( "variable declarator", 530, 3, $1, $2, $3 ); }
       ;
 
 Name:
@@ -540,7 +563,7 @@ SimpleName:
       ;
 
 QualifiedName:
-        Name DOT IDENT		{ $$ = alctree( "qualified name", 790, 3, $1, $2, $3 ); }
+        Name DOT IDENT		{ $$ = alctree( "qualified name", 1059, 2, $1, $3 ); }
       ;
 
 BoolLiteral:
@@ -573,3 +596,11 @@ ProductionRule:
       ;
 
  */
+
+%%
+
+void yyerror( char* s ){
+  fprintf(stderr, "Syntax error:\n%s:%d: %s before '%s' token\n",
+	   yyfilename, yylineno, s, yylval.node->token->text);
+	exit(2);
+}

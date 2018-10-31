@@ -13,17 +13,18 @@ HW #2: Syntax Analysis
 #include <stdint.h>	// uint32_t
 
 #include "symt.h"
+#include "token.h"
 
-identList hashTable[HASH_TABLE_SIZE] = {};
+symList_t hashTable[HASH_TABLE_SIZE] = {};
 
-void initTables()
+void initTables(symList_t n[HASH_TABLE_SIZE])
 {
 	int i;
 	for ( i = 0; i < HASH_TABLE_SIZE; ++i )
 	{
-		hashTable[i].head = NULL;
-		hashTable[i].tail = NULL;
-		hashTable[i].size = 0;
+		n[i].head = NULL;
+		n[i].tail = NULL;
+		n[i].size = 0;
 	}
 }
 
@@ -31,59 +32,65 @@ void freeNode( listNode* x )
 {
 	if (x != NULL)
 	{
-		free(x->info->name);
+		free(x->info->label);
 		free(x->info);
 		free(x);
 	}
 }
 
-void destroyTables()
+void destroyTables(symList_t n[HASH_TABLE_SIZE])
 {
 	int i;
 	for (i = 0; i < HASH_TABLE_SIZE; ++i)
 	{
-		listNode *p = hashTable[i].head;
-		while (p != hashTable[i].tail)
+		listNode *p = n[i].head;
+		while (p != n[i].tail)
 		{
-			hashTable[i].head = hashTable[i].head->next;
+			n[i].head = n[i].head->next;
 			freeNode(p);
-			p = hashTable[i].head;
+			p = n[i].head;
 		}
 		freeNode(p);
 	}
 }
 
-ident *addIdentifier(char *name, int code, int lineno)
+
+
+sym_t *addSym(symList_t n[HASH_TABLE_SIZE] , char *name, int lineno)
 {
-	/* Adds given identifier into
+	/* Adds given symbol into the list
 	 *
 	 * Uses:
 	 * 	name: str, name of identifier
 	 * 	code: int, integer code of type of identifier.
+	 * 	lineno: int, line # symbol ocurred on. ( later might be offset instead, but for now, its line number )
+	 * 	s: scope_t, parent scope of the symbol
 	 */
-	ident* i = malloc( sizeof(ident) );
+	sym_t* i = malloc( sizeof(sym_t) );
 	if (i == NULL)
 	{
-		fprintf(stderr, "symt.c: addIdent wasnt given ident to add.\n");
+		fprintf(stderr, "symt.c: addIdent wasnt given sym_t to add.\n");
 		exit(1);
 	}
-	i->name = strdup(name);
-	i->numInstances = 1;
-	i->typeCode = code;
+	i->label = strdup(name);
+	// i->numInstances = 1;
+	// i->typeCode = code;
+	// i->type = t;
 	i->lineno = lineno;
+	// i->parenscope = s;
 
-	return addIdent( &hashTable[ hash(name) % HASH_TABLE_SIZE ], i );
+	return addIdent( &n[ hash(name) % HASH_TABLE_SIZE ], i );
 }
 
-ident *lookUp(char *name)
+sym_t *lookUp(symList_t n[HASH_TABLE_SIZE], char *name)
 {
 	/*
 	 *
 	 * 
 	 * 
 	 */
-	ident* p = NULL;
-	p = searchList( hashTable[ hash(name) % HASH_TABLE_SIZE ], name );
+	sym_t* p = NULL;
+	p = searchList( n[ hash(name) % HASH_TABLE_SIZE ], name );
 	return p;
 }
 
@@ -105,7 +112,7 @@ uint32_t hash(char *n)
 
 
 // Linked List functions.
-ident *addIdent(identList* l, ident *i)
+sym_t *addIdent(symList_t* l, sym_t *i)
 {
 	/*
 	 *
@@ -114,7 +121,7 @@ ident *addIdent(identList* l, ident *i)
 	 */
 	if ( i == NULL )
 	{
-		fprintf(stderr, "symt.c: addIdent wasnt given ident to add.\n");
+		fprintf(stderr, "symt.c: addIdent wasnt given sym_t to add.\n");
 		exit(1);
 	}
 	listNode* n = malloc ( sizeof(listNode));
@@ -140,7 +147,7 @@ ident *addIdent(identList* l, ident *i)
 	return i;
 }
 
-ident *searchList(identList l, char *name)
+sym_t *searchList(symList_t l, char *name)
 {
 	/*
 	 *
@@ -151,19 +158,18 @@ ident *searchList(identList l, char *name)
 	listNode* p = l.head;
 	while ( p != l.tail ) 
 	{
-		if ( strcmp(p->info->name, name) == 0 ) {
-			p->info->numInstances += 1;
+		if ( strcmp(p->info->label, name) == 0 ) {
+			// p->info->numInstances += 1;
 			return p->info;
 		}
 		p = p->next;
 	}
 	// Check last item.
-	if (strcmp(p->info->name, name) == 0)
+	if (strcmp(p->info->label, name) == 0)
 	{
-		p->info->numInstances += 1;
+		// p->info->numInstances += 1;
 		return p->info;
 	}
 
 	return NULL;
 }
-

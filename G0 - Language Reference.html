@@ -1,0 +1,1368 @@
+
+<!-- saved from url=(0058)http://www2.cs.uidaho.edu/~jeffery/godiva/g0.html#Comments -->
+<html><head><meta http-equiv="Content-Type" content="text/html; charset=windows-1252">
+<title>G0 - Language Reference </title>
+</head>
+<body link="#0000ff" vlink="#800080">
+
+<br><br><br>
+<br><br>
+<br>
+
+<center>
+<h3>
+<font size="7">g0</font><br><br>
+<em> a Programming Language</em>
+</h3>
+<a href="http://www.cs.uidaho.edu/~jeffery/">Clinton Jeffery</a>
+<code><a href="mailto:jeffery@cs.uidaho.edu">jeffery</a>@cs.uidaho.edu</code><br>
+<br>
+<em> Draft Version 0.4, September 28, 2018. </em>
+<p>
+<br><br>
+</p><h2> Language Reference Manual </h2>
+<br>
+<strong>Abstract</strong>
+</center>
+<p>
+
+<a href="http://www2.cs.uidaho.edu/~jeffery/godiva/history.html"><img src="./G0 - Language Reference_files/bluelady.gif" align="LEFT" width="180" height="227"></a>
+</p><blockquote>
+
+<code>g0</code> (not to be confused with the language "go")
+is a programming language that descends
+from Godiva, which descends from Java and Unicon. <code>g0</code>
+is a tiny language
+intended to be implemented in a compiler construction class. It features
+some quirks, like native JSON and an interesting operator for random
+numbers.
+
+
+</blockquote>
+
+<br>
+<br>
+<br>
+<br>
+<br>
+<center>
+<a href="http://www.uidaho.edu/"> University of Idaho</a><br>
+<a href="http://www.cs.uidaho.edu/">Department of Computer Science</a><br>
+Moscow, ID 83844 USA
+</center>
+<br>
+<br>
+<br>
+<br>
+<br>
+<br>
+<br>
+<br>
+<br>
+<br>
+<br>
+<br>
+
+<h3>Contents </h3>
+
+<ol>
+
+<li><a href="http://www2.cs.uidaho.edu/~jeffery/godiva/g0.html#Introduction">Introduction</a></li>
+<li><a href="http://www2.cs.uidaho.edu/~jeffery/godiva/g0.html#Lexical">Lexical Rules</a></li>
+	<ul>
+	<li> <a href="http://www2.cs.uidaho.edu/~jeffery/godiva/g0.html#Comments">Whitespace and Comments</a>
+	</li><li> <a href="http://www2.cs.uidaho.edu/~jeffery/godiva/g0.html#Reserved">Reserved words</a>
+	</li><li> <a href="http://www2.cs.uidaho.edu/~jeffery/godiva/g0.html#Operators">Operators</a>
+	</li><li> <a href="http://www2.cs.uidaho.edu/~jeffery/godiva/g0.html#Literals">Literals</a>
+	</li><li> <a href="http://www2.cs.uidaho.edu/~jeffery/godiva/g0.html#Punctuation">Punctuation</a>
+	</li><li><a href="http://www2.cs.uidaho.edu/~jeffery/godiva/g0.html#SemiColons">Semi-colons</a></li>
+	</ul>
+<li><a href="http://www2.cs.uidaho.edu/~jeffery/godiva/g0.html#Syntax">Syntax</a></li>
+	<ul>
+	<li><a href="http://www2.cs.uidaho.edu/~jeffery/godiva/g0.html#FunctionSyntax">Function Syntax</a></li>
+	<li><a href="http://www2.cs.uidaho.edu/~jeffery/godiva/g0.html#ControlStructures">Control Structures</a></li>
+	<li><a href="http://www2.cs.uidaho.edu/~jeffery/godiva/g0.html#ClassSyntax">Class Syntax</a></li>
+	<li><a href="http://www2.cs.uidaho.edu/~jeffery/godiva/g0.html#DeclarationSyntax">Variable Declaration Syntax</a></li>
+	</ul>
+<li><a href="http://www2.cs.uidaho.edu/~jeffery/godiva/g0.html#Types">Data Types and Semantics</a></li>
+	<ul>
+	<li><a href="http://www2.cs.uidaho.edu/~jeffery/godiva/g0.html#Numbers">Numbers</a></li>
+	<li><a href="http://www2.cs.uidaho.edu/~jeffery/godiva/g0.html#Strings">Strings</a></li>
+	<li><a href="http://www2.cs.uidaho.edu/~jeffery/godiva/g0.html#Lists">Lists</a></li>
+	<li><a href="http://www2.cs.uidaho.edu/~jeffery/godiva/g0.html#Tables">Tables</a></li>
+	</ul>
+
+<!--
+<LI><A href="#Operator Semantics"> New Operator Semantics </A>
+	<UL>
+	<LI><A HREF="#Deep">Generalized Assignment and Comparison</A>
+	<LI><A HREF="#Aggregate">Operations on Aggregates</A> </LI>
+	<LI><A HREF="#A_Numeric">Aggregate Numeric Operations</A> </LI>
+	<LI><A HREF="#Reductions">Reductions</A> </LI>
+	<LI><A href="#Fields">Field Access Augmented Assignment</A>
+	</UL>
+
+<LI><A HREF="#Goal">Goal Directed Evaluation</A>
+	<UL>
+	<LI><A HREF="#Boolean">Non-boolean Logic</A> </LI>
+	<LI><A HREF="#Generators">Generators</A> </LI>
+	<LI><A HREF="#Backtracking">Control Backtracking</A> </LI>
+	<LI>? Generators and Aggregate Operations (not done yet) </LI>
+	</UL>
+
+<LI><A HREF="#Related">Related Work</A>
+-->
+
+<li><a href="http://www2.cs.uidaho.edu/~jeffery/godiva/g0.html#Summary">Summary</a>
+<!-- <LI><A HREF="#References">References</A>-->
+</li></ol>
+<p>
+</p><hr>
+
+<h2><a name="Introduction">1. Introduction</a></h2>
+
+<code>g0</code> is a subset of Godiva, a high-level general-purpose programming
+language descended from Java, and hence from C.  While their low-level
+built-in operator sets make Java and C best-suited for lower-level
+systems and middleware programming,
+Godiva has higher-level built-in facilities that orient it more towards
+rapid prototyping and applications programming.
+Godiva represents an example of what Java might
+become, one step further along an evolutionary path.  Godiva stands
+for <b>GO</b>al-<b>DI</b>rected ja<b>VA</b>.  <code>g0</code> is intended to
+correspond roughly to the subset of Godiva that would be covered in a CS1
+class such as UIdaho's CS 120 course.
+
+<p>
+
+Many very high level languages offer increased productivity in a specific
+application area by introducing bizarre syntax.  Godiva's goal is to
+increase the expressive power and raise the language level of Java with a
+minimal introduction of new syntax.  In order to achieve this goal, Godiva
+extends the core <em>semantics</em> of the operators and the
+expression-evaluation mechanism.
+
+</p><p>
+
+The facilities that Godiva presents as extensions of Java are not new.  They
+originated decades ago in special-purpose languages and have slowly
+propagated to other languages and been generalized to other application
+areas.  Godiva is the first language that integrates aggregate operations,
+pattern-matching control structures, and goal-directed expression evaluation
+within an object-oriented context.  Godiva aims to raise Java's level to the
+point where it can more seriously compete with higher-level general-purpose
+applications languages such as Perl or Tcl.
+</p><p>
+
+This paper serves as a working reference for <code>g0</code>, the instructional
+toy subset of Godiva.  
+
+</p><h3> 2. <a name="Lexical">Lexical Rules</a> </h3>
+
+The lexical rules of Godiva start from a baseline of: the lexical rules of
+Java.  <code>g0</code> simplifies and reduces the lexical rules of Java
+quite a bit.
+
+
+<p>
+<a name="Comments"></a><b><font size="3">2.1 Whitespace and Comments</font></b>
+</p><p>
+
+Spaces and tabs separate elements of the source program and are not otherwise
+considered, except when within a string literal.  Newlines are also whitespace,
+although they also play a role in terminating comments and semi-colon
+insertion.
+
+Comments included non-nested /* */ and // which comments to the end of a line.
+
+</p><p>
+<a name="Reserved"></a><b><font size="3">2.2 Reserved Words</font></b>
+</p><p>
+
+<code>g0</code> uses the following reserved words, which are largely drawn
+from Java. Note that you can't use <code>d</code>, <code>list</code>, or
+<code>table</code> as a variable name, they are
+reserved words in g0 although they are not in Java.  A <code>g0</code> compiler
+must at least support the following reserved words.
+
+</p><pre>bool   break  class  d      double  else   false  for    if
+int    list   null   return string  table  true   void   while
+</pre>
+
+The rest of the Java reserved words, if they occur should result in a
+"Java feature not in g0" error message, after which the compiler
+should stop.
+
+<p>
+
+Caveat: this degree of minimalism may be too extreme. Even toy programs
+have to have a degree of basic functionality which may require the addition
+of a few more Java reserved words.
+
+</p><p>
+<a name="Operators"></a><b><font size="3">2.3 Operators</font></b>
+</p><p>
+
+<code>g0</code> uses the following subset of Java operators, plus the new
+operators <code>#</code> (size), <code>d</code> (die roll) and <code>:=:</code> (swap). The
+precedence goes from highest at the top, to lowest at the bottom.
+Associativity is from left to right, except for the assignment and swap
+operators which are right to left.
+
+</p><p>
+
+<table border="">
+<tbody><tr><th>Operator</th><th>Meaning
+</th></tr><tr><td>()<br>[]</td><td>Parenthesis<br>Subscript
+</td></tr><tr><td>-<br>!<br><code>d</code><br>#</td><td>Unary minus<br>Unary logical negation<br>Unary die roll<br>Unary size
+</td></tr><tr><td>*<br>/<br>%<br><code>d</code></td><td>Multiplication<br>Division<br>Modulus<br>dice roll
+</td></tr><tr><td>+<br>-</td><td>Addition<br>Subtraction
+</td></tr><tr><td>&lt;<br>&lt;=<br>&gt;<br>&gt;=</td><td>less than<br>less than or equal<br>greater than<br>greater than or equal
+</td></tr><tr><td>==<br>!=</td><td>is equal to<br>is not equal to
+</td></tr><tr><td>&amp;&amp;</td><td>logical AND
+</td></tr><tr><td>||</td><td>logical OR
+</td></tr><tr><td>=<br>+=<br>-=<br>:=:</td><td>assignment<br>increment<br>decrement<br>swap
+</td></tr></tbody></table>
+
+Unary <code>d</code> requires an integer operand &gt; 0, checked at
+runtime if necessary. It produces a random number between 1 and the
+operand. Binary <code>d</code> requires two integer operands &gt; 0,
+checked at runtime if necessary. <code><em>N</em>d<em>M</em></code>
+produces the sum of <code><em>N</em></code> random numbers between 1
+and <code><em>M</em></code>.
+</p><p>
+
+= requires a variable for its left operand. :=: requires variables for
+both its operands.
+
+
+</p><p>
+<a name="Literals"></a><b><font size="3">2.4 Literals</font></b>
+</p><p>
+
+<code>g0</code> supports the set of literal constructors for values
+defined by the JSON standard, including string, number, list (i.e. array)
+and table (i.e. JSON "object") values. JSON format is described at
+<a href="http://www.json.org/">json.org</a>. Numbers are only in decimal
+format, no octal or hexadecimals. String literals support a subset of
+JSON that includes the escape characters \n \t \\ and \"
+but not most other escapes such as unicode escapes.
+
+
+</p><p>
+<a name="Punctuation"></a><b><font size="3">2.5 Punctuation</font></b>
+</p><p>
+
+Besides () and [] operators mentioned above, curly braces are
+used a lot in <code>g0</code>. Otherwise, the goal is to minimize
+the punctuation of Java. g0 uses comma and colon
+punctuation tokens. It might use others.
+
+
+</p><p>
+<a name="SemiColons"></a><b><font size="3">2.6 Semi-colons</font></b>
+</p><p>
+
+To reduce clutter and numerous-but-trivial "semi-colon expected" errors,
+semi-colons are not required in the g0 language, with one exception,
+which is that compilers are required to allow them between the three
+sections of a for-loop header.
+In all other syntactic contexts,
+a g0 compiler is allowed, but not required, to support optional
+semi-colons between statements. This approach might involve the
+placement of semi-colons within the language grammar, and a lexical
+rule in which the compiler
+automatically inserts a semicolon at the end of a line if an
+expression ends on the line and the next line begins with a token
+that can start another statement. So we can write </p>
+
+<pre>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; a = 1
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; b = 2
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; c = 0
+</pre>
+as an equivalent expression for
+<pre>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; a = 1; b = 2; c = 0</pre>
+<p>
+
+</p><p>
+<a name="Identifiers"></a><b><font size="3">2.7 Identifiers</font></b>
+</p><p>
+
+Variables are identified by names called <em>identifiers</em>.
+<code>g0</code> follows the following identifier rules.
+They must begin with a letter from a through z or A through Z,
+and then consist of letters and digits (no underscores or dollars
+that would be legal in Java/Godiva).
+An important exception is that the letter "d" may not be used
+followed only by digits in a variable name -- that is an instance
+of the unary random die roll operator. For example <code>d6</code> is
+a random number between 1 and 6, not a variable name.
+The maximum length of a variable
+name is 12 and this limit should be enforced.
+
+</p><h3> 3. <a name="Syntax">Syntax</a> </h3>
+
+The syntax of Godiva is based on that of Java. A marked-up lexical
+specification in a Lex(1) specification is
+	<a href="http://www2.cs.uidaho.edu/~jeffery/godiva/godlex.htm">godlex.htm</a>,
+and a YACC(1) specification is in
+	<a href="http://www2.cs.uidaho.edu/~jeffery/godiva/godyacc.htm">godyacc.htm</a>.
+<font color="#FF0000">Red</font> text marks Java features omitted from
+<code>g0</code>, and <font color="#009900">green</font> marks those items not part
+of Java that have been added to make up Godiva.  <font color="#00ff00&quot;">light
+green</font> items are part of the Godiva language not implemented in
+<code>g0</code>.
+
+<p>
+<a name="FunctionSyntax"></a><b><font size="3">3.1 Function Syntax</font></b>
+</p><p>
+
+g0 supports "function syntax", where functions are declared outside
+any class definition.  Such functions are equivalent to public static
+methods inside whatever class name corresponds to the current filename.
+For example, if the filename is foo.java, the Godiva program
+</p><pre>void main() {
+   write("hello, world")
+}
+</pre>
+is equivalent to the Java program:
+<pre>class foo {
+public static void main(string[] args) {
+   System.out.println("hello, world")
+   }
+}
+</pre>
+
+<p>
+
+Function syntax includes parameters, which are a comma-separated list
+of zero or more variables types and names.  g0 does not support prototypes.
+Although programs may be written in several source files, all source files
+must be listed on the command line when a g0 program is compiled, enabling
+the symbol tables to be fully populated prior to code generation.
+
+</p><p>
+<a name="FunctionSyntax"></a><b><font size="3">3.2 Control Structures</font></b>
+</p><p>
+
+g0 supports at least <code>if</code> statements (with an optional
+<code>else</code> clause), <code>while</code> loops, and
+<code>for</code> loops. Then-parts, else-parts and loop bodies
+may be <em>required</em> to be enclosed by curly brackets by a g0 compiler;
+the only exception to this restriction on g0 syntax is that
+else-parts that are themselves <code>if</code> statements are allowed
+without being enclosed in curly brackets.
+for-loop initializers are <em>not</em> required to allow variable
+declarations in them; see the Declaration Syntax section below.
+
+</p><p>
+<a name="ClassSyntax"></a><b><font size="3">3.3 Class Syntax</font></b>
+</p><p>
+
+g0 supports a restricted subset of Godiva's class syntax.
+All members are public, and that status is implicit.
+All are associated with an instance (none are static).
+There is no inheritance, and no abstract features or interfaces.
+There are no packages or imports.
+
+</p><pre>class pet {
+   int hunger
+   int happy
+   pet() {
+     hunger = 0
+     happy = 0
+   }
+   void play() {
+      int choice
+      write("What should we play?")
+      write( "Fetch (1) \n Roll over (2)" )
+      choice = read()
+      if (choice == 1) { happy += 10 }
+      else if (choice == 2) { hunger += 1 }
+      }
+}
+</pre>
+
+Variables that are instances of a class type start with the value null
+and are initialized by calling the class' constructor (a function with
+the same name as the class). g0 does not support function overloading,
+so there will only be one such constructor function. There is no default
+constructor; every class must declare a constructor.  Declaring a
+variable to hold a class instance looks something like:
+
+<pre>   pet p
+   p = pet()
+</pre>
+
+<p>
+<a name="DeclarationSyntax"></a><b><font size="3">3.4 Declaration Syntax</font></b>
+</p><p>
+
+All variables must be declared in <code>g0</code>. Variable declarations like
+</p><pre>   int x, y, z
+</pre>
+
+can occur at three levels: global scope, class scope, and local scope.
+There are no variable initializers, array sizes, etc.
+
+<p>
+
+<a name="DataFirst"></a><b><font size="3">3.5 Data Before Code</font></b>
+</p><p>
+
+In g0, at each level of scoping the data declarations will come before
+the code. For example, all global variables in a file will appear before
+any functions or classes.  All class variables will appear before any
+class methods. And all local variables will appear at the top of a
+function, before any statements.
+</p><p>
+
+g0 compilers may, at their discretion, choose not to enforce this semantic
+requirement and instead allow code and data elements in any order within
+one or all of the three scope levels.
+
+
+</p><h3><a name="Types">4. Data Types</a></h3>
+
+Built-in data types have much more syntactic support than user created data
+types. Especially because Java and Godiva do not allow operator overloading,
+increasing the number of built-in data-types that use an expressive operator
+syntax raises Godiva's semantic level compared with Java.
+
+<p>Between machine integers and object there is a niche of abstraction for
+built-in data types. The following criteria were used to select candidate
+built-ins:
+
+</p><ul>
+<li>Extremely common data-types used in many different applications
+</li><li>Data types for which immutable, value oriented semantics are commonly used
+</li><li>Data types that require only a small set of commonly-understood operations
+</li></ul>
+
+
+<a name="Numbers"></a><b><font size="3">4.1 Numbers</font></b>
+<p>
+
+<code>g0</code> has <code>int</code> and <code>double</code> numeric types.
+If it recognizes others (such as float or long) they are just aliases for
+these types.
+
+<!--
+To the list of integer types, there is a new primitive type called
+<font color="#00ff00">bigint</font>. It is of arbitrary precision.
+If an integer literal ends in B or b, it is a bigint.
+<p>
+Below is a comparison of code needed to compute <tt>(x - y) / (x + y)</tt>
+<p>
+
+<table border>
+<tr><th>Java<th>Godiva</tr>
+<tr><td>
+<pre> BigInteger x = new BigInteger(100000000);
+ BigInteger y = new BigInteger(900000000);
+ BigInteger ans = new BigInteger(0);
+ BigInteger temp = new BigInteger(0);
+
+ ans.add(x);
+ ans.sub(y);
+ temp.add(x);
+ temp.add(y);
+  
+ ans.divide(temp);
+</pre>
+<td>
+<pre>
+ bigint x = 1000000b
+ bigint y = 9000000b
+ bigint ans = (x - y) / (x + y)
+</pre>
+</table>
+-->
+
+</p><p>
+<a name="Strings"></a><b><font size="3">4.2 Strings</font></b> <br>
+</p><p>
+
+<tt>string</tt> is a new primitive type.  Godiva adds syntactic support
+for substrings, and finding the length of a string.  The operator
+<tt>==</tt> tests for equality of string values not their references.
+Strings are initialized by default to the empty string.  The semantics are
+value oriented just like integers in Java.  Negative indices may be used to
+denote positions from the end of the string.
+</p><p>
+
+Below is a list of operations on strings:
+
+<table border="" cellspacing="1" bordercolor="#000000">
+<tbody><tr><td valign="MIDDLE"> s1 s2&nbsp; </td>
+<td valign="MIDDLE"> concatenation, short form of s1 + s2 </td>
+</tr>
+<tr><td valign="MIDDLE"> s[i]&nbsp; </td>
+<td valign="MIDDLE"> the i-1 character </td>
+</tr>
+<tr><td valign="MIDDLE"> s[i:j]&nbsp; </td>
+<td valign="MIDDLE">a substring with characters bounded by i and j</td>
+</tr>
+<tr><td valign="MIDDLE"> #s&nbsp; </td>
+<td valign="MIDDLE"> length of the string </td>
+</tr>
+</tbody></table>
+</p><p>
+Below is a comparison:
+</p><p>
+
+<table border="">
+<tbody><tr><th>Java</th><th>Godiva</th></tr>
+<tr><td>
+<pre> string s1 = "Dec";
+ string s2 = "2018";
+ string s3;
+ int len;
+
+ s3 = s1 + " 25, " + s2;
+ if (s3.equal("Dec 25, 1999")) {
+    System.out.println("It is Christmas of 2018.");
+ }
+ System.out.println("The month is " + s3.substring(0,4));
+ len = s3.length();
+ System.out.println("The year is " + s3.substring(len-5, len));
+</pre>
+</td><td>
+<pre> string s1, s2, s3
+
+ s1 = "Dec"
+ s2 = "2018"
+ s3 = s1 " 25, " s2  // the explicit '+' is optional
+ if (s3 == "Dec 25, 2018") {
+    write("It is Christmas of 2018.")
+    }
+ write("The month is " s3[0:3])
+ write("The year is " s3[-4:0])
+</pre>
+</td></tr></tbody></table>
+
+</p><p>
+<a name="Lists"></a><b><font size="3">4.3 Lists</font></b> <br>
+</p><p>
+
+Lists are sequences, indexed using integers. The default element type is
+integer; otherwise lists can have a declared element type like this:
+</p><p>
+
+</p><pre>list&lt;string&gt; L</pre>
+<p>
+
+Lists grow and shrink dynamically, similar to the
+Vector class with improved syntactic support.  Below is a list of operations
+on lists:
+
+<table border="" cellspacing="1" bordercolor="#000000">
+<tbody><tr><td valign="MIDDLE"> L1 L2&nbsp; </td>
+<td valign="MIDDLE"> Concatenates L1 and L2&nbsp; </td>
+</tr>
+<tr><td valign="MIDDLE"> L1 += L2 </td> <td> appends to a list </td></tr>
+<tr><td valign="MIDDLE"> L1 += x </td> <td> appends a single element to a list </td></tr>
+<tr><td valign="MIDDLE"> L[i]&nbsp; </td>
+<td valign="MIDDLE"> the i-1 element of L </td>
+</tr>
+<tr><td valign="MIDDLE"> L[i:j]&nbsp; </td>
+<td valign="MIDDLE"> a slice of L with elements bounded by i and j </td>
+</tr>
+<!--<TR><TD VALIGN="MIDDLE"> *L&nbsp; </TD>
+<TD VALIGN="MIDDLE"> length of the list </TD>
+</TR>-->
+<!--
+<TR><TD VALIGN="MIDDLE"> L.pop()&nbsp; </TD>
+<TD VALIGN="MIDDLE"> removes and returns left-most element </TD>
+</TR>
+<TR><TD VALIGN="MIDDLE"> L.push(x,...)&nbsp; </TD>
+<TD VALIGN="MIDDLE"> appends elements x to the left end of L </TD>
+</TR>
+<TR><TD VALIGN="MIDDLE"> L.put(x,...)&nbsp; </TD>
+<TD VALIGN="MIDDLE"> appends elements to the right end of L </TD>
+</TR>
+<TR><TD VALIGN="MIDDLE"> L.pull()&nbsp; </TD>
+<TD VALIGN="MIDDLE"> removes and returns right-most element </TD>
+</TR>
+<TR><TD VALIGN="MIDDLE"> L.insert(x, i)&nbsp; </TD>
+<TD VALIGN="MIDDLE"> inserts x into L at position i; i defaults to the
+right end of the list. </TD>
+</TR>
+<TR><TD VALIGN="MIDDLE"> L.delete(i)&nbsp; </TD>
+<TD VALIGN="MIDDLE"> removes element at position i from L; i defaults to
+the right end of the list. </TD>
+</TR>
+-->
+<tr><td valign="MIDDLE"> #L&nbsp; </td>
+<td valign="MIDDLE"> the size of list L&nbsp; </td>
+</tr>
+</tbody></table>
+</p><p>
+
+A comparison of code needed to compute a list of of pairs i followed by
+sum of 1 to i:
+</p><p>
+
+<table border="">
+<tbody><tr><th>Java</th><th>g0</th></tr>
+<tr><td>
+<pre> Vector<integer> v1 = new Vector();
+ for (int i; i &lt; 10; i++) {
+    sum += i;
+    v1.add(i);
+    v1.add(sum);
+    }
+</integer></pre>
+</td><td>
+<pre>list l
+ int i
+ for (i=0; i &lt; 10; i+=1) {
+    sum += i
+    l += i sum
+    }
+</pre>
+</td></tr>
+</tbody></table>
+
+</p><p>
+<a name="Tables"></a><b><font size="3">4.4 Tables</font></b>
+</p><p>
+
+Tables are associative arrays, which is to say that their indices are not in
+sequence. Indices default to string, and elements default to int.
+Otherwise, the types are declared like this:
+
+</p><pre>table t // default to &lt;string,int&gt;
+table&lt;int&gt; t; // element type
+table&lt;int,string&gt; t; // index type followed by element type
+</pre>
+
+<p>
+
+Tables can grow dynamically, and when you create them you can specify a
+default mapping for all indices that have not been assigned a value.  Below
+is a list of operations on tables:
+
+</p><p>
+
+<table border="" cellspacing="1" bordercolor="#000000">
+<tbody><tr><td valign="MIDDLE"> T[a] = b&nbsp; </td>
+<td valign="MIDDLE"> stores a mapping from element a to element b </td>
+</tr>
+<tr><td valign="MIDDLE"> T[a]&nbsp; </td>
+<td valign="MIDDLE"> Succeeds if a has a mapping using T </td>
+</tr>
+<tr><td valign="MIDDLE"> T[] = a&nbsp; </td>
+<td valign="MIDDLE"> sets the default mapping to element a </td>
+</tr>
+<tr><td valign="MIDDLE"> T -= a&nbsp; </td>
+<td valign="MIDDLE"> pulls out (deletes) key a from the mapping in T </td>
+</tr>
+<tr><td valign="MIDDLE"> #T&nbsp; </td>
+<td valign="MIDDLE"> the size of table T </td>
+</tr>
+</tbody></table>
+</p><p>
+
+Below is a comparison of the code needed to do a quick check of the 
+randomness of random numbers:
+</p><p>
+<table border="">
+<tbody><tr><th>Java</th><th>Godiva</th></tr>
+<tr><td>
+<pre> Hashtable ht = new Hashtable();
+ for (int i = 0; i &lt; 10000; i++) {
+    Integer r = new Integer((int) (Math.random() * 20));
+    if (ht.containsKey(r))
+       ((Counter)ht.get(r)).i++;
+    else
+       ht.put(r, new Counter());
+    }
+</pre>
+</td><td>
+<pre> table t[] = 0
+
+ for (int i = 0; i &lt; 10000; i+=1) {
+    t[d20] += 1
+    }
+</pre>
+</td></tr></tbody></table>
+
+</p><p>
+
+</p><h3><a name="Functions">4. Built-In Functions</a></h3>
+
+Unlike Java, which does almost everything through its class library,
+<code>g0</code> has some built-in functions.  For example, <code>write()</code>
+is pretty close to an alias for <code>System.out.println()</code>.
+It automatically coerces its arguments to string, or dies trying.
+
+<p>
+
+Similarly, <code> read() </code> returns a string that is the next line
+of text.
+
+<!--
+
+<h3><A NAME="Operator Semantics">4. New Operators and Their Semantics</A></h3>
+
+
+<h4><A NAME="Deep"></A>4.1 Generalized Assignment and Comparison </h4>
+
+There are three flavors of assignment and comparison: shallow, deep, and
+1-level deep. Assignment and comparison are basic operations on all
+types that support the Cloneable interface.
+<P>
+Consider the following expression that represents either
+assignment or comparison: </P>
+
+<PRE>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; A <I>operator</I> B</PRE>
+
+<P>A shallow assignment uses reference semantics and copies the L-value of B
+to the L-value A. If B does not have an L-value, i.e. B is a literal value,
+then one is generated it copied to A. A deep assignment uses value semantics
+and makes a complete copy of the R-value of B and copies it to A. This may
+require recursing down each of the embedded components in B. A 1-level deep
+assignment only recurses one level deep in the copy; beyond that it does a
+shallow copy. </P>
+
+<P>A shallow comparison uses reference semantics and compares the L-value of
+B to the L-value A. If B does not have an L-value, i.e. B, is a literal
+value, then a deep comparison is used. A deep comparison uses value
+semantics and makes a complete comparison of the R-values of A and B. This
+may require recursing down each of the embedded components in each of the
+structured times. A 1-level deep assignments only recurses one-level deep in
+the comparison; beyond that it does a shallow comparison.&nbsp;</P>
+
+
+<TABLE BORDER CELLSPACING=1 BORDERCOLOR="#000000">
+<TR><TD VALIGN="MIDDLE">
+
+
+<P>
+
+</TD>
+<TD VALIGN="MIDDLE">
+
+<P>Shallow
+</TD>
+<TD VALIGN="MIDDLE"> 1-Level </TD>
+<TD VALIGN="MIDDLE">
+
+
+<P>Deep&nbsp;
+</TD>
+</TR>
+<TR><TD VALIGN="MIDDLE">
+
+<P>Assignment
+</TD>
+<TD VALIGN="MIDDLE">
+
+<P>X1 = X2
+</TD>
+<TD VALIGN="MIDDLE">
+
+<P>X1 := X2
+</TD>
+<TD VALIGN="MIDDLE">
+
+<P>X1 ::= X2&nbsp;
+</TD>
+</TR>
+<TR><TD VALIGN="MIDDLE">
+
+<P>Comparison
+</TD>
+<TD VALIGN="MIDDLE">
+
+<P>X1 == X2
+</TD>
+<TD VALIGN="MIDDLE">
+
+<P>X1 === X2
+</TD>
+<TD VALIGN="MIDDLE">
+
+<P>X1 ==== X2&nbsp;
+</TD>
+</TR>
+</TABLE>
+
+<P><BR> Because swapping is a very common operations, we introduce the
+following swap operator that swaps the reference of a and b. </P>
+<PRE>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; a :=: b</PRE>
+<p>
+
+<h4><A NAME="Aggregate">4.2 Aggregate Operations</A></h4>
+
+Aggregate operations operate on corresponding elements of entire compound
+structures at a time.  By eliminating many loops over arrays and structures,
+aggregate operations reduce the amount of code required and eliminate many
+trivial bugs and oversights.  Aggregate operations also simplify the task of
+parallelizing compilers.
+
+<p>
+In Godiva, existing numeric operators are implicitly aggregate when one or
+more operands is an array, list, table, or an object that supports the
+Vector interface.  For simplicity in the subsequent description, we will
+refer to all forms of aggregate as a vector.  In scalar-vector operations,
+the scalar operand is applied to each element of a vector operand; elements
+in vector-vector operands are generally combined pairwise.  Godiva also
+offers several new (non-Java) aggregate operators, styled partially after
+Dataparallel C [Hat91].
+<p>
+<H4><A name="A_Numeric">4.3 Aggregate Numeric Operations</A></H4>
+
+All binary operators are over-loaded to work on pair-wise elements of
+structured built-in data types.  The simplest examples of aggregate
+operations are those that operate on vectors and combine them with scalars
+and other vectors.  The following code examples illustrate these operations.
+
+<p>
+<PRE>
+   double x = 2.5
+   int ia[][] = {{1, 2}, {3, 4}}
+   double da[][] = ia * x                   // {{2.5, 5.0}, {7.5, 10.0}}
+   da += 1.0                                // {{3.5, 6.0}, {8.5, 11.0}}
+   da *= da                                 // {{12.25, 36.0}, {72.25, 121.0}}
+</pre>
+
+The most general form of aggregate operation is the element-wise
+application of a method to vector parameters, producing a new vector of
+results.  This is performed implicitly as a final step of method resolution.
+<p>
+<PRE>
+   da = sqrt(da)                            // {{3.5, 6.0}, {8.5, 11.0}}
+</pre>
+
+If multiple vector parameters are supplied, they must be of the same size
+and shape, and the method is invoked on corresponding elements.
+<PRE>
+   int ia[][] = {{1, 2}, {3, 4}}
+   int ia2[] = pow(ia[0],ia[1])             // {1, 16}
+</pre>
+
+Other numeric operations, such as matrix multiplication, involve more
+complex combinations of their operands.  In APL or J there might be dozens
+of built-in functions for such computations.  Godiva does not introduce many
+new operators; instead it combines aggregate operations with the
+goal-directed expression evaluation mechanism described below to support
+interesting computations.
+
+<H4><A name="Reductions">4.4</A> Reductions</H4>
+
+One new form of operators that Godiva does provide are <EM>reductions</EM>
+that produce new scalar values from an aggregate operand.  The final
+dimension of a vector can be reduced to a scalar using unary versions of the
+arithmetic operators.
+
+<PRE>
+   +{1, 2, 3}                               // returns the sum, 6
+   double red[] = +da                       // {9.5, 19.5}
+   double re2 = +(+da)                      // 29.0
+</pre>
+
+<p>
+
+Of course, this sort of thing usually makes more sense when used in
+combination with other operations.  The following code computes the value of
+a polynomial whose terms are represented by the array
+<CODE>coefficients</CODE>.
+<p>
+<PRE>
+   double x = 2.5
+   double coefficients[] = {3.0, -2.0, 9.0, 4.0}
+   double exponents[] = {0.0, 1.0, 2.0, 3.0}
+   double powers[] = pow(x, exponents)	          // {1.0, 2.5, 6.25, 15.625}
+   double terms[] = coefficients * powers        // {3.0, -5.0, 56.25, 62.5}
+   double sum = +terms                           // 116.75
+</pre>
+
+<p>
+or, the code can be expressed more succinctly as:
+<p>
+<PRE>
+   double sum = +(coefficients * pow(x, exponents));
+</pre>
+
+<p>
+Godiva also adds min and max operators that operate on scalars and vectors,
+<CODE>&lt;?</CODE> and <CODE>&gt;?</CODE>.  These predefined operators
+return the minimum or maximum values of their operands as follows: </P>
+
+<PRE>  
+1 &lt;? 2           // returns 1
+3 &gt;? 4           // returns 4
+&lt;?{2, 1, 3}      // returns 1
+</PRE>
+
+
+<H4>4.5 Aggregate Table Operations</H4>
+
+Tables support the same aggregate semantics as ordinary arrays, producing
+new tables.
+
+<PRE>
+   table debits = new table(0.0)                    // default 0.0
+   table credits = new table(0.0)
+   debits["Tucson"] = 5.9
+   debits["San Antonio"] = 9.5
+   credits["Tucson"] = 3.5
+   credits["San Antonio"] = 11.1
+   credits["Seattle"] = 4.2
+   debits += 1.0                                   // 6.9, 10.5
+   table balances = credits - debits               // -3.4, 0.6, 4.2
+</pre>
+
+
+<h4><A name="Fields"> 4.6 Field Access Augmented Assignment </A></h4>
+
+Godiva supports an additional augmented assignment operator, <code>.=</code>,
+that performs a field access.  It is typically used in list or tree traversals,
+such as
+
+<pre>
+   while (theLongVariable != null) theLongVariable .= next
+</pre>
+
+instead of Java's
+
+<pre>
+   while (theLongVariable != null) theLongVariable = theLongVariable.next;
+</pre>
+
+-->
+
+<!--
+
+<A NAME="Goal">
+<h3> 5. Goal-directed Expression Evaluation </h3>
+</A>
+
+Goal-directed evaluation does for algorithms what aggregate operators do for
+arrays and structures: it eliminates the need for many loops, shortening
+code and eliminating certain kinds of errors.  The basic mechanisms of
+goal-directed evaluation are <EM>generators</EM> and <EM>control
+backtracking</EM>, described below.
+
+<h4>5.1 Success and Failure </h4>
+
+Goal-directed evaluation starts by replacing boolean-directed evaluation
+with a substantially more powerful underlying semantics.  Expressions in
+Godiva either <EM>succeed</EM> in producing results or <EM>fail</EM> and
+produce no results.  Control structures such as <CODE>if (<EM>expr</EM>)
+...</CODE> are directed by whether or not <EM>expr</EM> produces a result,
+not by whether that result is <CODE>true</CODE> or <code> false</code>.
+Expression failure propagates from inner expressions to enclosing
+expressions.
+
+<A name="Boolean">
+<H4>5.2 Non-Boolean Logic</H4>
+</A>
+
+Relational operators such as <CODE>x &lt y</CODE> either succeed and
+produce their right operand, or fail.  In a simple uses such as
+<PRE>
+     if (x &lt y) <EM>statement</EM>;
+</pre>
+
+the meaning is consistent with other languages. Since the expression
+semantics is not encumbered with the need to propagate boolean (or 0 and 1)
+values, comparison operators can instead propagate a useful value (their
+right hand argument), allowing expressions such as
+
+<code>
+   3 &lt; x &lt; 7
+</code>
+
+which is rather more concise than Java's
+
+<code>
+   (3 &lt; x) && (x &lt; 7)
+</code>
+
+
+<A name="Generators">
+<H4>5.3 Generators</H4>
+</A>
+
+Generators are expressions that can produce multiple results.  In a
+goal-directed language, generators are the building blocks from which
+powerful algorithms are constructed.  In Godiva, unlike its goal-directed
+predecessor Icon, these expressions are always obvious; syntactic
+transparency improves readability.  Generators respond to expression failure
+by producing additional results, which are delivered to surrounding
+expressions by means of implicit control backtracking.
+<p>
+The simplest generator is another post-boolean operator, <EM>alternation</EM>.
+Alternation is a binary operator that subsumes Java's logical OR.  The
+expression <EM>expr[1] \ expr[2]</EM> produces any values from
+<EM>expr[1]</EM> followed in sequence by any values from <EM>expr[2]</EM>.
+For example, the expression <CODE>1 \ 2 \ 3</CODE> is capable of generating
+three values.
+
+<H4><A name="Backtracking">5.4</A> Control Backtracking</H4>
+
+Whether a generator produces one, some, or all of its results is driven at
+run-time by whether the expression it is used in requires additional results
+in order to succeed in producing results.  When an enclosing expression
+fails, its generator sub-expressions are <EM>resumed</EM> for additional
+results, and the failed outer expression is retried with those results.
+When more than one generator is present in an expression, they are resumed
+in a LIFO manner.
+<p>
+
+The expression
+<p>
+<PRE>
+   <EM>expr</EM> == (1 \ 2 \ 3)
+</pre>
+
+succeeds if <code><em> expr</em></code> is any one of the three values.
+<EM>expr</EM> is compared with the first result, a <CODE>1</CODE>, and only
+if that comparison (or an expression in the enclosing context) fails is the
+alternation resumed to produce a <CODE>2</CODE> or a <CODE>3</CODE>.
+<p>
+The same thing can be written in Java by repeating the reference to
+<EM>expr</EM> and using three equality tests, but if <tt><em> expr</em></tt>
+is a complex object reference (say, <CODE>a[3].left.right.o[2]</CODE>),
+writing the above comparison in Java is longer and less efficient:
+<p>
+<PRE>
+     a[3].left.right.o[2] == (1 \ 2 \ 3)     // Godiva
+
+     a[3].left.right.o[2] == 1 ||            // Java...
+     a[3].left.right.o[2] == 2 ||
+     a[3].left.right.o[2] == 3
+</pre>
+
+Previous experience with goal-directed evaluation suggests that the
+combination of implicit control backtracking and implicit generator
+expressions can result in unfortunate accidents. Also, explicit generator
+syntax simplifies certain code optimizations.  For these reasons, in Godiva
+generators are explicitly identifiable from the syntax.
+<p>
+The total number of generator operators in Godiva is small.  In addition to
+alternation, there are two other ways to introduce generators into an
+expression in Godiva. The generate operator, unary <CODE>@</CODE>, is a
+polymorphic operator that generates values depending on the type of its
+operand.  <CODE>@</CODE><EM>expr</EM> is defined as follows:
+
+
+<table border>
+<tr>
+<th>if <EM>expr</EM> is of type</th>  <th>generator result sequence is  </th>
+</tr>
+
+<tr><td>integer</td> <td> <CODE>0</CODE> to <EM>expr</EM>-1</td></tr>
+<tr><td>aggregate</td> <td> elements of <EM>expr</EM>, in sequence</td></tr>
+<tr><td>method</td><td>   generator invocation, described below</td></tr>
+<tr><td>built-in data type</td> <td>the elements of the type</td> </tr>
+<tr><td>object</td>  <td> generator invocation on a standard method; equivalent to <CODE>@</CODE><EM>expr</EM><CODE>.gen()</CODE></td></tr>
+</table>
+
+<p>
+For example, if <CODE>a</CODE> is an array of numbers, then the expression
+<p>
+<PRE>
+     x < @a < z
+</pre>
+
+compares elements of <CODE>a</CODE>, succeeding if any of them are between
+<CODE>x</CODE> and <CODE>z</CODE>.  Recall that comparison operators produce
+their right-hand operand when they succeed; this expression produces
+<CODE>z</CODE> each time it succeeds.  If the specific elements of
+<CODE>a</CODE> in the specified range are desired by the surrounding
+expression, the more devious expression
+
+<PRE>
+z > (x < @a)
+</pre>
+
+is needed.
+<p>
+User-defined generators are the most general way to introduce generators
+into an expression in Godiva.  User-defined generators are method calls
+that suspend results instead of returning them. In Godiva, a method can be
+invoked for at most one result using ordinary parenthesis syntax
+or it can be invoked as a generator by means of the <CODE>@</CODE> operator.
+<p>
+<PRE>
+     p();           // ordinary invocation
+     @p();          // generator invocation
+</pre>
+
+For example, in the following statement the then-branch is executed if any
+result produced by a generator invocation <CODE>@o.gen()</CODE> is equal to
+1, 2, or 3.
+<p>
+<PRE>
+   if (@o.gen() == (1 \ 2 \ 3)) // then-statement
+</pre>
+
+Since <CODE>gen()</CODE> is the standard generator method name,
+<CODE>@o</CODE> could be used in place of <CODE>@o.gen()</CODE>; this would
+not be the case if <CODE>gen()</CODE> required parameters.
+
+<p>
+Within methods, non-final results can be produced using <CODE>suspend</CODE>
+<EM>expr</EM> instead of <CODE>return</CODE>.  In generator invocation, such
+a method can be resumed at the point in the code where it suspended, with
+local variables intact, to produce additional results for the enclosing
+expression.
+
+<p>
+<CODE>return</CODE> can not be resumed; a return statement,
+<CODE>return</CODE> <EM>expr</EM>, always terminates a method call and
+produces a result whether in ordinary or generator invocation.  If a method
+is invoked using ordinary invocation, it will never be resumed for
+additional results even if it is a generator that suspended and could
+produce additional results.
+
+<H4>5.5 Iteration</H4>
+
+Godiva's loop control structures distinguish between generator control
+expressions and single-result control expressions.  For a generator, the
+control expression is evaluated only once and the loop body executes once
+per result produced by the generator expression.  For a single-result
+control expression, the expression is re-evaluated each time through the
+loop, as in conventional languages.
+<p>
+The good news about this is that it allows very clean expression of loops
+based on generators, such as
+<p>
+<PRE>
+   while (i = (1 \ 1 \ 2 \ 3 \ 5 \ 8)) ...
+</pre>
+
+which executes a loop body with <CODE>i</CODE> set to the first few
+fibonacci numbers (the example could be generalized to a user-defined
+generator that produced the entire fibonacci sequence).  The bad news is
+that a loop such as
+<p>
+<PRE>
+   while (i &lt 5 \ j &lt 10) ...
+</pre>
+
+has the counterintuitive effect of executing the loop 0 or 1 or 2
+times.  Since Java also defines the non-generator logical-OR operator
+$||, the above loop should be written
+<p>
+<PRE>
+   while (i &lt 5 || j &lt 10) ...
+</pre>
+
+In addition to iteration in the context of loop control structures, Godiva
+adds one important unary operator, iterative array construction, which
+constructs an array of values directly from a generator's result sequence.
+This operator uses the curly braces, as do array initializers.  An expression
+such as
+<PRE>
+    { @i }
+</pre>
+
+produces a list of size <CODE>i</CODE> with elements <CODE>{0..i-1}</CODE>,
+while
+
+<PRE>
+    { @a }
+</pre>
+produces a list copy of <CODE>a</CODE>.
+
+<H4>5.6 Generators and Aggregate Operations</H4>
+
+Generators allow data to be combined in interesting ways.  Consider the
+matrix multiplication problem.  For matrices A and B, each element of the
+matrix AB is a sum of terms computed by multiplying a row of A and a
+column of B.  In Java, we can write this out with a triply-nested loop:
+<p>
+<PRE>
+   for (int i = 0; i < N; i++)
+      for (int j = 0; j < N; j++) {
+         c[i][j] = 0.0;
+         for (int k = 0; k < N; k++)
+            c[i][j] += a[i][k] * b[k][j]; // row i * column j
+         }
+</pre>
+
+In Godiva, the innermost loop can be replaced by aggregate operations,
+but only if we can construct arrays corresponding to columns of B.
+Column j of B can be constructed by iterative array construction:
+<CODE>{ (@B)[j] }</CODE>.  The matrix multiply looks like:
+<p>
+<PRE>
+   for (int i = 0; i < N; i++)
+      for (int j = 0; j < N; j++)
+         C[i][j] = + (A[i] * { (@B)[j] })
+</pre>
+
+The example is intended to illustrate interactions between generators and
+aggregate operations.  In a naive implementation of Godiva, it pays to
+reorder things and construct the columns of B up front.
+<p>
+<PRE>
+   for (int j = 0; j < N; j++)
+      double temp[] = { @B[j] }
+      for (int i = 0; i < N; i++)
+         C[i][j] = + (A[i] * temp)
+</pre>
+
+
+<A name="Related">
+<H3>7. Related Work</H3>
+</A>
+
+Godiva's extensions to Java are a synthesis of ideas found in other
+languages.  Aggregate operations are a hallmark feature of APL [APL], and
+widely adopted in languages for numeric and scientific computing, such as J,
+C*, and High Performance FORTRAN.  Of these languages, C* and Dataparallel C
+are of particular interest since they describe features similar to Godiva's
+aggregate operators in languages that use C syntax as a base, as to Java and
+Godiva [CPG] [Hat91].
+<p>
+Sets are arguably the most simple of the dynamic data types in that they
+don't even impose an order constraint on the elements unlike arrays.  They
+are part of our foundations of mathematics and fundamentals of algorithms.
+The designers of Modula-3 [Modula-3] saw a need for supporting sets at the
+most basic part of the language just like arrays.  They are not relegated to
+a remote place in a standard library.
+<p>
+Associative arrays appeared in SNOBOL4 [Snobol] and have since been adopted
+in most string processing languages, such as Perl, Rexx, and Icon.  Pattern
+matching also first appeared in SNOBOL4, and pattern-matching based on
+regular expressions is found in numerous UNIX tools, such as Perl [Perl].  A
+comprehensive study how regular expressions are used in a large variety of
+successful and popular software tools can be found in [Regular Expressions].
+<p>
+Goal-directed expression evaluation originated in the Icon programming
+language [Icon].  Goal-directed evaluation generalizes both the
+pattern-matching facilities in SNOBOL4 as well as iterator mechanisms such
+as those found in CLU [CLU].  An efficient model for the implementation of
+goal-directed evaluation has recently been developed that will facilitate
+the adoption of goal-directed evaluation in new languages [Pro97].
+<p>
+Numerous other language implementation projects are now targetting code
+generation for the Java VM, including other very high-level languages that
+provide advantages over Java, such as NetRexx [NetRexx].  Many dialects of
+the Java language that add features from C++ have been developed.  Pizza is
+a Java dialect that incorporates features from functional languages [Pizza].
+Pizza adds parametric polymorphism, higher-order functions, and algebraic
+data types to Java.  These extensions are largely orthogonal to those
+proposed in Godiva, and take Java in a very different direction, increasing
+the language's expressive power by extending the type system with a strong
+theoretical foundation.
+
+-->
+
+<a name="Summary">
+</a></p><h3><a name="Summary">Summary</a></h3><a name="Summary">
+</a>
+
+Sure, <code>g0</code> may be a toy language designed for a compiler class.
+Even with only this much, it may provide a convenient notation for a
+lot of simple programming tasks such as those faced by students in CS 120.
+
+<!--
+
+Java's design is elegant in comparison with most languages, but it is a
+spartan elegance.  Java's lack of higher-level features, aside from classes,
+makes a fine philosophical stand, and if one ignores the mountain of class
+libraries Java is fairly easy to learn, as was Pascal.  We contend that this
+spartan elegance is unnecessary, and have attempted to prove so in a
+language design without losing sight of Java's main assets.
+
+<p>
+
+Godiva adds substantially to the expressive power of Java by integrating
+some of the best ideas associated with very-high level languages.  Java's
+strengths are augmented in the areas of numeric and string processing, as
+well as data structure and algorithm development.  Remarkably, this
+expressive power is achieved with very few additions to Java's syntax that
+might reduce readability or decrease the language's broad appeal.
+
+<p>
+
+Any proposal to extend a language must address the issue of generality.  Not
+every feature proposed in Godiva is necessary for every application, but one
+or several of the features will be valuable in most programs of medium or
+large size. The end result is a notation that substantially more attractive
+for the development of technical applications.
+
+<A name="Acknowledgements">
+<h3>Acknowledgements</h3>
+</A>
+
+Ray Pereda contributed to early drafts of this paper.
+Hasan Al-Sheboul supplied valuable comments and corrections.
+
+<A name="References">
+<h3>References</h3>
+</A>
+
+<OL>
+<li> [APL]
+Iverson, Kenneth E. 1962. <EM>A Programming Language</EM>. New York:John Wiley and Sons.
+<p>
+<li>[CLU]
+"Abstraction Mechanisms in CLU". August 1977.
+<EM>Communications of the ACM</EM>, (8):564-576.
+<p>
+<li>[CPG]
+<EM>C* Programming Guide Version 6.0</EM>. 1990.
+Cambridge, MA.:Thinking Machines Corporation.
+<p>
+<li>[Hat91]
+<EM>Data-Parallel Programming on MIMD Computers</EM>. 1991.
+Cambridge, MA:MIT Press.
+<p>
+<li>[Icon]
+Griswold, Ralph E. and Madge T. Griswold. 1997. 
+<EM>The Icon Programming Language</EM>, 3rd Edition, 
+San Jose, Peer-to-Peer Communications.
+<p>
+<li>[Modula-3]
+Harbison, Samuel P. 1992. <EM>Modula-3</EM>, Englewood Cliffs, New Jersey:
+Prentice Hall.  
+<p>
+<li>[NetRexx]
+Cowlishaw, M. F. 1977. <EM>The NetREXX Language</EM>, New York:Prentice-Hall.
+<p>
+<li>[Perl]
+Wall, Larry and Randal L. Schwartz. 1991. <EM>Programming Perl</EM>, 
+Sevastopol, CA:O'Reilly and Associates.
+<p>
+<li>[Pizza]
+Odersky, Martin and Philip Walder. January 1997. 
+"Translating theory into practice," 
+<EM>24th ACM Symposium on the Principles of Programming Languages</EM>, 
+Paris, France.
+<p>
+<li>[Pro97]
+Proebsting, Todd. June 1997. "Simple Translation of Goal-Directed Evaluation",
+<EM>Proceedings of the SIGPLAN 97 Conference on Programming Language Design and Implementation</EM>. Las Vegas, NV.
+<p>
+<li>[Regular Expressions]
+Friedl, Jeffery E. F. 1997. <EM>Mastering Regular Expressions</EM>.
+Sevastopol, CA:O'Reilly and Associates.
+<p>
+<li>[Snobol]
+Griswold, R. E., J. F. Poage, and I. P. Polonsky. 1971. 
+<EM>The SNOBOL4 Programming Language</EM>, 2nd Edition, New York:Prentice-Hall.
+<p>
+<li>[Sun]
+<EM>Java JIT Compiler Overview</EM>.
+<CODE>www.sun.com/workshop/java/jit/explanation.html</CODE>.
+<p>
+<li>[Toba]
+John H. Hartman, Tim Newsham, and Scott A. Watterson. June 16-20, 1997.
+<EM>Toba: Java for Applications -- A Way Ahead of Time (WAT) Compiler</EM>.
+USENIX 3rd Conference on Object-Oriented Technologies and Systems (COOTS).
+Portland, OR.
+
+<OL>
+-->
+
+
+
+</body></html>

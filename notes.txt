@@ -194,9 +194,11 @@ RETURN
 
 
 
+10/22/2018:
+Grinding towards intermediate code generation lectures.
 
-
-
+There are multiple sizes for a variable, 
+e.g. "sizeof( char* )" and "sizeof( char ) * string_length"
 
 
 

@@ -1,0 +1,15 @@
+class foo {
+   int x
+   foo() {
+      x = 3
+   }
+}
+
+void main()
+{
+   int x
+   int y
+   foo bar
+   bar = foo()
+   y = bar.x
+}

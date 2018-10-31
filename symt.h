@@ -6,46 +6,62 @@ HW #2: Syntax Analysis
 "symt.h"
 	Symbol Table Header
 */
+#define HASH_TABLE_SIZE 41
 
 #ifndef SYM_T_H
 #define SYM_T_H
 
-#define HASH_TABLE_SIZE 41
+typedef struct Scope scope_t;
 
 #include <stdlib.h>
 #include <stdint.h> // uint32_t
+#include "token.h"
+// #include "scope.h"	// scope_t
+#include "type.h"	// type_t
 
-typedef struct Identifier
+
+typedef struct Symbol
 {
-	char* name;
-	int typeCode;	// Code of identifier type.
-	int numInstances;
+	char* label;
+	type_t* type;
 	// declaration info
 	int lineno;
-	// Create a linked list to store local variables.
-} ident;
+	scope_t* parenscope;
 
-typedef struct IdentListNode {
-	ident* info;
-	struct IdentListNode* next;
+	union {
+		// Supporting information for semantic analysis
+		struct auxflags
+		{
+			// auxillary flags like "isconst"
+			int isconst;
+		} f;
+		// if symbol has a symboltable entry it owns.
+		scope_t* myScope;
+	} s;
+	// Create a linked list to store local variables.
+} sym_t;
+
+typedef struct SymbolListNode {
+	sym_t* info;
+	struct SymbolListNode* next;
 } listNode;
 
-typedef struct IdentifierLinkedList {
+typedef struct SymbolLinkedList {
 	listNode* head;
 	listNode* tail;
 	int size;
-} identList;
+} symList_t;
 
-void initTables();
-void destroyTables();
+void initTables( symList_t* );
+void destroyTables( symList_t* );
 
-ident *addIdentifier(char *name, int code, int lineno);
-ident* lookUp( char* name);
+sym_t *addSym(symList_t *, char *name, int lineno);
+sym_t *lookUp(symList_t *, char *name);
 uint32_t hash(char *n);
 
 // Linked List functions.
-ident* addIdent( identList* l, ident* i );
-ident *searchList(identList l, char *name);
+sym_t* addIdent( symList_t* l, sym_t* i );
+sym_t *searchList(symList_t l, char *name);
 
 
 #endif

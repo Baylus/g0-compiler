@@ -65,21 +65,28 @@ class pet {
     pet pet1
     int choice 
     int health_check
-    do {
-       pet1.print()
+	choice = 1
+	while (choice != 0 && health_check != 1) {
+		pet1.print()
        write("What would you like to do with your pet?\n")
        write(" Play (1) \n Feed (2) \n Exit (0) \n")
        choice = read()
-       switch (choice) {
-       case 1:
-          pet1.play()
-          break
-       case 2:
-          pet1.feed()
-          break
-          }
+       //switch (choice) {
+       //case 1:
+       //   pet1.play()
+       //   break
+       //case 2:
+       //   pet1.feed()
+       //   break
+       //   }
+	   if ( choice == 1 ) {
+	      pet1.play()
+	   }
+	   else if ( choice == 2 ){
+	      pet1.feed()
+	   }
        health_check = pet1.check_health()
-    } while (choice != 0 && health_check != 1)
+	}
     write("Press enter to exit.")
     read()
     return 0

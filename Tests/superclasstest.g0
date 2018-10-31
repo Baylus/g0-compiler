@@ -1,0 +1,28 @@
+class pet {
+   int happy
+   pet() {
+      happy = 12
+   }
+   void play() {
+      happy += 5
+   }
+}
+
+class dog {
+   pet mydog
+   dog() {
+      mydog = pet()
+      mydog.happy = 20
+   }
+   void play() {
+      mydog.happy += 7
+   }
+}
+
+void main() {
+   dog doggie
+   doggie = dog()
+   doggie.mydog.play()
+   doggie.play()
+   write( doggie.mydog.happy )
+}

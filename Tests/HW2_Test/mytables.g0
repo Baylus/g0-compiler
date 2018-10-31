@@ -38,7 +38,7 @@ int setDefault() {
    x[] = -1
 }
 
-int removeMapping() {
+int removeMap() {
    table y
    y["test"] = 3
    
