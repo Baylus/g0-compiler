@@ -23,7 +23,7 @@ int isLeaf(tree *t);
 
 // Consider making these examples of the basic types if it helps later.
 // Doing this would make clean up severely more troublesome.
-type_t *I_Type, *D_Type, *S_Type, *B_Type, *L_Type, *T_Type;
+type_t *V_Type, *I_Type, *D_Type, *S_Type, *B_Type, *L_Type, *T_Type;
 
 extern scope_t* yyscope;   // g0lex.l
 
@@ -242,36 +242,31 @@ type_t* getType( tree* t )
 
 
    if ( isLeaf(t) ) {
-      p = calloc( 1, sizeof(type_t) );
       // Type is a primitive type.
       switch( t->token->category )
       {
          case INT:
-            p->base_type = 1;
+            p = I_Type;
             break;
          case DOUBLE:
-            p->base_type = 2;
+            p = D_Type;
             break;
          case STRING:
-            p->base_type = 3;
+            p = S_Type;
             break;
          case BOOL:
-            p->base_type = 4;
+            p = B_Type;
             break;
          case LIST:
-            p->base_type = 5;
-            p->u.l.size = -1;
-            p->u.l.elemtype = calloc( 1, sizeof(type_t) );
-            p->u.l.elemtype->base_type = 1;
+            p = calloc(1, sizeof(type_t));
+            p = memcpy(p, L_Type, sizeof(type_t));
             break;
          case TABLE:
-            p->base_type = 6;
-            p->u.t.index = calloc( 1, sizeof(type_t) );
-            p->u.t.index->base_type = 3;      // Default index type is string
-            p->u.t.elemtype = calloc( 1, sizeof(type_t) );
-            p->u.t.elemtype->base_type = 1;   // Default element type is int
+            p = calloc(1, sizeof(type_t));
+            p = memcpy(p, T_Type, sizeof(type_t));
             break;
          case CLASS_NAME:
+            p = calloc( 1, sizeof(type_t) );
             p->base_type = 8;
             sym_t* class = findSymbol( yyscope, t->token->text );
             if ( class == NULL ) {
@@ -283,7 +278,7 @@ type_t* getType( tree* t )
             }
             break;
          case VOID:
-            p->base_type = -1;
+            p = V_Type;
             break;
       }
       // successfully found the type.
@@ -296,20 +291,24 @@ type_t* getType( tree* t )
       switch (t->code)
       {
          case 630:   // ListType: LIST < Type > 
-            p->base_type = 5;
-            p->u.l.size = -1;
+            free(p);
+            p = getType( t->kids[0] );
+            // p->base_type = 5;
+            // p->u.l.size = -1;
             p->u.l.elemtype = getType( t->kids[1] );
             break;
          case 635:   // TableType: TABLE < Type >
-            p->base_type = 6;
-            p->u.t.size = -1;
-            p->u.t.index = calloc(1, sizeof(type_t));
-            p->u.t.index->base_type = 3;   // Default index type == string
+            p = getType(t->kids[0]);
+            // p->base_type = 6;
+            // p->u.t.size = -1;
+            // p->u.t.index = calloc(1, sizeof(type_t));
+            // p->u.t.index->base_type = 3;   // Default index type == string
             p->u.t.elemtype = getType( t->kids[1] );
             break;
          case 636: // TableType: TABLE < Type , Type >
-            p->base_type = 6;
-            p->u.t.size = -1;
+            p = getType(t->kids[0]);
+            // p->base_type = 6;
+            // p->u.t.size = -1;
             p->u.t.index = getType(t->kids[1]);
             p->u.t.elemtype = getType(t->kids[2]);
             break;
@@ -745,11 +744,6 @@ int generateSymbolTables(tree *t, int bool_print)
             break;
          /* Undeclared variable checking */
          case 896:   /* PrimaryNoNewArray: SHARP IDENT */
-         // case 391:   /*  */
-         // case 391:   /*  */
-         // case 391:   /*  */
-         // case 391:   /*  */
-         // case 391:   /*  */
             sym = NULL;
             if ( ( sym = findSymbol( yyscope, t->kids[0]->token->text ) ) == NULL )
             {
@@ -876,7 +870,10 @@ void initSemanticCheck()
    Initializes things before doing semantic check.
     */
    // Base Types
-   // I_Type, D_Type, S_Type, B_Type, L_Type, T_Type;
+   // V_Type, I_Type, D_Type, S_Type, B_Type, L_Type, T_Type;
+   V_Type = calloc(1, sizeof(type_t));
+   V_Type->base_type = -1;
+
    I_Type = calloc(1, sizeof(type_t));
    I_Type->base_type = 1;
 
@@ -909,6 +906,7 @@ int semanticCheck(tree *t, int print)
       Does Complete semantic analysis in several stages.
     */
 
+   initSemanticCheck();
    // Make Global scope
    yyscope = create_scope("Global Scope", NULL);
 
