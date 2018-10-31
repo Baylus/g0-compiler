@@ -1,0 +1,88 @@
+class object {
+   int z;
+   object() {
+      z = 3;
+   }
+
+   void f( int x )
+   {
+      write("z is " x);
+   }
+
+   int g()
+   {
+      return z;
+   }
+}
+
+class c {
+   int x;
+   c() {
+      x = 2;
+   }
+
+   int i() {
+      return x;
+   }
+}
+
+class b
+{
+   c obj;
+   b()
+   {
+      obj = c();
+   }
+
+   // function g, returns object of class_type c.
+   c g() {
+      return obj;
+   }
+}
+
+class l {
+   int n;
+
+   l() {
+      n = -1;
+   }
+
+   int m() {
+      return n;
+   }
+}
+
+int main() {
+   
+   // Good
+   object o1, o2;
+   o1 = object();
+   o2 = object();
+   
+   o1.f(o2.g());
+   
+
+
+   // table a with string indeces and class_objects of l type elements.
+   int i
+   i = 0
+   l tmpL;
+   tmpL = l()
+   //table < string, l > a 
+   list < l > a;
+   a[i] = tmpL;
+   a[i].m()
+   bool b_test
+   b_test = a[i].m() == -1
+   
+   
+   // Good
+   b h;
+   h = b();
+   int n;
+   n = h.obj.x;
+   (h.g()).i() == n
+
+   bool z;
+   z = (h.g()).i() == n
+}
