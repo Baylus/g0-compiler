@@ -81,7 +81,7 @@ int main() {
    h = b();
    int n;
    n = h.obj.x;
-   (h.g()).i() == n
+   //(h.g()).i() == n
 
    bool z;
    z = (h.g()).i() == n
