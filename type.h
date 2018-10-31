@@ -54,6 +54,7 @@ typedef struct type {
       } l;
       struct table {
          // Table type stuff.
+         int size;
          struct type* index;
          struct type* elemtype;
       } t;

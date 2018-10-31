@@ -72,7 +72,7 @@ int yylex();
 %type < node > EqualityExpression RelationalExpression AdditiveExpression MultiplicativeExpression 
 %type < node > SwapExpression UnaryExpressionNotPlusMinus UnaryExpression PostFixExpression 
 %type < node > ArrayAccess MethodInvocation FieldAccess PrimaryNoNewArray Primary
-%type < node > ArgumentList ExpressionOpt
+%type < node > ArgumentList ExpressionOpt DefaultTableMapping
 %type < node > ConditionalAndExpression 
 %type < node > Literal  ConcatentationExpresssion ImplicitConcatExpression
 %type < node > LocalVariable ListInitializer
@@ -103,19 +103,26 @@ ProductionRule:
  */
 %start Program
 
+/* All the codes for these trees are the line # of the rule + 500,
+This prevents collisions with YACC token defines.
+
+ */
+
 %%
+
+
 
 Program:
         CompilationUnits { yytree = $1; }
       ;
 
 GlobalVariable:
-        Type VariableDeclaratorList Semicolon		{ $$ = alctree( "global var", 108, 3, $1, $2, $3 ); }
+        Type VariableDeclaratorList Semicolon		{ $$ = alctree( "global var", 613, 3, $1, $2, $3 ); }
       ;
 
 VariableDeclaratorList:
         VariableDeclaratorId       				{ $$ = $1; }
-      | VariableDeclaratorList CM VariableDeclaratorId		{ $$ = alctree( "var list", 113, 2, $1, $3 ); }
+      | VariableDeclaratorList CM VariableDeclaratorId		{ $$ = alctree( "var list", 618, 2, $1, $3 ); }
       ;
 
 Type:
@@ -127,13 +134,13 @@ Type:
 
 ListType:
         LIST				{ $$ = $1; }
-      | LIST LT PrimitiveType GT	{ $$ = alctree( "list", 125, 2, $1, $3); }
+      | LIST LT PrimitiveType GT	{ $$ = alctree( "list", 630, 2, $1, $3); }
       ;
 
 TableType:
         TABLE						{ $$ = $1; }
-      | TABLE LT PrimitiveType GT			{ $$ = alctree( "table", 130, 2, $1, $3); }
-      | TABLE LT PrimitiveType CM PrimitiveType GT	{ $$ = alctree( "table", 131, 3, $1, $3, $5 ); }
+      | TABLE LT PrimitiveType GT			{ $$ = alctree( "table", 635, 2, $1, $3); }
+      | TABLE LT PrimitiveType CM PrimitiveType GT	{ $$ = alctree( "table", 636, 3, $1, $3, $5 ); }
       ;
 
 PrimitiveType:
@@ -156,11 +163,11 @@ CompilationUnit:
       ;
 
 ClassDeclaration:
-        ClassHeader ClassBlock		{ $$ = alctree( "Class declaration", 154, 2, $1, $2 ); }
+        ClassHeader ClassBlock		{ $$ = alctree( "Class declaration", 659, 2, $1, $2 ); }
       ;
 
 ClassHeader:
-        CLASS CLASS_NAME			{ $$ = alctree( "Class header", 158, 2, $1, $2 ); }
+        CLASS CLASS_NAME			{ $$ = alctree( "Class header", 663, 2, $1, $2 ); }
       ;
 
 ClassBlock:
@@ -170,11 +177,11 @@ ClassBlock:
 
 ClassVariableList:
 	 IDENT		{ $$ = $1; }
-	| ClassVariableList CM IDENT		{ $$ = alctree( "Class variable list", 168, 2, $1, $3 ); }
+	| ClassVariableList CM IDENT		{ $$ = alctree( "Class variable list", 673, 2, $1, $3 ); }
 	;
 
 ClassVariable:
-      Type ClassVariableList Semicolon	{ $$ = alctree( "Class variable", 172, 2, $1, $2 ); }
+      Type ClassVariableList Semicolon	{ $$ = alctree( "Class variable", 677, 2, $1, $2 ); }
       | Type Assignment { yyerror("syntax error\nInitializers not allowed in declarations"); }
       ;
 
@@ -190,12 +197,12 @@ ClassBlockUnit:
       ;
 
 MethodDeclaration:
-        MethodHeader MethodBody		{ $$ = alctree( "Method", 188, 2, $1, $2 ); }
+        MethodHeader MethodBody		{ $$ = alctree( "Method", 693, 2, $1, $2 ); }
       ;
 
 MethodHeader:
-        Type MethodDeclarator		{ $$ = alctree( "Method header", 192, 2, $1, $2 ); }
-      | VOID MethodDeclarator		{ $$ = alctree( "Method header", 193, 2, $1, $2 ); }
+        Type MethodDeclarator		{ $$ = alctree( "Method header", 697, 2, $1, $2 ); }
+      | VOID MethodDeclarator		{ $$ = alctree( "Method header", 698, 2, $1, $2 ); }
       ;
 
 MethodDeclarator:
@@ -208,12 +215,12 @@ MethodBody:
       ;
 
 ConstructorDeclaration:
-         ConstructorDeclarator ConstructorBody		{ $$ = alctree( "Constructor delcaration", 206, 2, $1, $2 ); }
+         ConstructorDeclarator ConstructorBody		{ $$ = alctree( "Constructor delcaration", 711, 2, $1, $2 ); }
       ;
 
 ConstructorDeclarator:
-        CLASS_NAME LP FormalParameterList RP	{ $$ = alctree( "Constructor Header", 210, 2, $1, $3 ); }
-      | CLASS_NAME LP RP			{ $$ = alctree( "Constructor Header", 211, 1, $1 ); }
+        CLASS_NAME LP FormalParameterList RP	{ $$ = alctree( "Constructor Header", 715, 2, $1, $3 ); }
+      | CLASS_NAME LP RP			{ $$ = alctree( "Constructor Header", 716, 1, $1 ); }
       ;
 
 ConstructorBody:
@@ -226,22 +233,22 @@ Function:
       ;
 
 FunctionPrototype:
-        Type IDENT LP TypeList RP Semicolon	{ $$ = alctree( "func proto", 224, 3, $1, $2, $4 ); }
-      | Type IDENT LP RP Semicolon		{ $$ = alctree( "func proto", 225, 2, $1, $2 ); }
-      | VOID IDENT LP TypeList RP Semicolon	{ $$ = alctree( "func proto", 226, 3, $1, $2, $4 ); }
-      | VOID IDENT LP RP Semicolon		{ $$ = alctree( "func proto", 227, 2, $1, $2 ); }
+        Type IDENT LP TypeList RP Semicolon	{ $$ = alctree( "func proto", 729, 3, $1, $2, $4 ); }
+      | Type IDENT LP RP Semicolon		{ $$ = alctree( "func proto", 730, 2, $1, $2 ); }
+      | VOID IDENT LP TypeList RP Semicolon	{ $$ = alctree( "func proto", 731, 3, $1, $2, $4 ); }
+      | VOID IDENT LP RP Semicolon		{ $$ = alctree( "func proto", 732, 2, $1, $2 ); }
       ;
 
 TypeList:
         Type      			 { $$ = $1; }
-      | TypeList CM Type		{ $$ = alctree( "Type list", 232, 2, $1, $3 ); }
+      | TypeList CM Type		{ $$ = alctree( "Type list", 737, 2, $1, $3 ); }
       ;
 
 FunctionDefinition:
-        Type IDENT LP FormalParameterList RP FunctionBody	{ $$ = alctree( "func defn", 236, 4, $1, $2, $4, $6 ); }
-      | Type IDENT LP RP FunctionBody				{ $$ = alctree( "func defn", 237, 3, $1, $2, $5 ); }
-      | VOID IDENT LP FormalParameterList RP FunctionBody	{ $$ = alctree( "func defn", 238, 4, $1, $2, $4, $6 ); }
-      | VOID IDENT LP RP FunctionBody				{ $$ = alctree( "func defn", 239, 3, $1, $2, $5 ); }
+        Type IDENT LP FormalParameterList RP FunctionBody	{ $$ = alctree( "func defn", 741, 4, $1, $2, $4, $6 ); }
+      | Type IDENT LP RP FunctionBody				{ $$ = alctree( "func defn", 742, 3, $1, $2, $5 ); }
+      | VOID IDENT LP FormalParameterList RP FunctionBody	{ $$ = alctree( "func defn", 743, 4, $1, $2, $4, $6 ); }
+      | VOID IDENT LP RP FunctionBody				{ $$ = alctree( "func defn", 744, 3, $1, $2, $5 ); }
       ;
 
 FunctionBody:
@@ -393,24 +400,28 @@ PrimaryNoNewArray:
    | LP Expression RP		{ $$ = alctree( "Paren Expr", 388, 3, $1, $2, $3 ); }
    | MethodInvocation       { $$ = $1; }
    | Assignable       { $$ = $1; }
-   | SHARP IDENT    { $$ = alctree( "List Size", 391, 1, $2); }
+   | SHARP IDENT    { $$ = alctree( "List Size", 896, 1, $2); }
    | PrimaryNoNewArray LB Expression COLON Expression RB		{ $$ = alctree( "List Substring", 392, 3, $1, $3, $5 ); }
    ;
 
 FieldAccess:
-     Primary DOT IDENT		{ $$ = alctree( "Field Access", 395, 2, $1, $3 ); }
+     Primary DOT IDENT		{ $$ = alctree( "Field Access", 901, 2, $1, $3 ); }
    ;
 
 MethodInvocation:
      Name LP ArgumentList RP			{ $$ = alctree( "Method call", 399, 4, $1, $2, $3, $4 ); }
    | Name LP RP					{ $$ = alctree( "Method call", 400, 3, $1, $2, $3 ); }
-   | Primary DOT IDENT LP ArgumentList RP	{ $$ = alctree( "Method call", 401, 3, $1, $3, $5 ); }
-   | Primary DOT IDENT LP  RP			{ $$ = alctree( "Method call", 402, 2, $1, $3 ); }
+   | Primary DOT IDENT LP ArgumentList RP	{ $$ = alctree( "Method call", 907, 3, $1, $3, $5 ); }
+   | Primary DOT IDENT LP  RP			{ $$ = alctree( "Method call", 908, 2, $1, $3 ); }
    | CLASS_NAME LP RP			{ $$ = alctree( "Class Constructor Call", 403, 1, $1 ); }
    ;
 
 ArrayAccess:
      PrimaryNoNewArray LB Expression RB		{ $$ = alctree( "Array Access", 407, 2, $1, $3 ); }
+   ;
+
+DefaultTableMapping:
+     PrimaryNoNewArray LB RB		{ $$ = alctree( "Default table mapping", 417, 1, $1 ); }
    ;
 
 PostFixExpression:
@@ -506,6 +517,7 @@ Assignable:
      Name       
    | FieldAccess       
    | ArrayAccess       
+   | DefaultTableMapping
   //  | Name LB RB         { $$ = alctree( "Default table mapping", 508, 1, $1 ); }
    ;
 
@@ -525,15 +537,15 @@ Expression:
 
 FormalParameterList:
         FormalParameter       { $$ = $1; }
-      | FormalParameterList CM FormalParameter		{ $$ = alctree( "Named param list", 517, 2, $1, $3 ); }
+      | FormalParameterList CM FormalParameter		{ $$ = alctree( "Named param list", 1033, 2, $1, $3 ); }
       ;
 
 FormalParameter:
-        Type VariableDeclaratorId		{ $$ = alctree( "named parameter", 521, 2, $1, $2 ); }
+        Type VariableDeclaratorId		{ $$ = alctree( "named parameter", 1037, 2, $1, $2 ); }
       ;
 
 LocalVariable:
-        Type VariableDeclaratorList Semicolon		{ $$ = alctree( "local variable", 525, 3, $1, $2, $3 ); }
+        Type VariableDeclaratorList Semicolon		{ $$ = alctree( "local variable", 1041, 3, $1, $2, $3 ); }
       ;
 
 VariableDeclaratorId:
@@ -551,7 +563,7 @@ SimpleName:
       ;
 
 QualifiedName:
-        Name DOT IDENT		{ $$ = alctree( "qualified name", 543, 2, $1, $3 ); }
+        Name DOT IDENT		{ $$ = alctree( "qualified name", 1059, 2, $1, $3 ); }
       ;
 
 BoolLiteral:

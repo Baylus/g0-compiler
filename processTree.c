@@ -23,8 +23,7 @@ int isLeaf(tree *t);
 
 // Consider making these examples of the basic types if it helps later.
 // Doing this would make clean up severely more troublesome.
-// type_t I_Type,
-// D_Type, S_Type, B_Type, L_Type, T_Type;
+type_t *I_Type, *D_Type, *S_Type, *B_Type, *L_Type, *T_Type;
 
 extern scope_t* yyscope;   // g0lex.l
 
@@ -48,9 +47,9 @@ struct token* getToken( tree* t )
    if ( t == NULL ) return NULL;
 
    switch( t->code ) {
-      case 125:   // ListType
-      case 130:   // TableType
-      case 131:   // TableType
+      case 630:   // ListType
+      case 635:   // TableType
+      case 636:   // TableType
          return getToken( t->kids[0] );
          break;
       // case:
@@ -71,7 +70,7 @@ struct token* getToken( tree* t )
    if ( isLeaf(t)) return t->token;
    else
    {
-      return getToken( t->kids[0] );
+      return getToken( t->kids[0] );	// Is causing segfaults on several files including "funcexample"
    }
 
    return NULL;
@@ -215,7 +214,8 @@ int isLeaf( tree* t )
       Details:
          tree should exist, if it doesnt, bogus return value is given.
     */
-   if ( t == NULL ) return -1;
+   if ( t == NULL ) return -1;	// Might have to be changed...
+//    if ( t == NULL ) return 0;
    if ( t->nkids < 1 && t->token != NULL )
    {
       return 1;
@@ -232,39 +232,14 @@ type_t* getType( tree* t )
          and constructs a type_t variable for them.
     */
    if (t == NULL) return NULL;
-
+   if ( yydebug )
+   {
+      // Print some information about current token
+      fprintf(stderr, "Getting type of node type: %d\n", t->code);
+      fprintf(stderr, "Getting type of token on line %d\n", getToken(t)->lineno);
+   }
    type_t* p = NULL;
 
-   // Special cases
-   // Ones that needed to be processed before the others.
-   switch ( t->code ){
-      case 232: // TypeList: TypeList , Type
-      case 517: // FormalParameterList: FormalParameterList , FormalParameter
-         p = calloc( 1, sizeof(type_t) );
-         p->base_type = 7;
-         p->u.f.nargs = 0;
-         int max = 5;
-         p->u.f.argtype = calloc ( max, sizeof(type_t) );
-         tree *q = t;
-         while ( q->code == 517 || q->code == 232) { // While we are parsing FormalParameterList
-            p->u.f.argtype[ (p->u.f.nargs)++ ] = getType( q->kids[1] );
-
-            if ( p->u.f.nargs == max ) {
-               max += 5;
-               p->u.f.argtype = realloc( p->u.f.argtype, sizeof(type_t) * max );
-            }
-            q = q->kids[0];
-         }
-         p->u.f.argtype[(p->u.f.nargs)++] = getType(q->kids[1]);
-         if ( p->u.f.nargs < max) {
-            p->u.f.argtype = realloc(p->u.f.argtype, sizeof(type_t) * (p->u.f.nargs));
-         }
-         return p;
-         break;
-      case 521: // FormalParameter: Type VariableDeclaratorId
-         return getType(t->kids[0]);
-         break;
-   }
 
    if ( isLeaf(t) ) {
       p = calloc( 1, sizeof(type_t) );
@@ -320,28 +295,30 @@ type_t* getType( tree* t )
       // p = getType( t->kids[0] );
       switch (t->code)
       {
-         case 125:   // ListType: LIST < Type > 
+         case 630:   // ListType: LIST < Type > 
             p->base_type = 5;
             p->u.l.size = -1;
             p->u.l.elemtype = getType( t->kids[1] );
             break;
-         case 130:   // TableType: TABLE < Type >
+         case 635:   // TableType: TABLE < Type >
             p->base_type = 6;
+            p->u.t.size = -1;
             p->u.t.index = calloc(1, sizeof(type_t));
             p->u.t.index->base_type = 3;   // Default index type == string
             p->u.t.elemtype = getType( t->kids[1] );
             break;
-         case 131: // TableType: TABLE < Type , Type >
+         case 636: // TableType: TABLE < Type , Type >
             p->base_type = 6;
+            p->u.t.size = -1;
             p->u.t.index = getType(t->kids[1]);
             p->u.t.elemtype = getType(t->kids[2]);
             break;
-         case 158: // ClassHeader: CLASS CLASS_NAME
+         case 663: // ClassHeader: CLASS CLASS_NAME
             p->base_type = 9;
             p->u.s.label = strdup(t->kids[1]->token->text);
             break;
-         case 192: // MethodHeader: Type MethodDeclarator
-         case 193: // MethodHeader: VOID MethodDeclarator
+         case 697: // MethodHeader: Type MethodDeclarator
+         case 698: // MethodHeader: VOID MethodDeclarator
             {
                tree* q = t->kids[1];   // q = MethodDeclarator: IDENT ( [FormalParameterList] )
                if ( q->nkids > 1 )
@@ -357,8 +334,8 @@ type_t* getType( tree* t )
                p->u.f.retType = getType( t->kids[0] );
             }
             break;
-         case 210:   // ConstructorDeclarator: CLASS_NAME ( [FormalParamterList] )
-         case 211: 
+         case 715:   // ConstructorDeclarator: CLASS_NAME ( [FormalParamterList] )
+         case 716: 
             // p->base_type = 7;    // symbol type function.
             if ( t->nkids > 1 )
             {
@@ -372,10 +349,10 @@ type_t* getType( tree* t )
             }
             p->u.f.retType = getType( t->kids[0] );
             break;
-         case 224:   // FunctionPrototype: Type IDENT ( [TypeList] )
-         case 225:   
-         case 226:   
-         case 227:   
+         case 729:   // FunctionPrototype: Type IDENT ( [TypeList] )
+         case 730:   
+         case 731:   
+         case 732:   
             if ( t->nkids > 2 )
             {
                // We have type list.
@@ -388,10 +365,10 @@ type_t* getType( tree* t )
             }
             p->u.f.retType = getType( t->kids[0] );
             break;         
-         case 236:   // FunctionDefinition: Type IDENT ( [FormalParameterList] )
-         case 237:   
-         case 238:   
-         case 239:   
+         case 741:   // FunctionDefinition: Type IDENT ( [FormalParameterList] )
+         case 742:   
+         case 743:   
+         case 744:   
             if ( t->nkids > 3 )
             {
                // We have type list.
@@ -403,6 +380,45 @@ type_t* getType( tree* t )
                p->base_type = 7;
             }
             p->u.f.retType = getType( t->kids[0] );
+            break;
+         /* 
+         Special cases - These dont process and return things that make intuitive sense.
+            They return these kinds of things because they are used by other functions to 
+            generate the proper types.
+         */
+         case 737:  // TypeList: TypeList , Type
+         case 1033: // FormalParameterList: FormalParameterList , FormalParameter
+            // p = calloc(1, sizeof(type_t));
+            p->base_type = 7; // Function type
+            p->u.f.nargs = 0;
+            int max = 5;
+            p->u.f.argtype = calloc(max, sizeof(type_t));
+            tree *q = t;
+            /* 
+            This generates parameter lists that are backwards. Remember this when processing.
+             */
+            while (q->code == 1033 || q->code == 737)
+            { // While we are parsing FormalParameterList
+               p->u.f.argtype[(p->u.f.nargs)++] = getType(q->kids[1]);
+
+               if (p->u.f.nargs == max)
+               {
+                  max += 5;
+                  p->u.f.argtype = realloc(p->u.f.argtype, sizeof(type_t) * max);
+               }
+               q = q->kids[0];
+            }
+            p->u.f.argtype[(p->u.f.nargs)++] = getType(q);
+            if (p->u.f.nargs < max)
+            {
+               p->u.f.argtype = realloc(p->u.f.argtype, sizeof(type_t) * (p->u.f.nargs));
+            }
+            // return p;
+            break;
+         case 1037: // FormalParameter: Type VariableDeclaratorId
+            free(p);
+
+            return getType(t->kids[0]);
             break;
          default:
             error(t, "Unrecognized non-terminal rule type.");
@@ -417,11 +433,11 @@ type_t* getType( tree* t )
 void addParameterSymbols( tree*t, int bool_print )
 {
    switch ( t->code ) {
-      case 517:   // FormalParamterList: FormalParameterList , FormalParameter
+      case 1033:   // FormalParamterList: FormalParameterList , FormalParameter
          addParameterSymbols( t->kids[0], bool_print );
          addParameterSymbols( t->kids[1], bool_print );
          break;
-      case 521:   // FormalParamter: Type VariableDeclaratorId
+      case 1037:   // FormalParamter: Type VariableDeclaratorId
          {
             type_t* symType = getType( t->kids[0] );
             tok_t* T = getToken( t->kids[1] );
@@ -458,8 +474,8 @@ int processVariableDeclarations( tree* t, int bool_print )
    {
       switch( p->code )
       {
-         case 113:   // VariableDeclaratorList: VariableDeclaratorList , VariableDeclaratorId
-         case 168:   // ClassVariableList: ClassVariableList , IDENT
+         case 618:   // VariableDeclaratorList: VariableDeclaratorList , VariableDeclaratorId
+         case 673:   // ClassVariableList: ClassVariableList , IDENT
             ++count; 
             tok_t* T = getToken(p->kids[1]);
             // sym_t *s = scope_addSymbol(yyscope, T, varType);
@@ -517,12 +533,12 @@ scope_t* checkQualified( tree* t )
 
       switch ( t->code )
       {
-         case 401:   /* MethodInvocation: Primary . IDENT ( [ArgumentList] ) */
-         case 402:   /* MethodInvocation: Primary . IDENT ( [ArgumentList] ) */
+         case 907:   /* MethodInvocation: Primary . IDENT ( [ArgumentList] ) */
+         case 908:   /* MethodInvocation: Primary . IDENT ( [ArgumentList] ) */
             /* Find return value scope, and pass backwards. */
             r = f->type->u.f.retType;
-         case 395:   /* FieldAccess: Primary . IDENT */
-         case 543:   /* QualifiedName: Name . IDENT */
+         case 901:   /* FieldAccess: Primary . IDENT */
+         case 1059:   /* QualifiedName: Name . IDENT */
             if ( r->base_type != 8 )
             {
                /* If return type is not a class object ( The only qualifiable type ),
@@ -588,16 +604,16 @@ int generateSymbolTables(tree *t, int bool_print)
       */
       switch ( t->code )
       {
-         case 108:   // GlobalVariable
-         case 172:   // ClassVariable
-         case 525:   // LocalVariable
+         case 613:   // GlobalVariable
+         case 677:   // ClassVariable
+         case 1041:   // LocalVariable
             // For each possible symbol, add it to proper symbol table.
             // Get type of variable declarations.
             processVariableDeclarations( t, bool_print );
             break;
          /* Scope Changes */
          /* Class Declaration */
-         case 154:   // ClassDeclaration: ClassHeader ClassBlock
+         case 659:   // ClassDeclaration: ClassHeader ClassBlock
             p = t->kids[0];   // p = ClassHeader: CLASS CLASS_NAME
             T = p->kids[1]->token;
             // Grab the token of tree CLASS
@@ -622,7 +638,7 @@ int generateSymbolTables(tree *t, int bool_print)
             yyscope = yyscope->parentScope;
             break;
          /* Method Declaration */
-         case 188:   // MethodDeclaration: MethodHeader MethodBody
+         case 693:   // MethodDeclaration: MethodHeader MethodBody
             itype = getType( t->kids[0] );
             T = getToken( t->kids[0]->kids[1] );
             // sym_t *sym = scope_addSymbol(yyscope, T, mType);
@@ -647,7 +663,7 @@ int generateSymbolTables(tree *t, int bool_print)
             yyscope = yyscope->parentScope;
             break;
          /* Constructor Declaration */
-         case 206:   //    ConstructorDeclaration: ConstructorDeclarator ConstructorBody
+         case 711:   //    ConstructorDeclaration: ConstructorDeclarator ConstructorBody
             // Does this symbol have to be defined in the class's scope?
             // We will go off of the assumption that it is in the class scope
             itype = getType( t->kids[0] );
@@ -673,19 +689,19 @@ int generateSymbolTables(tree *t, int bool_print)
             yyscope = yyscope->parentScope;
             break;
          /* Function Prototypes. */
-         case 224:
-         case 225:
-         case 226:
-         case 227:
+         case 729:
+         case 730:
+         case 731:
+         case 732:
             itype = getType( t );
             T = getToken( t->kids[1] );
             sym = scope_addSymbol( yyscope, T, itype );
             break;
          /* Function Definition */
-         case 236:   /* FunctionDefinition: Type IDENT LP [FormalParameterList] RP FunctionBody */
-         case 237:
-         case 238:
-         case 239:
+         case 741:   /* FunctionDefinition: Type IDENT LP [FormalParameterList] RP FunctionBody */
+         case 742:
+         case 743:
+         case 744:
             // Add function symbol to parent scope
             // Check whether function was prototyped before.
             T = getToken(t->kids[1]);
@@ -728,7 +744,7 @@ int generateSymbolTables(tree *t, int bool_print)
             yyscope = yyscope->parentScope;
             break;
          /* Undeclared variable checking */
-         case 391:   /* PrimaryNoNewArray: SHARP IDENT */
+         case 896:   /* PrimaryNoNewArray: SHARP IDENT */
          // case 391:   /*  */
          // case 391:   /*  */
          // case 391:   /*  */
@@ -743,10 +759,10 @@ int generateSymbolTables(tree *t, int bool_print)
                error(t, "Undeclared variable.");
             }
             break;
-         case 395:   /* FieldAccess: Primary . IDENT */
-         case 401:   /* MethodInvocation: Primary . IDENT ( [ArgumentList] ) */
-         case 402:   /* MethodInvocation: Primary . IDENT ( [ArgumentList] ) */
-         case 543:   /* QualifiedName: Name . IDENT */
+         case 901:   /* FieldAccess: Primary . IDENT */
+         case 907:   /* MethodInvocation: Primary . IDENT ( [ArgumentList] ) */
+         case 908:   /* MethodInvocation: Primary . IDENT ( [ArgumentList] ) */
+         case 1059:   /* QualifiedName: Name . IDENT */
             checkQualified(t);
             break;
          default:
@@ -779,17 +795,17 @@ int generateSymbolTables(tree *t, int bool_print)
 //       switch( t->code )
 //       {
 //          /* Ignore these things category */
-//          case 172:   /* ClassVariable */
-//          case 108:   /* GlobalVariable */
-//          case 525:   /* LocalVariable */
-//          case 172:   /*  */
-//          case 172:   /*  */
-//          case 172:   /*  */
-//          case 172:   /*  */
-//          case 172:   /*  */
-//          case 172:   /*  */
-//          case 172:   /*  */
-//          case 172:   /*  */
+//          case 677:   /* ClassVariable */
+//          case 613:   /* GlobalVariable */
+//          case 1041:   /* LocalVariable */
+//          case 677:   /*  */
+//          case 677:   /*  */
+//          case 677:   /*  */
+//          case 677:   /*  */
+//          case 677:   /*  */
+//          case 677:   /*  */
+//          case 677:   /*  */
+//          case 677:   /*  */
 
 //             break;
 //          case :
@@ -854,7 +870,38 @@ int generateSymbolTables(tree *t, int bool_print)
 
 // }
 
+void initSemanticCheck()
+{
+   /* 
+   Initializes things before doing semantic check.
+    */
+   // Base Types
+   // I_Type, D_Type, S_Type, B_Type, L_Type, T_Type;
+   I_Type = calloc(1, sizeof(type_t));
+   I_Type->base_type = 1;
 
+   D_Type = calloc(1, sizeof(type_t));
+   D_Type->base_type = 2;
+   
+   S_Type = calloc(1, sizeof(type_t));
+   S_Type->base_type = 3;
+   
+   B_Type = calloc(1, sizeof(type_t));
+   B_Type->base_type = 4;
+   
+   L_Type = calloc(1, sizeof(type_t));
+   L_Type->base_type = 5;
+   L_Type->u.l.size = -1;
+   L_Type->u.l.elemtype = I_Type;
+
+
+   T_Type = calloc(1, sizeof(type_t));
+   T_Type->base_type = 6;
+   T_Type->u.t.size = -1;
+
+   T_Type->u.t.index = S_Type;
+   T_Type->u.t.elemtype = I_Type;
+}
 
 int semanticCheck(tree *t, int print)
 {

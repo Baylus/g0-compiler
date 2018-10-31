@@ -80,7 +80,7 @@ int checkCommandOptions(char* arg) {
 	 * 
 	 */
 
-	if ((strcmp("-t", arg) == 0) || (strcmp("-T", arg) == 0) || (strcmp("--table", arg) == 0))
+	if ((strcmp("-t", arg) == 0) || (strcmp("-T", arg) == 0) || (strcmp("--tree", arg) == 0))
 	{
 		// tree requested.
 		return 1;
