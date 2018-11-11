@@ -23,3 +23,12 @@ Succeeds using the /Examples/HW2_Test/*,
 
 .../HW2_Test/g0stuff.g0 was modified to comment out the one line on 105: "L = [1, 2, 3]" that broke the grammar because it was not supported yet.
 
+In HW #4, many decisions were made:
+
+I am not going to support empty list initializers, e.g.
+"
+list l;
+l = [];
+"
+
+This is primarily due to the fact that there would be huge conflicts between empty initializers and default table mappings. anytime a identifier + a "[]" was given,  

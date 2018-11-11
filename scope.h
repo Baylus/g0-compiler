@@ -35,4 +35,6 @@ sym_t* findSymbol(scope_t* s, char* name);
 
 sym_t* scope_addSymbol(scope_t *s, struct token *t, type_t*);
 
+void delete_Scope( scope_t* s );
+
 #endif

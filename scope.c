@@ -68,3 +68,8 @@ sym_t* scope_addSymbol(scope_t *s, struct token *t, type_t* r )
 
    return p;
 }
+
+void delete_Scope(scope_t *s)
+{
+   // Delete scope
+}

@@ -75,7 +75,7 @@ int yylex();
 %type < node > ArgumentList ExpressionOpt DefaultTableMapping
 %type < node > ConditionalAndExpression 
 %type < node > Literal  ConcatentationExpresssion ImplicitConcatExpression
-%type < node > LocalVariable ListInitializer
+%type < node > LocalVariable ListInitializer ListLiteral
 %type < node >  FormalParameterList FormalParameter
 %type < node > BoolLiteral Semicolon 
 %type < node > Type PrimitiveType ListType TableType
@@ -160,7 +160,7 @@ ClassDeclaration:
       ;
 
 ClassHeader:
-        CLASS CLASS_NAME			{ $$ = alctree( "Class header", 663, 2, $1, $2 ); }
+        CLASS CLASS_NAME			{ $$ = alctree( "Class header", 663, 1, $2 ); }
       ;
 
 ClassBlock:
@@ -380,32 +380,32 @@ ArgumentList:
 	;
 
 Primary:
-     PrimaryNoNewArray       { $$ = $1; }
+     PrimaryNoNewArray  | SHARP PrimaryNoNewArray { $$ = alctree( "Size of symbol", 893, 1, $2); }
    ;
 
-ListInitializer:
-	PrimaryNoNewArray			{ $$ = $1; }
-	| ListInitializer CM PrimaryNoNewArray { $$ = alctree( "List items", 888, 3, $1, $2, $3 ); }
+ListInitializer: PrimaryNoNewArray			{ $$ = $1; }
+  // |   PrimaryNoNewArray CM ListInitializer { $$ = alctree( "List items", 888, 2, $1, $3 ); }
+  | ListInitializer CM PrimaryNoNewArray { $$ = alctree( "List items", 888, 2, $1, $3 ); }
 	;
 
 PrimaryNoNewArray:
      Literal       { $$ = $1; }
-   | LP Expression RP		{ $$ = alctree( "Paren Expr", 893, 3, $1, $2, $3 ); }
+   | LP Expression RP		{ $$ = alctree( "Paren Expr", 893, 1, $2 ); }
    | MethodInvocation       { $$ = $1; }
    | Assignable       { $$ = $1; }
-   | SHARP IDENT    { $$ = alctree( "List Size", 896, 1, $2); }
+  //  | SHARP IDENT    { $$ = alctree( "List Size", 896, 1, $2); }
    | PrimaryNoNewArray LB Expression COLON Expression RB		{ $$ = alctree( "List Substring", 897, 3, $1, $3, $5 ); }
    ;
 
 FieldAccess:
-     Primary DOT IDENT		{ $$ = alctree( "Field Access", 901, 2, $1, $3 ); }
+     PrimaryNoNewArray DOT IDENT		{ $$ = alctree( "Field Access", 901, 2, $1, $3 ); }
    ;
 
 MethodInvocation:
      Name LP ArgumentList RP			{ $$ = alctree( "Method call", 905, 4, $1, $2, $3, $4 ); }
    | Name LP RP					{ $$ = alctree( "Method call", 906, 3, $1, $2, $3 ); }
-   | Primary DOT IDENT LP ArgumentList RP	{ $$ = alctree( "Method call", 907, 3, $1, $3, $5 ); }
-   | Primary DOT IDENT LP  RP			{ $$ = alctree( "Method call", 908, 2, $1, $3 ); }
+   | PrimaryNoNewArray DOT IDENT LP ArgumentList RP	{ $$ = alctree( "Method call", 907, 3, $1, $3, $5 ); }
+   | PrimaryNoNewArray DOT IDENT LP  RP			{ $$ = alctree( "Method call", 908, 2, $1, $3 ); }
    | CLASS_NAME LP RP			{ $$ = alctree( "Class Constructor Call", 909, 1, $1 ); }
    ;
 
@@ -423,14 +423,14 @@ PostFixExpression:
    ;
 
 UnaryExpression:
-     MINUS UnaryExpression		{ $$ = alctree( "UnaryExpression", 926, 2, $1, $2 ); }
+     MINUS UnaryExpression		{ $$ = alctree( "UnaryExpression", 926, 1, $2 ); }
    | UnaryExpressionNotPlusMinus       { $$ = $1; }
    ;
 
 UnaryExpressionNotPlusMinus:
      PostFixExpression       { $$ = $1; }
-   | BANG UnaryExpression		{ $$ = alctree( "UnaryExpressionNo+-", 932, 2, $1, $2 ); }
-   | DROLL UnaryExpression		{ $$ = alctree( "Unary Dice roll", 933, 2, $1, $2 ); }
+   | BANG UnaryExpression		{ $$ = alctree( "UnaryExpressionNo+-", 932, 1, $2 ); }
+   | DROLL UnaryExpression		{ $$ = alctree( "Unary Dice roll", 933, 1, $2 ); }
    ;
 
 MultiplicativeExpression:
@@ -496,7 +496,7 @@ AssignmentExpression:
 
 Assignment:
      Assignable AssignmentOperator AssignmentExpression		{ $$ = alctree( "Assign", 998, 3, $1, $2, $3 ); }
-     | Assignable AssignmentOperator LB ListInitializer RB       { $$ = alctree( "List Initializer", 999, 3, $1, $2, $4); }
+    //  | Assignable AssignmentOperator LB ListInitializer RB       { $$ = alctree( "List Initializer", 999, 3, $1, $2, $4); }  // Covered by ListLiteral being added to literal.
     //  | Name LB RB ASN AssignmentExpression  { $$ = alctree( "Default table mapping", 1000, 2, $1, $5 ); }
    ;
 
@@ -568,6 +568,8 @@ Semicolon:
         SM		{ $$ = $1; }
       | { $$ = NULL; }
       ;
+      
+ListLiteral:  LB ListInitializer RB { $$ = alctree( "list literal", 1572, 1, $1 ); };
 
 Literal:
 		  INTLITERAL		{ $$ = $1; }   
@@ -576,6 +578,7 @@ Literal:
 		| STRINGLITERAL		{ $$ = $1; }
 		| CHARLITERAL		{ $$ = $1; }
 		| NULLLITERAL		{ $$ = $1; }
+    | ListLiteral
 		;
 
 /*

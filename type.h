@@ -9,12 +9,13 @@ HW #3: Semantic Analysis
 "type.h"
 	Defining types of variables.
 
-   
+   Requires scope.h
 */
 
 #ifndef TYPE_H
 #define TYPE_H
 
+struct Scope;
 
 // "Prototyping" struct fields
 struct field;
@@ -61,14 +62,15 @@ typedef struct type {
       struct struc {		/* structs/classes */
          char *label;
          int nfields;
-         struct field **f;
+         // struct field **f; // This makes more sense if it was a scope*
+         struct Scope* scope;
       } s;
       struct func {
          struct type* retType;
          int nargs;
          struct type** argtype;
       } f;
-      struct type *p;		/* pointer type, points at another type */
+      struct type *p;   /* pointer type, points at another type : used for pointing at class types */
    } u;
 } type_t;
 
