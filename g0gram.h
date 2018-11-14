@@ -52,14 +52,16 @@
 #define PLASN 308
 #define MIASN 309
 #define SWAP 310
-#define DROLL 311
-#define BAD_TOKEN 312
-#define CLASS_NAME 313
-#define UDROLL 314
-#define UNEGATE 315
-#define UMINUS 316
-#define PAREN 317
-#define SUB 318
+#define COLON 311
+#define DROLL 312
+#define BAD_TOKEN 313
+#define CLASS_NAME 314
+#define END 0
+#define UDROLL 316
+#define UNEGATE 317
+#define UMINUS 318
+#define PAREN 319
+#define SUB 320
 #ifdef YYSTYPE
 #undef  YYSTYPE_IS_DECLARED
 #define YYSTYPE_IS_DECLARED 1

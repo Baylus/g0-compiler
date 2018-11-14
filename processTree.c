@@ -4,7 +4,7 @@ Baylus Tunnicliff
 CS 445 - Compiler Design (g0 - subset of Godiva)
 HW #3: Semantic Analysis
 "processTree.c"
-	Processing the tree's output
+      Processing the tree's output
 
 
 Key:
@@ -142,27 +142,24 @@ int compareTypes( type_t* a, type_t* b )
          break;
       case 7:  /* function */
         {
-            void* af = &(a->u.f);
-            void* bf = &(b->u.f);
-
             if ( b->base_type != 7 )
             {
                return 10;
             }
 
-            if ( af->nargs != bf->nargs )
+            if ( a->u.f.nargs != b->u.f.nargs )
                return 11;
 
             // check types of arguments
             int i = 0;
-            while ( i < af->nargs )
+            while ( i < a->u.f.nargs )
             {
                /* 
                Reason we can safely just check the return value of compare types here on
                given arguments, without checking the return 13 possibility is because
                g0 prohibits functions from being passed in as arguments to functions.
                */
-               if ( compareTypes( af->argtype[i], bf->argtype[i] ) )
+               if ( compareTypes( a->u.f.argtype[i], b->u.f.argtype[i] ) )
                   return 12;
                ++i;
             }
@@ -170,10 +167,10 @@ int compareTypes( type_t* a, type_t* b )
             if ( compareTypes( a->u.f.retType, b->u.f.retType ) )
                return 13;
          }
-         break;
+         return 0;
       case 8:  /* class_object */
       // This is the same check as asking, "do both objects have the same class type?"
-         return checkTypes( a->u.p, b->u.p )
+         return compareTypes( a->u.p, b->u.p );
          break;
       case 9:  /* class_type */
          if ( strcmp(a->u.s.label, b->u.s.label) == 0 )
@@ -215,8 +212,6 @@ int check_operator( int operator, type_t* x, type_t* y )
 
    switch( x->base_type )
    {
-      switch (s1->base_type)
-      {
          case 2: /* double */
             if ( operator == MOD ) return 1;
             if ( operator == DROLL ) return 1;
@@ -267,9 +262,8 @@ int check_operator( int operator, type_t* x, type_t* y )
             return 1;
             break;
          default:
-            error(t, "invalid type assignment, unknown root of error");
+            error(NULL, "invalid type assignment, unknown root of error");
       }
-   }
 }
 
 void deleteType( type_t* t )
@@ -1115,7 +1109,7 @@ int generateSymbolTables(tree *t, int bool_print)
             yyscope = yyscope->parentScope;
             break;
          /* Undeclared variable checking */
-         case 893:   /* Primary: SHARP PrimaryNoNewArray */
+         case 883:   /* Primary: SHARP PrimaryNoNewArray */
             sym = NULL;
             if ( ( sym = findSymbol( yyscope, t->kids[0]->token->text ) ) == NULL )
             {
@@ -1297,7 +1291,7 @@ type_t* checkTypes(tree *t)
             char* n = getToken( t )->text;
             // Find symbol
             sym_t* s = findSymbol( yyscope, n );
-            if ( s == NULL ) error(" Strange error, couldnt find reference to class.\n ");
+            if ( s == NULL ) error(t, " Strange error, couldnt find reference to class.\n ");
             // store old scope, and find new scope
             scope_t* oldscope = yyscope, *newscope = getSymbolScope( yyscope, s );
 
@@ -1311,7 +1305,7 @@ type_t* checkTypes(tree *t)
          break;
 /* Process tree nodes and return their types */
 /////////////////// Primary / PrimaryNoNewArray Handling ////////////////////////////
-      case 893:   /* Primary: SHARP PrimaryNoNewArray */
+      case 883:   /* Primary: SHARP PrimaryNoNewArray */
          r = checkTypes( t->kids[0] );
          switch( r->base_type )
          {
@@ -1447,8 +1441,7 @@ type_t* checkTypes(tree *t)
                         error( t->kids[1], "symbol is not of type function" );
                         break;
                      case 11: /* incorrect arg numbers */
-                        fprintf( stderr, "semantic error: invalid arg # for function call, 
-                              on line %d\n\tfunction %s expects %d arguments, %d were given.\n", 
+                        fprintf( stderr, "semantic error: invalid arg # for function call, on line %d\n\tfunction %s expects %d arguments, %d were given.\n", 
                               t->kids[1]->token->lineno, t->kids[1]->token->text, symbol->type->u.f.nargs, p->u.f.nargs);
                         exit(3);
                         break;
@@ -1547,9 +1540,9 @@ type_t* checkTypes(tree *t)
             }
             type_t* e1 = checkTypes(t->kids[1]), *e2 = checkTypes(t->kids[2]);
 
-            if ( e1->base_type != I_type )
+            if ( e1->base_type != I_Type )
                error(t->kids[1], "expression 1 of substring statement is not of valid index type");
-            if (e2->base_type != I_type)
+            if (e2->base_type != I_Type)
                error(t->kids[2], "expression 2 of substring statement is not of valid index type");
 
             p = ( r->base_type == 3 ) ? copyType( S_Type ) : copyType( r->u.l.elemtype );
@@ -1613,7 +1606,7 @@ type_t* checkTypes(tree *t)
          s1 = checkTypes(t->kids[0]);
          s2 = checkTypes(t->kids[2]);
 
-         if (check_operator(o, s1, s2))
+         if (check_operator( t->kids[1] , s1, s2))
          {
             error(t, "operation not defined for given type");  /* FIX : better error message */
          }
@@ -1640,30 +1633,31 @@ type_t* checkTypes(tree *t)
          }
          break;
 /////////////////////////// UNCATEGORIZED THINGS ///////////////////////////////////
-      case 888:   /* ListInializer: ListInializer CM PrimaryNoNewArray */
-         /* We want the first item in the list to determine the type for the whole list,
+         case 888: /* ListInializer: PrimaryNoNewArray CM ListInializer */
+            /* We want the first item in the list to determine the type for the whole list,
             So we want the rule to be left-recursive, not right. This is because we go
             all the way down on the first node, then compare the results with the right node*/
-         {
-            type_t *s1 = checkTypes(t->kids[0]), *s2 = checkTypes(t->kids[1]);
-
-            if ( compareTypes( s1, s2 ) )
+            /* This has to be changed. This is in the opposite order it needs to be */
             {
-               /* FIX : add more detailed error reporting */
-               fprintf( stderr, "semantic error: list literal contains multiple non-comparable types, on line %d\n", getToken(t)->lineno );
-               exit(3);
-               // char* t1 = NULL, t2 = NULL;
-               // switch (s1)
-               // fprintf( stderr,  )
-            }
+               type_t *s1 = checkTypes(t->kids[0]), *s2 = checkTypes(t->kids[1]);
 
-            // free(s1);
-            free(s2);
-            return s1;
-         }
-         // r = checkTypes( t->kids[0] );
-         break;
-      case 1572:  /* ListLiteral: [ ListInitializer ] */
+               if (compareTypes(s1, s2))
+               {
+                  /* FIX : add more detailed error reporting */
+                  fprintf(stderr, "semantic error: list literal contains multiple non-comparable types, on line %d\n", getToken(t)->lineno);
+                  exit(3);
+                  // char* t1 = NULL, t2 = NULL;
+                  // switch (s1)
+                  // fprintf( stderr,  )
+               }
+
+               // free(s1);
+               free(s2);
+               return s1;
+            }
+            // r = checkTypes( t->kids[0] );
+            break;
+         case 1572: /* ListLiteral: [ ListInitializer ] */
          {
             /* 
             EXTREME CAUTION: 
@@ -1685,9 +1679,6 @@ type_t* checkTypes(tree *t)
             return r;   // return the list
          }
          break;
-      case :
-
-         break;
 ///////////// BASIC TYPES ////////////////////
       case INTLITERAL:
          return copyType( I_Type );
@@ -1695,7 +1686,8 @@ type_t* checkTypes(tree *t)
       case FLOATLITERAL:
          return copyType( D_Type );
          break;
-      case BoolLiteral:
+      case TRUE:
+      case FALSE:
          return copyType( B_Type );
          break;
       case STRINGLITERAL:

@@ -307,7 +307,7 @@ ExpressionStatement:
 
 StatementExpression:
         Assignment       { $$ = $1; }
-      | MethodInvocation       { $$ = $1; }
+      //| MethodInvocation       { $$ = $1; }
       ;
 
 IfThenStatement:
@@ -380,10 +380,10 @@ ArgumentList:
 	;
 
 Primary:
-     PrimaryNoNewArray  | SHARP PrimaryNoNewArray { $$ = alctree( "Size of symbol", 893, 1, $2); }
+     PrimaryNoNewArray  //| SHARP PrimaryNoNewArray { $$ = alctree( "Size of symbol", 883, 1, $2); }
    ;
 
-ListInitializer: PrimaryNoNewArray			{ $$ = $1; }
+ListInitializer: PrimaryNoNewArray CM PrimaryNoNewArray			{ $$ = alctree( "List items", 888, 2, $1, $3 ); }
   // |   PrimaryNoNewArray CM ListInitializer { $$ = alctree( "List items", 888, 2, $1, $3 ); }
   | ListInitializer CM PrimaryNoNewArray { $$ = alctree( "List items", 888, 2, $1, $3 ); }
 	;
@@ -393,7 +393,7 @@ PrimaryNoNewArray:
    | LP Expression RP		{ $$ = alctree( "Paren Expr", 893, 1, $2 ); }
    | MethodInvocation       { $$ = $1; }
    | Assignable       { $$ = $1; }
-  //  | SHARP IDENT    { $$ = alctree( "List Size", 896, 1, $2); }
+   | SHARP IDENT    { $$ = alctree( "List Size", 896, 1, $2); }
    | PrimaryNoNewArray LB Expression COLON Expression RB		{ $$ = alctree( "List Substring", 897, 3, $1, $3, $5 ); }
    ;
 
@@ -441,22 +441,21 @@ MultiplicativeExpression:
    | MultiplicativeExpression DROLL UnaryExpression		{ $$ = alctree( "Dice Roll Expression", 941, 3, $1, $2, $3 ); }
    ;
 
-ImplicitConcatExpression:
-	  STRINGLITERAL Name				{ $$ = alctree( "Imp. Concat Expr (str + var)", 945, 2, $1, $2 ); }
-	| STRINGLITERAL MethodInvocation			{ $$ = alctree( "Imp. Concat Expr (str + method)", 946, 2, $1, $2 ); }
-	| Name STRINGLITERAL				{ $$ = alctree( "Imp. Concat Expr (var + str)", 947, 2, $1, $2 ); }
-	| MethodInvocation STRINGLITERAL			{ $$ = alctree( "Imp. Concat Expr (method + str)", 948, 2, $1, $2 ); }
-	| Name Name						{ $$ = alctree( "Imp. Concat Expr (var + var)", 949, 2, $1, $2); }
-	// | Name Name						{ yyerror("syntax error"); fprintf(stderr, "implicit string concatenation must have a string literal in the first two values\n"); exit(2); }
-	| STRINGLITERAL STRINGLITERAL				{ yyerror("syntax error"); fprintf(stderr, "implicit string concatenation not allowed between two string literals\n"); exit(2); }
-	| ConcatentationExpresssion Name			{ $$ = alctree( "Imp. Concat Expr list (+name)", 952, 2, $1, $2 ); }
-	| ConcatentationExpresssion MethodInvocation		{ $$ = alctree( "Imp. Concat Expr list (+method)", 953, 2, $1, $2 ); }
-	| ConcatentationExpresssion STRINGLITERAL		{ $$ = alctree( "Imp. Concat Expr list (+string)", 954, 2, $1, $2 ); }
+ImplicitConcatExpression: PrimaryNoNewArray PrimaryNoNewArray { $$ = alctree( "Imp. Concat Expr (str + var)", 944, 2, $1, $2 ); }
+      | ConcatentationExpresssion PrimaryNoNewArray { $$ = alctree( "Imp. Concat Expr (str + var)", 945, 2, $1, $2 ); }
+	//   STRINGLITERAL Name				{ $$ = alctree( "Imp. Concat Expr (str + var)", 945, 2, $1, $2 ); }
+	// | STRINGLITERAL MethodInvocation			{ $$ = alctree( "Imp. Concat Expr (str + method)", 946, 2, $1, $2 ); }
+	// | Name STRINGLITERAL				{ $$ = alctree( "Imp. Concat Expr (var + str)", 947, 2, $1, $2 ); }
+	// | MethodInvocation STRINGLITERAL			{ $$ = alctree( "Imp. Concat Expr (method + str)", 948, 2, $1, $2 ); }
+	// | Name Name						{ $$ = alctree( "Imp. Concat Expr (var + var)", 949, 2, $1, $2); }
+	// | STRINGLITERAL STRINGLITERAL				{ yyerror("syntax error"); fprintf(stderr, "implicit string concatenation not allowed between two string literals\n"); exit(2); }
+	// | ConcatentationExpresssion Name			{ $$ = alctree( "Imp. Concat Expr list (+name)", 952, 2, $1, $2 ); }
+	// | ConcatentationExpresssion MethodInvocation		{ $$ = alctree( "Imp. Concat Expr list (+method)", 953, 2, $1, $2 ); }
+	// | ConcatentationExpresssion STRINGLITERAL		{ $$ = alctree( "Imp. Concat Expr list (+string)", 954, 2, $1, $2 ); }
 	;
 
 ConcatentationExpresssion:
 	  ImplicitConcatExpression 		{ $$ = $1; }
-	// | ExplicitConcatExpression 		{ $$ = $1; }
 	;
 
 AdditiveExpression:
@@ -496,7 +495,7 @@ AssignmentExpression:
 
 Assignment:
      Assignable AssignmentOperator AssignmentExpression		{ $$ = alctree( "Assign", 998, 3, $1, $2, $3 ); }
-    //  | Assignable AssignmentOperator LB ListInitializer RB       { $$ = alctree( "List Initializer", 999, 3, $1, $2, $4); }  // Covered by ListLiteral being added to literal.
+    | Assignable AssignmentOperator ListLiteral       { $$ = alctree( "List Initializer", 999, 3, $1, $2); }  // Covered by ListLiteral being added to literal.
     //  | Name LB RB ASN AssignmentExpression  { $$ = alctree( "Default table mapping", 1000, 2, $1, $5 ); }
    ;
 
@@ -569,7 +568,9 @@ Semicolon:
       | { $$ = NULL; }
       ;
       
-ListLiteral:  LB ListInitializer RB { $$ = alctree( "list literal", 1572, 1, $1 ); };
+ListLiteral:  LB ListInitializer RB { $$ = alctree( "list literal", 1572, 1, $1 ); }
+    |   LB PrimaryNoNewArray RB { $$ = alctree( "list literal", 1573, 1, $1 ); }
+    ;
 
 Literal:
 		  INTLITERAL		{ $$ = $1; }   
@@ -578,7 +579,7 @@ Literal:
 		| STRINGLITERAL		{ $$ = $1; }
 		| CHARLITERAL		{ $$ = $1; }
 		| NULLLITERAL		{ $$ = $1; }
-    | ListLiteral
+    // | ListLiteral
 		;
 
 /*
