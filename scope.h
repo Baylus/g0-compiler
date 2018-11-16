@@ -37,4 +37,6 @@ sym_t* scope_addSymbol(scope_t *s, struct token *t, type_t*);
 
 void delete_Scope( scope_t* s );
 
+void print_Scope( scope_t*s, int depth );
+
 #endif

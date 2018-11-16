@@ -26,6 +26,33 @@ Key:
 #include <stdio.h>
 #include <string.h>  //memcpy, strcmp
 
+#include <stdarg.h>
+
+extern int yydebug;     // g0gram.y/g0gram.h
+extern char* filename;  // main.c
+int print_Symbols;      // main.c
+
+extern void myError(tree* t, const char *fmt, ...);
+void printLine(FILE* , int);
+struct token *getToken(tree *t);
+
+void myError( tree* t, const char *fmt, ...)
+{
+   char buffer[4096];
+   va_list args;
+   va_start(args, fmt);
+   vsnprintf(buffer, sizeof(buffer), fmt, args);
+   va_end(args);
+   // ... print the formatted buffer... 
+
+   tok_t* T = getToken(t);
+   fprintf( stderr, "semantic error: in file %s, line %d, \n", filename, T->lineno );
+   printLine( stderr, T->lineno );
+   fprintf( stderr, "%s, before token %s\n", buffer, T->text );
+   
+   exit(3);
+}
+
 int isLeaf(tree *t);
 
 // Consider making these examples of the basic types if it helps later.
@@ -34,10 +61,13 @@ type_t *V_Type, *I_Type, *D_Type, *S_Type, *B_Type, *L_Type, *T_Type;
 
 extern scope_t* yyscope;   // g0lex.l
 
-extern int yydebug;     // g0gram.y/g0gram.h
 
 int print = 0;
 
+void error( tree* , char* );
+void debug_symbol( sym_t* );
+type_t* checkTypes( tree* );
+int compareTypes( type_t*, type_t* );
 
 /* 
 How these are going to work is that they will be initialized to hold 5 pointers
@@ -46,7 +76,7 @@ initally, they will be used to store the pointers that still need to be free'd,
 so it will go like this, put the pointer into the array, increment the current counter for how many
 pointers are being held, if unfreed % 5 == 0, resize the array to a size of 5 bigger.
 */
-type_t** unfreedPointers = NULL;
+type_t **unfreedPointers = NULL;
 int unfreed = 0;
 
 void store( type_t* p )
@@ -59,6 +89,119 @@ void store( type_t* p )
    {
       unfreedPointers = realloc( unfreedPointers, sizeof(type_t) * (unfreed + 5) );
    }
+}
+
+void printLine( FILE* stream, int l )
+{
+   /* 
+      Prints the line number of the current file
+    */
+   int maxlen = 256;
+   FILE* fp = NULL;
+   fp = fopen(filename, "r");
+   if (fp == NULL)
+      return;
+   
+   char* str = calloc( maxlen, sizeof(char) );
+   int i = 0;
+   for( i = 0; i < l; ++i )
+   {
+      str = fgets( str, maxlen + 1, fp );
+   }
+   fprintf( stream, "%s", str );
+   fclose(fp);
+}
+
+void raiseTypeError( tree*t, type_t* a, type_t* b, char* s )
+{
+   /* 
+   Raises and issue with the given types.
+    */
+   if (a == NULL || b == NULL) 
+      error(t, "one of two types is NULL");
+
+   if( s == NULL )
+      s = "";
+
+   char *sa = NULL, *sb = NULL;
+   {
+      switch (a->base_type) {
+      case 1:
+         sa = "int";
+         break;
+      case 2:
+         sa = "double";
+         break;
+      case 3:
+         sa = "string";
+         break;
+      case 4:
+         sa = "bool";
+         break;
+      case 5:
+         sa = "list";
+         break;
+      case 6:
+         sa = "table";
+         break;
+      case 7:
+         sa = "function";
+         break;
+      case 8:
+         sa = "class object";
+         break;
+      default:
+         error(t, "unable to process type information");
+      }
+      switch (b->base_type)
+      {
+      case 1:
+         sb = "int";
+         break;
+      case 2:
+         sb = "double";
+         break;
+      case 3:
+         sb = "string";
+         break;
+      case 4:
+         sb = "bool";
+         break;
+      case 5:
+         sb = "list";
+         break;
+      case 6:
+         sb = "table";
+         break;
+      case 7:
+         sb = "function";
+         break;
+      case 8:
+         sb = "class object";
+         break;
+      default:
+         error(t, "unable to process type information");
+      }
+   }
+   
+   switch( compareTypes(a,b) )
+   {
+      case 11:
+         fprintf(stderr,
+            "semantic error: %s incompatible types on line %d\n\targs required was %d, but %d were provided\n"
+            , s, getToken(t)->lineno, a->u.f.nargs, b->u.f.nargs);
+         printLine(stderr,  getToken(t)->lineno);
+         break;
+      default:
+         {
+            fprintf( stderr,
+            "semantic error: %s incompatible types on line %d\n\ttype required was %s, but %s was provided\n"
+            , s, getToken(t)->lineno, sa, sb );
+            printLine(stderr, getToken(t)->lineno);
+         }
+   }
+
+   exit(3);
 }
 
 type_t** reverseTypeList( type_t** l, int size )
@@ -114,7 +257,7 @@ int compareTypes( type_t* a, type_t* b )
       13: different return types (Not sure if this will ever be useful.)
    */
    if ( a == NULL ) return -1;
-   if ( b == NULL ) return 1;
+   if ( b == NULL ) return -1;
    if ( a->base_type == 2 && b->base_type == 1)
    {
       // This is my solution for promotion. This may not work, and i may have to do the whole
@@ -212,62 +355,66 @@ int check_operator( int operator, type_t* x, type_t* y )
 
    switch( x->base_type )
    {
-         case 2: /* double */
-            if ( operator == MOD ) return 1;
-            if ( operator == DROLL ) return 1;
-         case 1: /* int */
-            switch( operator )
-            {
-               case OROR:
-               case ANDAND:
-               case BANG:
-                  return 1;
-               default:
-                  return 0;
-            }
-            break;
-         case 3: /* string */
-            switch( operator )
-            {
-               case ASN: 
-               case EQ: 
-               case NE:
-                  return 0; 
-               default:
-                  return 1;
-            }
-         case 4: /* bool */
-            switch( operator )
-            {
-               case ASN: 
-               case EQ:
-               case NE:
-               case OROR:
-               case ANDAND:
-                  return 0; 
-               default:
-                  return 1;
-            }
-            break;
-         case 5: /* list */
-            if ( operator == PLASN ) return 0;
-            else return 1;
-            break;
-         case 6: /* table */
-            if ( operator == MIASN) return 0;
-            else return 1;
-            break;
-         case 8: /* class_object */
-            // Only allow ASN
-            return 1;
-            break;
-         default:
-            error(NULL, "invalid type assignment, unknown root of error");
-      }
+      case 2: /* double */
+         if ( operator == MOD ) return 1;
+         if ( operator == DROLL ) return 1;
+      case 1: /* int */
+         switch( operator )
+         {
+            case OROR:
+            case ANDAND:
+            case BANG:
+               return 1;
+            default:
+               return 0;
+         }
+         break;
+      case 3: /* string */
+         switch( operator )
+         {
+            case ASN: 
+            case EQ: 
+            case NE:
+               return 0; 
+            default:
+               return 1;
+         }
+      case 4: /* bool */
+         switch( operator )
+         {
+            case ASN: 
+            case EQ:
+            case NE:
+            case OROR:
+            case ANDAND:
+               return 0; 
+            default:
+               return 1;
+         }
+         break;
+      case 5: /* list */
+         if ( operator == PLASN ) return 0;
+         else return 1;
+         break;
+      case 6: /* table */
+         if ( operator == MIASN) return 0;
+         else return 1;
+         break;
+      case 8: /* class_object */
+         // Only allow ASN
+         return 1;
+         break;
+      default:
+         error(NULL, "invalid type assignment, unknown root of error");
+   }
+
+   // Program should never reach this point.
+   return -1;  
 }
 
 void deleteType( type_t* t )
 {
+   /* Recursively deletes all types, and their children */
    if ( t )
    {
       // If t != NULL
@@ -376,6 +523,7 @@ void error(tree* t, char* s) {
       line = n->lineno;
       tname = n->text;
       fprintf(stderr, "Semantic Error:\n %s, on line %d\nnear token %s\n ", s, line, tname);
+      printLine( stderr, line );
    }
    else
    {
@@ -394,7 +542,7 @@ sym_t* checkSym( scope_t* s, tok_t* t )
    sym_t* sym = findSymbol( s, t->text );
    if ( sym == NULL ) {
       /* Symbol undefined */
-      fprintf(stderr, "Semantic Error:\n Undeclared symbol %s, on line %d\n ", s, t->text, t->lineno);
+      fprintf(stderr, "Semantic Error:\n Undeclared symbol %s, on line %d\n ", t->text, t->lineno);
       exit(3);
    }
    return sym;
@@ -478,8 +626,6 @@ scope_t* getSymbolScope( scope_t* p, sym_t* s )
    return t;
 }
 
-
-
 scope_t* enterScope( scope_t* s, char* sName )
 {
    /* 
@@ -510,7 +656,7 @@ scope_t *enterObjectScope(scope_t *s, type_t *t)
 
    if (t->base_type != 8)
    {
-      error(t, "Type does not match class object for qualified name resolution\n");
+      error(NULL, "Type does not match class object for qualified name resolution\n");
    }
    char *classname = t->u.p->u.s.label;         // gives the class name that t is an object of.
    scope_t *n = enterScope(yyscope, classname); // Enters the scope of the given class name visible to scope n
@@ -549,7 +695,6 @@ type_t* getIdentType( tree *t, scope_t* s )
    }
    return NULL;
 }
-
 
 type_t* getType( tree* t )
 {
@@ -670,6 +815,17 @@ type_t* getType( tree* t )
                // We have type list.
                free( p );
                p = getType( t->kids[1] );
+
+               if (p->base_type != 7)
+               {
+                  // Only one argument was returned.
+                  type_t *a = p;
+                  p = calloc(1, sizeof(type_t));
+                  p->base_type = 7;
+                  p->u.f.nargs = 1;
+                  p->u.f.argtype = calloc(1, sizeof(type_t *));
+                  p->u.f.argtype[0] = a;
+               }
             }
             else
             {
@@ -686,6 +842,17 @@ type_t* getType( tree* t )
                // We have type list.
                free( p );
                p = getType( t->kids[2] );
+
+               if (p->base_type != 7)
+               {
+                  // Only one argument was returned.
+                  type_t *a = p;
+                  p = calloc(1, sizeof(type_t));
+                  p->base_type = 7;
+                  p->u.f.nargs = 1;
+                  p->u.f.argtype = calloc(1, sizeof(type_t *));
+                  p->u.f.argtype[0] = a;
+               }
             }
             else
             {
@@ -702,6 +869,16 @@ type_t* getType( tree* t )
                // We have type list.
                free( p );
                p = getType( t->kids[2] );
+               if ( p->base_type != 7 )
+               {
+                  // Only one argument was returned.
+                  type_t* a = p;
+                  p = calloc(1, sizeof(type_t));
+                  p->base_type = 7;
+                  p->u.f.nargs = 1;
+                  p->u.f.argtype = calloc(1, sizeof(type_t*));
+                  p->u.f.argtype[0] = a;
+               }
             }
             else
             {
@@ -828,8 +1005,6 @@ int processVariableDeclarations( tree* t, int bool_print )
    }
    return count;
 }
-
-
 
 scope_t* checkQualified( tree* t )
 {
@@ -1159,7 +1334,7 @@ type_t *getReturnType(tree *t)
    else
    {
       type_t *r = getReturnType(t->kids[0]);
-      type_t *p = NULL;
+      // type_t *p = NULL;
       switch (t->code)
       {
       case 913: /* ArrayAccess: PrimaryNoNewArray [ Expression ] */
@@ -1191,43 +1366,44 @@ type_t *getReturnType(tree *t)
 
          // char *classname = r->u.p->u.s.label; // gives the class name that r is an object of.
          // return enterScope(n, classname);     // Enters the scope of the given class name visible to scope n
-
-         scope_t *n = enterObjectScope(yyscope, r); // Enters the scope of the given class name visible to scope n
-         if (n == NULL)
          {
-            error(t, "Failed to find class scope from local scope... i must be confused with how this works\n");
-         }
-         sym_t *tmp = checkSym(n, getToken(t->kids[1]));
+            scope_t *n = enterObjectScope(yyscope, r); // Enters the scope of the given class name visible to scope n
+            if (n == NULL)
+            {
+               error(t, "Failed to find class scope from local scope... i must be confused with how this works\n");
+            }
+            sym_t *tmp = checkSym(n, getToken(t->kids[1]));
 
-         if ( t->nkids > 2 )
-         {
-            // check argument lists
+            if ( t->nkids > 2 )
+            {
+               // check argument lists
 
-         }
+            }
 
-         r = tmp->type->u.f.retType; // make type the returned type from function.
-         // r = tmp->type;
+            r = tmp->type->u.f.retType; // make type the returned type from function.
+         }         // r = tmp->type;
       case 901:  /* FieldAccess: PrimaryNoNewArray . IDENT */
       case 1059: /* QualifiedName: Name . IDENT */
-         scope_t *n = enterObjectScope(yyscope, r); // Enters the scope of the given class name visible to scope n
-         if (n == NULL)
          {
-            error(t, "Failed to find class scope from local scope... i must be confused with how this works\n");
-         }
-         sym_t *tmp = checkSym(n, getToken(t->kids[1]));
-         // switch( t->code )
-         // {
-         //    case 907: /* MethodInvocation: PrimaryNoNewArray . IDENT ( [ArgumentList] ) */
-         //    case 908: /* MethodInvocation: PrimaryNoNewArray . IDENT ( [ArgumentList] ) */
-         //       r = tmp->type->u.f.retType; // make type the returned type from function.
-         //       break;
-         //    case 901:  /* FieldAccess: PrimaryNoNewArray . IDENT */
-         //    case 1059: /* QualifiedName: Name . IDENT */
-         //       r = tmp->type;
-         //       break;
-         // }
-         r = tmp->type;
-         // r = r->u.p; // Class type
+            scope_t *n = enterObjectScope(yyscope, r); // Enters the scope of the given class name visible to scope n
+            if (n == NULL)
+            {
+               error(t, "Failed to find class scope from local scope... i must be confused with how this works\n");
+            }
+            sym_t *tmp = checkSym(n, getToken(t->kids[1]));
+            // switch( t->code )
+            // {
+            //    case 907: /* MethodInvocation: PrimaryNoNewArray . IDENT ( [ArgumentList] ) */
+            //    case 908: /* MethodInvocation: PrimaryNoNewArray . IDENT ( [ArgumentList] ) */
+            //       r = tmp->type->u.f.retType; // make type the returned type from function.
+            //       break;
+            //    case 901:  /* FieldAccess: PrimaryNoNewArray . IDENT */
+            //    case 1059: /* QualifiedName: Name . IDENT */
+            //       r = tmp->type;
+            //       break;
+            // }
+            r = tmp->type;
+         }         // r = r->u.p; // Class type
          break;
       default:
          error(t, "DEBUG::: func processTree.c:checkQualified(): Unknown qualified code");
@@ -1249,38 +1425,79 @@ type_t* copyType(type_t* t)
    return temp;
 }
 
-type_t* checkTypes(tree *t)
+void debug_symbol( sym_t* s )
 {
    /* 
-   Handles type checking for every single node in the tree. Doesn't generate symbols
+   Essentially just prints out information about a symbol that is requested.
+    */
+   if (s == NULL) return;
+   fprintf( stderr, "\tSymbol: %s, Type: %d, Line Declared: %d\n", s->label, s->type->base_type, s->lineno );
+}
 
-   Details:
-      This is where qualified checks come from and all that jazz.
-      This way we separate that part from the generate symbol tables.
+void shallowDelete( type_t* t )
+{
+   /* 
+   Performs a shallow delete of a type, based on needs from within the checkTypes()
+   function.
 
-      The importance of this function is to separate out the generation of types to be stored,
-      which is handled by getType() ( with very dangerous exceptions ), and to mainly create temporary
-      type variables to compare to one another, return type for given tree node, and free all generated 
-      types that are not needed for further checking.
+   Defined "shallow" deletes:
+   Functions:
+      free their arguments,
+      and free the type itself.
 
-      This is critical for ensuring we are cleaning up everything necessary.
+      NOTE: does not recursively delete, or destroy children, simply frees their pointers.
+    */
+   if ( t == NULL ) return;
 
-      All calls to getType() should be done sparingly, with thorough investigation, and freeing of
-      any generated memory.
+   switch ( t->base_type )
+   {
+      case 7:  /* function */
+         {
+            int i;
+            for( i = 0; i < t->u.f.nargs; ++i )
+            {
+               free( t->u.f.argtype[i] );
+            }
+            free( t );
+         }
+         break;
+   }
+}
 
-      Things that need to be managed carefully whenever deleting them:
-         class objects: we cant just call deleteType() on them, that will destroy the
-            whole class it points to, the class object pointers must be free'd whenever 
-            another type is being returned, or the return value will be ignored.
-   */
+/* 
+Handles type checking for every single node in the tree. Doesn't generate symbols
 
-   /* r is return value, p is temp type */
+Details:
+   This is where qualified checks come from and all that jazz.
+   This way we separate that part from the generate symbol tables.
+
+   The importance of this function is to separate out the generation of types to be stored,
+   which is handled by getType() ( with very dangerous exceptions ), and to mainly create temporary
+   type variables to compare to one another, return type for given tree node, and free all generated 
+   types that are not needed for further checking.
+
+   This is critical for ensuring we are cleaning up everything necessary.
+
+   All calls to getType() should be done sparingly, with thorough investigation, and freeing of
+   any generated memory.
+
+   Things that need to be managed carefully whenever deleting them:
+      class objects: we cant just call deleteType() on them, that will destroy the
+         whole class it points to, the class object pointers must be free'd whenever 
+         another type is being returned, or the return value will be ignored.
+*/
+type_t* checkTypes(tree *t)
+{
+
+   // r is return value, p is temp type
    type_t* r = NULL, *p = NULL;
    type_t* s1 = NULL, *s2 = NULL;
 
+   if ( t == NULL ) return NULL;
+
    switch( t->code )
    {
-      /* Things that switch the scope */
+      // Things that switch the scope
       case 659:   // ClassDeclaration: ClassHeader ClassBlock
       case 741:   // FunctionDefinition:  Type IDENT ( [FormalParameterList] ) FunctionBody
       case 742:   // 
@@ -1294,7 +1511,12 @@ type_t* checkTypes(tree *t)
             if ( s == NULL ) error(t, " Strange error, couldnt find reference to class.\n ");
             // store old scope, and find new scope
             scope_t* oldscope = yyscope, *newscope = getSymbolScope( yyscope, s );
+            if ( newscope == NULL )
+            {
+               myError( t, "failed to enter function/class scope" );
+            }
 
+            if ( yydebug ) printf("entering scope of function/class %s\n", s->label);
             // Change to new scope
             yyscope = newscope;
             // check types of Block
@@ -1303,7 +1525,7 @@ type_t* checkTypes(tree *t)
             yyscope = oldscope;
          }
          break;
-/* Process tree nodes and return their types */
+// Process tree nodes and return their types
 /////////////////// Primary / PrimaryNoNewArray Handling ////////////////////////////
       case 883:   /* Primary: SHARP PrimaryNoNewArray */
          r = checkTypes( t->kids[0] );
@@ -1324,6 +1546,15 @@ type_t* checkTypes(tree *t)
          return checkTypes( t->kids[0] );
          break;
 /////////////////// MethodInvocation + a few other things from Assignable /////////////////////
+      case 878:   // ArgumentList: Expression
+         r = calloc( 1, sizeof(type_t) );
+         r->base_type = 7;
+         r->u.f.nargs = 1;
+         // We can do this because there is only going to be one type.
+         // So we just pretend like the one argument type is actually our array of arg types.
+         r->u.f.argtype = calloc( 1, sizeof(type_t*) );
+         r->u.f.argtype[0] = checkTypes( t->kids[0] );
+         return r;
       case 879:  // ArgumentList: ArgumentList CM Expression
          {
             type_t* p = calloc(1, sizeof(type_t));
@@ -1337,7 +1568,17 @@ type_t* checkTypes(tree *t)
                */
             while (q->code == 879)
             { // While we are parsing FormalParameterList
-               p->u.f.argtype[(p->u.f.nargs)++] = checkTypes(q->kids[1]);
+               /* FIX / LOOK : I think this could be done way better, i hadnt considered the memory leak possibility here. */
+               /* 
+               Now it cant, leak. However this will take up an extra sizeof(type_t) for every single argument of every single method call that 
+               is found while checking types. In bigger programs, this will fail...  
+               */
+               // Avoid massive memory leak by storing variables.
+               type_t* temp_type = checkTypes(q->kids[1]);
+
+               /* This was actually solved using shallowDelete() */
+               // store( temp_type );  // Store type variable
+               p->u.f.argtype[(p->u.f.nargs)++] = temp_type;
 
                if (p->u.f.nargs == max)
                {
@@ -1373,8 +1614,74 @@ type_t* checkTypes(tree *t)
          break;
       case 905:   /* MethodInvocation: Name ( ArgumentList ) */
       case 906:   /* MethodInvocation: Name (  ) */
-         fprintf( stderr, "Turns out name is used instead of name.ident..." );
-         exit( -2 );
+         {
+            type_t* newType = NULL;
+            sym_t* symbol = findSymbol( yyscope, t->kids[0]->token->text );
+            if (symbol == NULL)
+            {
+               error(t->kids[0], "failed to find symbol in current scope");   /* FIX */
+            }
+            else
+            {
+               if ( yydebug )
+                  debug_symbol( symbol );
+            }
+
+            if (t->nkids > 1)
+            {
+               p = checkTypes(t->kids[1]);
+            }
+            else
+            {
+               // make standard function with no args or return
+               p = calloc(1, sizeof(type_t));
+               p->base_type = 7;
+            }
+
+            // Compare the types.
+            // free(p) after switch
+            /* 
+            returns of compareTypes()
+            10: not a function
+            11: incorrect number of arguments.
+            12: unexpected arg type ( differing argument types )
+               */
+            switch (compareTypes(symbol->type, p))
+            {
+            case 0:  /* Same function calls */
+            case 13: /* Improper return types, this is fine because p cannot have return type */
+               newType = copyType(symbol->type->u.f.retType);
+
+               break;
+            ///////////// SEMANTIC ERROR ///////////////////////
+            case 1: /* Unsimilar types */
+               // symbol is not a function type
+               error(t->kids[0], "symbol is not of type function");
+               break;
+            case 11: /* incorrect arg numbers */
+               fprintf(stderr, "semantic error: invalid arg # for function call, on line %d\n\tfunction %s expects %d arguments, %d were given.\n",
+                       t->kids[0]->token->lineno, t->kids[0]->token->text, symbol->type->u.f.nargs, p->u.f.nargs);
+               exit(3);
+               break;
+            case 12: /* incorrect arg types */
+               error(t->kids[0], "unexpected arg type");
+               /* FIX */
+               /* add detailed information on what type was expected */
+               break;
+            //////////// ERROR CONDITION //////////////
+            case 10: /* p is not a function, but symbol->type is */
+               /* 
+                        This should really never happen, and if it does, something very strange occurred.
+                        */
+            default:
+               fprintf(stderr, "FATAL ERROR: THIS SHOULD NEVER HAPPEN\nprocessTree.c, checkTypes(): case 908\n");
+               exit(-5);
+               break;
+            }
+            shallowDelete( p );  // Deletes children too.
+            // free(p);
+            return newType;
+         }
          break;
       case 901:   /* FieldAccess: PrimaryNoNewArray . IDENT */
       case 1059:  /* QualifiedName: Name . IDENT */
@@ -1438,6 +1745,7 @@ type_t* checkTypes(tree *t)
                      ///////////// SEMANTIC ERROR ///////////////////////
                      case 1: /* Unsimilar types */
                         // symbol is not a function type
+                        // raiseTypeError( t, symbol->type , p );
                         error( t->kids[1], "symbol is not of type function" );
                         break;
                      case 11: /* incorrect arg numbers */
@@ -1540,9 +1848,9 @@ type_t* checkTypes(tree *t)
             }
             type_t* e1 = checkTypes(t->kids[1]), *e2 = checkTypes(t->kids[2]);
 
-            if ( e1->base_type != I_Type )
+            if ( e1->base_type != 1 )
                error(t->kids[1], "expression 1 of substring statement is not of valid index type");
-            if (e2->base_type != I_Type)
+            if ( e2->base_type != 1 )
                error(t->kids[2], "expression 2 of substring statement is not of valid index type");
 
             p = ( r->base_type == 3 ) ? copyType( S_Type ) : copyType( r->u.l.elemtype );
@@ -1579,7 +1887,11 @@ type_t* checkTypes(tree *t)
 
             if ( check_operator( o, s1, s2 ) )
             {
-               error(t, "operation not defined for given type");
+               // error(t, "operation not defined for given type");
+               // fprintf
+               char s[32];
+               sprintf(s, "%s operation attempted", t->kids[1]->token->text);
+               raiseTypeError(t, s1, s2, s);
             }
 
             free(s2);
@@ -1606,9 +1918,12 @@ type_t* checkTypes(tree *t)
          s1 = checkTypes(t->kids[0]);
          s2 = checkTypes(t->kids[2]);
 
-         if (check_operator( t->kids[1] , s1, s2))
+         if (check_operator( t->kids[1]->code , s1, s2))
          {
-            error(t, "operation not defined for given type");  /* FIX : better error message */
+            // error(t, "operation not defined for given type");  /* FIX : better error message */
+            char s[32];
+            sprintf( s, "%s operation attempted", t->kids[1]->token->text );
+            raiseTypeError( t , s1, s2, s );
          }
 
          free(s2);
@@ -1633,7 +1948,7 @@ type_t* checkTypes(tree *t)
          }
          break;
 /////////////////////////// UNCATEGORIZED THINGS ///////////////////////////////////
-         case 888: /* ListInializer: PrimaryNoNewArray CM ListInializer */
+         case 888: /* ListInializer: ListInializer CM PrimaryNoNewArray */
             /* We want the first item in the list to determine the type for the whole list,
             So we want the rule to be left-recursive, not right. This is because we go
             all the way down on the first node, then compare the results with the right node*/
@@ -1714,7 +2029,7 @@ type_t* checkTypes(tree *t)
          int i;
          if (yydebug)
          {
-            printf(" checkTypes, default rule reached for tree code %d, with name %s ", t->code, t->label);
+            printf(" checkTypes, default rule reached for tree code %d, with name %s\n", t->code, t->label);
          }
          for ( i = 0; i < t->nkids; ++i )
          {
@@ -1824,6 +2139,7 @@ int semanticCheck(tree *t, int p)
 
    generateSymbolTables( t, p );
    // checkUndeclaredSymbols( t, print );
+   if ( print_Symbols ) print_Scope( yyscope, 0 );
    checkTypes( t );
 
    /* Free unfreed pointers */

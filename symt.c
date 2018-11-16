@@ -15,6 +15,9 @@ HW #2: Syntax Analysis
 #include "symt.h"
 #include "token.h"
 
+// extern struct scope_t;
+extern void print_Scope(scope_t *s, int depth);
+
 symList_t hashTable[HASH_TABLE_SIZE] = {};
 
 void initTables(symList_t n[HASH_TABLE_SIZE])
@@ -172,4 +175,19 @@ sym_t *searchList(symList_t l, char *name)
 	}
 
 	return NULL;
+}
+
+void printTable(symList_t *L, int depth)
+{
+	if (L == NULL) return;
+	listNode* q = L->head;
+	while (q != NULL)
+	{
+		printf("%*s", depth * 4, " ");
+		printf( "\"%s\" : type %d\n", q->info->label, q->info->type->base_type);
+		if ( q->info->s.myScope != NULL )
+			print_Scope( q->info->s.myScope, depth );
+		
+		q = q->next;
+	}
 }

@@ -301,13 +301,13 @@ StatementWithoutTrailingSubstatement:
       ;
 
 ExpressionStatement:
-        StatementExpression Semicolon		{ $$ = alctree( "Expression Stmt", 804, 2, $1, $2 ); }
-	    | SwapExpression Semicolon		{ $$ = alctree( "Swap Expr Stmt", 805, 2, $1, $2 ); }
+        StatementExpression Semicolon		{ $$ = alctree( "Expression Stmt", 804, 1, $1 ); }
+	    | SwapExpression Semicolon		{ $$ = alctree( "Swap Expr Stmt", 805, 1, $1 ); }
       ;
 
 StatementExpression:
         Assignment       { $$ = $1; }
-      //| MethodInvocation       { $$ = $1; }
+      | MethodInvocation       { $$ = $1; }
       ;
 
 IfThenStatement:
@@ -375,8 +375,8 @@ ReturnStatement:
       ;
 
 ArgumentList:
-	  Expression       { $$ = $1; }
-	| ArgumentList CM Expression		{ $$ = alctree( "arg list", 879, 3, $1, $2, $3 ); }
+	  Expression       { $$ = alctree( "arg list", 878, 1, $1 ); }
+	| ArgumentList CM Expression		{ $$ = alctree( "arg list", 879, 2, $1, $3 ); }
 	;
 
 Primary:
@@ -393,7 +393,7 @@ PrimaryNoNewArray:
    | LP Expression RP		{ $$ = alctree( "Paren Expr", 893, 1, $2 ); }
    | MethodInvocation       { $$ = $1; }
    | Assignable       { $$ = $1; }
-   | SHARP IDENT    { $$ = alctree( "List Size", 896, 1, $2); }
+   | SHARP IDENT    { $$ = alctree( "List Size", 883, 1, $2); } // FIX move this to Primary, or somewhere where it is less common than here.
    | PrimaryNoNewArray LB Expression COLON Expression RB		{ $$ = alctree( "List Substring", 897, 3, $1, $3, $5 ); }
    ;
 
@@ -402,8 +402,8 @@ FieldAccess:
    ;
 
 MethodInvocation:
-     Name LP ArgumentList RP			{ $$ = alctree( "Method call", 905, 4, $1, $2, $3, $4 ); }
-   | Name LP RP					{ $$ = alctree( "Method call", 906, 3, $1, $2, $3 ); }
+     Name LP ArgumentList RP			{ $$ = alctree( "Method call", 905, 2, $1, $3 ); }
+   | Name LP RP					{ $$ = alctree( "Method call", 906, 1, $1 ); }
    | PrimaryNoNewArray DOT IDENT LP ArgumentList RP	{ $$ = alctree( "Method call", 907, 3, $1, $3, $5 ); }
    | PrimaryNoNewArray DOT IDENT LP  RP			{ $$ = alctree( "Method call", 908, 2, $1, $3 ); }
    | CLASS_NAME LP RP			{ $$ = alctree( "Class Constructor Call", 909, 1, $1 ); }
@@ -423,14 +423,14 @@ PostFixExpression:
    ;
 
 UnaryExpression:
-     MINUS UnaryExpression		{ $$ = alctree( "UnaryExpression", 926, 1, $2 ); }
+     MINUS UnaryExpression		{ $$ = alctree( "UnaryExpression", 926, 2, $1, $2 ); }
    | UnaryExpressionNotPlusMinus       { $$ = $1; }
    ;
 
 UnaryExpressionNotPlusMinus:
      PostFixExpression       { $$ = $1; }
-   | BANG UnaryExpression		{ $$ = alctree( "UnaryExpressionNo+-", 932, 1, $2 ); }
-   | DROLL UnaryExpression		{ $$ = alctree( "Unary Dice roll", 933, 1, $2 ); }
+   | BANG UnaryExpression		{ $$ = alctree( "UnaryExpressionNo+-", 932, 2, $1, $2 ); }
+   | DROLL UnaryExpression		{ $$ = alctree( "Unary Dice roll", 933, 2, $1, $2 ); }
    ;
 
 MultiplicativeExpression:
@@ -460,32 +460,32 @@ ConcatentationExpresssion:
 
 AdditiveExpression:
      MultiplicativeExpression       { $$ = $1; }
-   | AdditiveExpression PLUS MultiplicativeExpression		  { $$ = alctree( "Sum Expr", 964, 2, $1, $3 ); }
-   | AdditiveExpression MINUS MultiplicativeExpression		{ $$ = alctree( "Difference Expr", 965, 2, $1, $3 ); }
+   | AdditiveExpression PLUS MultiplicativeExpression		  { $$ = alctree( "Sum Expr", 964, 3, $1, $2, $3 ); }
+   | AdditiveExpression MINUS MultiplicativeExpression		{ $$ = alctree( "Difference Expr", 965, 3, $1, $2, $3 ); }
    ;
 
 RelationalExpression:
      AdditiveExpression       { $$ = $1; }
-   | RelationalExpression LT AdditiveExpression		{ $$ = alctree( "less Expr", 970, 2, $1, $3 ); }
-   | RelationalExpression LE AdditiveExpression		{ $$ = alctree( "less/eq Expr", 971, 2, $1, $3 ); }
-   | RelationalExpression GT AdditiveExpression		{ $$ = alctree( "great Expr", 972, 2, $1, $3 ); }
-   | RelationalExpression GE AdditiveExpression		{ $$ = alctree( "great/eq Expr", 973, 2, $1, $3 ); }
+   | RelationalExpression LT AdditiveExpression		{ $$ = alctree( "less Expr", 970, 3, $1, $2, $3 ); }
+   | RelationalExpression LE AdditiveExpression		{ $$ = alctree( "less/eq Expr", 971, 3, $1, $2, $3 ); }
+   | RelationalExpression GT AdditiveExpression		{ $$ = alctree( "great Expr", 972, 3, $1, $2, $3 ); }
+   | RelationalExpression GE AdditiveExpression		{ $$ = alctree( "great/eq Expr", 973, 3, $1, $2, $3 ); }
    ;
 
 EqualityExpression:
      RelationalExpression       { $$ = $1; }
-   | EqualityExpression EQ RelationalExpression		{ $$ = alctree( "'==' Expr", 978, 2, $1, $3 ); }
-   | EqualityExpression NE RelationalExpression		{ $$ = alctree( "'!=' Expr", 979, 2, $1, $3 ); }
+   | EqualityExpression EQ RelationalExpression		{ $$ = alctree( "'==' Expr", 978, 3, $1, $2, $3 ); }
+   | EqualityExpression NE RelationalExpression		{ $$ = alctree( "'!=' Expr", 979, 3, $1, $2, $3 ); }
    ;
 
 ConditionalAndExpression:
      EqualityExpression       { $$ = $1; }
-   | ConditionalAndExpression ANDAND EqualityExpression		{ $$ = alctree( "AND", 984, 2, $1, $3 ); }
+   | ConditionalAndExpression ANDAND EqualityExpression		{ $$ = alctree( "AND", 984, 3, $1, $2, $3 ); }
    ;
 
 ConditionalOrExpression:
      ConditionalAndExpression       { $$ = $1; }
-   | ConditionalOrExpression OROR ConditionalAndExpression		{ $$ = alctree( "OR", 989, 2, $1, $3 ); }
+   | ConditionalOrExpression OROR ConditionalAndExpression		{ $$ = alctree( "OR", 989, 3, $1, $2, $3 ); }
    ;
 
 AssignmentExpression:

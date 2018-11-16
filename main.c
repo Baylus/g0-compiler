@@ -34,6 +34,8 @@ extern struct token* yytoken;	// g0.l
 extern FILE* yyin;		// g0.l
 extern char* yyfilename;	//g0lex.l
 
+extern int print_Symbols;	// processTree.c
+
 char* filename;
 char* addExtension( char* f ) {
 	char* n = calloc(4000, sizeof(char));
@@ -95,6 +97,11 @@ int checkCommandOptions(char* arg) {
 		// symbol requested.
 		return 3;
 	}
+	if ((strcmp("-c", arg) == 0) || (strcmp("-C", arg) == 0) || (strcmp("--scope", arg) == 0))
+	{
+		// scope requested.
+		return 4;
+	}
 	return 0;
 }
 
@@ -123,6 +130,9 @@ int main(int argc, char** argv)
 				break;
 			case 3:
 				yydebug = 1;
+				break;
+			case 4:
+				print_Symbols = 1;
 				break;
 		}
 	}
