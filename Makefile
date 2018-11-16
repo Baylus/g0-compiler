@@ -48,7 +48,7 @@ clean:
 
 submitfiles = main.c token.h g0lex.l g0gram.y symt.c symt.h tree.c tree.h Makefile type.h scope.c scope.h processTree.h processTree.c
 submit: $(submitfiles)
-	zip hw3.zip $(submitfiles)
+	zip hw4.zip $(submitfiles)
 	mkdir testSubmit
-	cp hw3.zip testSubmit/
-	cd testSubmit && unzip hw3.zip && make
+	cp hw4.zip testSubmit/
+	cd testSubmit && unzip hw4.zip && make
