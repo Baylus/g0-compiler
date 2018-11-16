@@ -32,3 +32,9 @@ l = [];
 "
 
 This is primarily due to the fact that there would be huge conflicts between empty initializers and default table mappings. anytime a identifier + a "[]" was given,  
+
+
+NOTE:
+Things i need to change in order to support proper syntax
+
+I need to change the ListLiteral to be a member of Literal, since this makes sense, and would allow several more things, but currently this causes 2 reduce/reduce errors.

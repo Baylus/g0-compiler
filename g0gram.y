@@ -495,7 +495,7 @@ AssignmentExpression:
 
 Assignment:
      Assignable AssignmentOperator AssignmentExpression		{ $$ = alctree( "Assign", 998, 3, $1, $2, $3 ); }
-    | Assignable AssignmentOperator ListLiteral       { $$ = alctree( "List Initializer", 999, 3, $1, $2); }  // Covered by ListLiteral being added to literal.
+    | Assignable AssignmentOperator ListLiteral       { $$ = alctree( "List Initializer", 999, 3, $1, $2, $3); }  // Covered by ListLiteral being added to literal.
     //  | Name LB RB ASN AssignmentExpression  { $$ = alctree( "Default table mapping", 1000, 2, $1, $5 ); }
    ;
 
@@ -568,8 +568,8 @@ Semicolon:
       | { $$ = NULL; }
       ;
       
-ListLiteral:  LB ListInitializer RB { $$ = alctree( "list literal", 1572, 1, $1 ); }
-    |   LB PrimaryNoNewArray RB { $$ = alctree( "list literal", 1573, 1, $1 ); }
+ListLiteral:  LB ListInitializer RB { $$ = alctree( "list literal", 1572, 1, $2 ); }
+    |   LB PrimaryNoNewArray RB { $$ = alctree( "list literal", 1573, 1, $2 ); }
     ;
 
 Literal:
