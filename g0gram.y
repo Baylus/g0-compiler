@@ -424,14 +424,14 @@ PostFixExpression:
    ;
 
 UnaryExpression:
-     MINUS UnaryExpression		{ $$ = alctree( "UnaryExpression", 926, 2, $1, $2 ); }
+     MINUS UnaryExpression		{ $$ = alctree( "UnaryExpression", 926, 1, $2 ); }
    | UnaryExpressionNotPlusMinus       { $$ = $1; }
    ;
 
 UnaryExpressionNotPlusMinus:
      PostFixExpression       { $$ = $1; }
-   | BANG UnaryExpression		{ $$ = alctree( "UnaryExpressionNo+-", 932, 2, $1, $2 ); }
-   | DROLL UnaryExpression		{ $$ = alctree( "Unary Dice roll", 933, 2, $1, $2 ); }
+   | BANG UnaryExpression		{ $$ = alctree( "UnaryExpressionNo+-", 932, 1, $2 ); }
+   | DROLL UnaryExpression		{ $$ = alctree( "Unary Dice roll", 933, 1, $2 ); }
    ;
 
 MultiplicativeExpression:

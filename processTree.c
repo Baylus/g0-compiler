@@ -62,6 +62,7 @@ int isLeaf(tree *t);
 // Doing this would make clean up severely more troublesome.
 type_t *V_Type, *I_Type, *D_Type, *S_Type, *B_Type, *L_Type, *T_Type;
 
+scope_t* firstScope = NULL;
 extern scope_t* yyscope;   // g0lex.l
 
 
@@ -621,7 +622,8 @@ scope_t* getSymbolScope( scope_t* p, sym_t* s )
       case 8:  /* class object */
          {
             type_t* classType = s->type->u.p;
-            classSym = findSymbol( p, classType->u.s.label );
+            // classSym = findSymbol(p, classType->u.s.label);
+            return classType->u.s.scope;
             if ( classSym == NULL )
             {
                /* This might make sense in some cases where user enters incorrect class type name for an object.
@@ -808,8 +810,20 @@ type_t* getType( tree* t )
                tree* q = t->kids[1];   // q = MethodDeclarator: IDENT ( [FormalParameterList] )
                if ( q->nkids > 1 )
                {
-                  free( p );
-                  p = getType( q->kids[1] );
+                  if ( q->kids[1]->code == 1037 )
+                  {
+                     // Theres only one parameter
+                     p->base_type = 7;
+                     p->u.f.argtype = calloc(1, sizeof(type_t*));
+                     p->u.f.argtype[0] = getType(q->kids[1]);
+                     p->u.f.nargs = 1; 
+                  }
+                  else 
+                  {
+                     // More than one parameter
+                     free( p );
+                     p = getType( q->kids[1] );
+                  }
                }
                else
                {
@@ -1122,12 +1136,12 @@ int generateSymbolTables(tree *t, int bool_print)
    }
    else
    {
-      sym_t* sym = NULL;
-      type_t* itype = NULL;
-      tok_t* T = NULL;
-      int maxlen = 0;
-      char* str = NULL;
-      tree* p = NULL;
+      // sym_t* sym = NULL;
+      // type_t* itype = NULL;
+      // tok_t* T = NULL;
+      // int maxlen = 0;
+      // char* str = NULL;
+      // tree* p = NULL;
       /* 
       Process states that need to do something.
          Different things to do.
@@ -1150,149 +1164,161 @@ int generateSymbolTables(tree *t, int bool_print)
          /* Scope Changes */
          /* Class Declaration */
          case 659:   // ClassDeclaration: ClassHeader ClassBlock
-            p = t->kids[0];   // p = ClassHeader: CLASS CLASS_NAME
-            // T = p->kids[1]->token;
-            T = getToken(p);  // p has 1 child
-            // Grab the token of tree CLASS
-            itype = getType( p ); 
-            /* Add symbol to the current scope */
-            sym = scope_addSymbol( yyscope, T, itype );
-            if ( sym == NULL ) 
-               error(t, "Failed to add symbol to scope.");
-            
-            /* Make new scope */
-            maxlen = strlen("Class Scope: ") + strlen(T->text) + 1;
-            str = calloc ( maxlen, sizeof(char) );
-            // sym->s.myScope = create_scope( sprintf("Class Scope: %s", T->text), yyscope );
-            snprintf( str, maxlen, "Class Scope: %s", T->text);
-            sym->s.myScope = newScope( t, str, yyscope );
+            {
+               tree* p = t->kids[0];   // p = ClassHeader: CLASS CLASS_NAME
+               // T = p->kids[1]->token;
+               tok_t* T = getToken(p);  // p has 1 child
+               // Grab the token of tree CLASS
+               type_t* itype = getType( p ); 
+               /* Add symbol to the current scope */
+               sym_t* sym = scope_addSymbol( yyscope, T, itype );
+               if ( sym == NULL ) 
+                  error(t, "Failed to add symbol to scope.");
+               
+               /* Make new scope */
+               int maxlen = strlen("Class Scope: ") + strlen(T->text) + 1;
+               char* str = calloc ( maxlen, sizeof(char) );
+               // sym->s.myScope = create_scope( sprintf("Class Scope: %s", T->text), yyscope );
+               snprintf( str, maxlen, "Class Scope: %s", T->text);
+               sym->s.myScope = newScope( t, str, yyscope );
 
-            // change scope to new scope.
-            yyscope = sym->s.myScope;
-            // add scope to symbol type.
-            sym->type->u.s.scope = sym->s.myScope;
-            // Process rest of class.
-            generateSymbolTables( t->kids[1], bool_print );
-            // Revert to previous scope.
-            yyscope = yyscope->parentScope;
-            break;
+               // change scope to new scope.
+               yyscope = sym->s.myScope;
+               // add scope to symbol type.
+               sym->type->u.s.scope = sym->s.myScope;
+               // Process rest of class.
+               generateSymbolTables( t->kids[1], bool_print );
+               // Revert to previous scope.
+               yyscope = yyscope->parentScope;
+               break;
+            }
          /* Method Declaration */
          case 693:   // MethodDeclaration: MethodHeader MethodBody
-            itype = getType( t->kids[0] );
-            T = getToken( t->kids[0]->kids[1] );
-            // sym_t *sym = scope_addSymbol(yyscope, T, mType);
-            sym = check_addSym(yyscope, T, itype);
-            if ( sym == NULL ) 
-               error(t, "Failed to add symbol to scope.");
-            sym->s.myScope = create_scope( T->text, yyscope );
-            yyscope = sym->s.myScope;
-            // Add function parameters to local scope.
-            /* 
-            MethodHeader: Type MethodDeclarator
-            MethodDeclarator: IDENT ( [FormalParameterList] )
-            */
-            tree* q = t->kids[0]->kids[1];
-            if ( q->nkids > 1 )
             {
-               addParameterSymbols( q->kids[1], bool_print );
+               type_t* itype = getType( t->kids[0] );
+               tok_t* T = getToken( t->kids[0]->kids[1] );
+               // sym_t *sym = scope_addSymbol(yyscope, T, mType);
+               sym_t* sym = check_addSym(yyscope, T, itype);
+               if ( sym == NULL ) 
+                  error(t, "Failed to add symbol to scope.");
+               sym->s.myScope = create_scope( T->text, yyscope );
+               yyscope = sym->s.myScope;
+               // Add function parameters to local scope.
+               /* 
+               MethodHeader: Type MethodDeclarator
+               MethodDeclarator: IDENT ( [FormalParameterList] )
+               */
+               tree* q = t->kids[0]->kids[1];
+               if ( q->nkids > 1 )
+               {
+                  addParameterSymbols( q->kids[1], bool_print );
+               }
+               // Generate Rest of symbols.
+               generateSymbolTables( t->kids[1], bool_print );
+               // Revert to previous scope.
+               yyscope = yyscope->parentScope;
+               break;
             }
-            // Generate Rest of symbols.
-            generateSymbolTables( t->kids[1], bool_print );
-            // Revert to previous scope.
-            yyscope = yyscope->parentScope;
-            break;
          /* Constructor Declaration */
          case 711:   //    ConstructorDeclaration: ConstructorDeclarator ConstructorBody
-            // Does this symbol have to be defined in the class's scope?
-            // We will go off of the assumption that it is in the class scope
-            itype = getType( t->kids[0] );
-            T = getToken( t->kids[0] );
-            sym = check_addSym(yyscope, T, itype);
-
-            // create new scope for class constructor.
-            maxlen = strlen(T->text) + strlen(" constructor") + 1;
-            str = calloc( maxlen, sizeof(char) );
-            snprintf( str, maxlen, "%s constructor", T->text);
-            sym->s.myScope = newScope( t, str, yyscope );
-
-            /* change scope */
-            yyscope = sym->s.myScope;
-            /* Add parameters if they exist */
-            if ( t->kids[0]->nkids > 1 )
             {
-               addParameterSymbols( t->kids[0]->kids[1], bool_print );
+               // Does this symbol have to be defined in the class's scope?
+               // We will go off of the assumption that it is in the class scope
+               type_t* itype = getType( t->kids[0] );
+               tok_t* T = getToken( t->kids[0] );
+               sym_t* sym = check_addSym(yyscope, T, itype);
+
+               // create new scope for class constructor.
+               int maxlen = strlen(T->text) + strlen(" constructor") + 1;
+               char* str = calloc( maxlen, sizeof(char) );
+               snprintf( str, maxlen, "%s constructor", T->text);
+               sym->s.myScope = newScope( t, str, yyscope );
+
+               /* change scope */
+               yyscope = sym->s.myScope;
+               /* Add parameters if they exist */
+               if ( t->kids[0]->nkids > 1 )
+               {
+                  addParameterSymbols( t->kids[0]->kids[1], bool_print );
+               }
+               /* Process rest of constructor body */
+               generateSymbolTables( t->kids[1], bool_print );
+               /* Revert to previous scope */
+               yyscope = yyscope->parentScope;
+               break;
             }
-            /* Process rest of constructor body */
-            generateSymbolTables( t->kids[1], bool_print );
-            /* Revert to previous scope */
-            yyscope = yyscope->parentScope;
-            break;
          /* Function Prototypes. */
          case 729:
          case 730:
          case 731:
          case 732:
-            itype = getType( t );
-            T = getToken( t->kids[1] );
-            sym = scope_addSymbol( yyscope, T, itype );
-            break;
+            {
+               type_t* itype = getType( t );
+               tok_t* T = getToken( t->kids[1] );
+               scope_addSymbol( yyscope, T, itype );
+               break;
+            }
          /* Function Definition */
          case 741:   /* FunctionDefinition: Type IDENT LP [FormalParameterList] RP FunctionBody */
          case 742:
          case 743:
          case 744:
-            // Add function symbol to parent scope
-            // Check whether function was prototyped before.
-            T = getToken(t->kids[1]);
-            sym = findSymbol( yyscope, T->text );
-            itype = getType(t);
-            if ( sym != NULL )
             {
-               // Another symbol was found, check if prototype.
-               if ( sym->s.myScope != NULL )
+               // Add function symbol to parent scope
+               // Check whether function was prototyped before.
+               tok_t* T = getToken(t->kids[1]);
+               sym_t* sym = findSymbol( yyscope, T->text );
+               type_t* itype = getType(t);
+               if ( sym != NULL )
                {
-                  // not prototype
-                  // Attempted second declaration
-                  fprintf(stderr, "redefinition of symbol %s, first defined on line %d\n", T->text, sym->lineno);
-                  error(t, "");
+                  // Another symbol was found, check if prototype.
+                  if ( sym->s.myScope != NULL )
+                  {
+                     // not prototype
+                     // Attempted second declaration
+                     fprintf(stderr, "redefinition of symbol %s, first defined on line %d\n", T->text, sym->lineno);
+                     error(t, "");
+                  }
+                  else
+                  {
+                     // Symbol is prototype.
+                     // Type check prototype types with definition types.
+                  }
                }
                else
                {
-                  // Symbol is prototype.
-                  // Type check prototype types with definition types.
+                  // No prototype found.
+                  sym = scope_addSymbol(yyscope, T, itype);
                }
-            }
-            else
-            {
-               // No prototype found.
-               sym = scope_addSymbol(yyscope, T, itype);
-            }
 
-            // Add scope to symbol
-            sym->s.myScope = newScope(t, T->text, yyscope);
-            // Switch to new scope.
-            yyscope = sym->s.myScope;
-            // Add function params to new scope
-            if ( t->nkids > 3 )
-            {
-               addParameterSymbols( t->kids[2], bool_print );
+               // Add scope to symbol
+               sym->s.myScope = newScope(t, T->text, yyscope);
+               // Switch to new scope.
+               yyscope = sym->s.myScope;
+               // Add function params to new scope
+               if ( t->nkids > 3 )
+               {
+                  addParameterSymbols( t->kids[2], bool_print );
+               }
+               // Process function body in new scope.
+               generateSymbolTables( t->kids[ t->nkids - 1 ], bool_print );   // Process last symbol in rule. i.e. "BODY"
+               // Revert to previous scope.
+               yyscope = yyscope->parentScope;
+               break;
             }
-            // Process function body in new scope.
-            generateSymbolTables( t->kids[ t->nkids - 1 ], bool_print );   // Process last symbol in rule. i.e. "BODY"
-            // Revert to previous scope.
-            yyscope = yyscope->parentScope;
-            break;
          /* Undeclared variable checking */
          case 883:   /* Primary: SHARP PrimaryNoNewArray */
-            sym = NULL;
-            if ( ( sym = findSymbol( yyscope, t->kids[0]->token->text ) ) == NULL )
             {
-               // Undeclared variable usage.
-               T = getToken( t->kids[0] );
-               fprintf(stderr, "Undeclared variable usage.\n variable name %s was used on line %d before declaration was given.\n", T->text, T->lineno);
-               error(t, "Undeclared variable.");
+               sym_t* sym = NULL;
+               if ( ( sym = findSymbol( yyscope, t->kids[0]->token->text ) ) == NULL )
+               {
+                  // Undeclared variable usage.
+                  tok_t* T = getToken( t->kids[0] );
+                  fprintf(stderr, "Undeclared variable usage.\n variable name %s was used on line %d before declaration was given.\n", T->text, T->lineno);
+                  error(t, "Undeclared variable.");
+               }
+               break;
             }
-            break;
          case 901:   /* FieldAccess: PrimaryNoNewArray . IDENT */
          case 907:   /* MethodInvocation: PrimaryNoNewArray . IDENT ( [ArgumentList] ) */
          case 908:   /* MethodInvocation: PrimaryNoNewArray . IDENT ( [ArgumentList] ) */
@@ -1388,7 +1414,7 @@ type_t *getReturnType(tree *t)
             if ( t->nkids > 2 )
             {
                // check argument lists
-               type_t* new = checkTypes( t->kids[2] );
+               // type_t* new = checkTypes( t->kids[2] );
 
                // switch( compareTypes() )
             }
@@ -1532,7 +1558,8 @@ type_t* checkTypes(tree *t)
                error(t, " Strange error, couldnt find reference to class.\n ");
             }
             // store old scope, and find new scope
-            scope_t* oldscope = yyscope, *newscope = getSymbolScope( yyscope, s );
+            // scope_t *oldscope = yyscope, *newscope = getSymbolScope(yyscope, s);
+            scope_t *oldscope = yyscope, *newscope = s->s.myScope;
             if ( newscope == NULL )
             {
                myError( t, "failed to enter function/class scope" );
@@ -1674,8 +1701,8 @@ type_t* checkTypes(tree *t)
             case 0:  /* Same function calls */
             case 13: /* Improper return types, this is fine because p cannot have return type */
                r = copyType(newType->u.f.retType);
-               // free(newType);
-               shallowDelete( newType );
+               free(newType);
+               // shallowDelete( newType );
                newType = r;
                // return r;
                break;
@@ -1704,8 +1731,8 @@ type_t* checkTypes(tree *t)
                exit(-5);
                break;
             }
-            shallowDelete( p );  // Deletes children too.
-            // free(p);
+            // shallowDelete( p );  // Deletes children too.
+            free(p);
             return newType;
          }
          break;
@@ -1723,7 +1750,12 @@ type_t* checkTypes(tree *t)
                // mention last kid of t's first child
                error( first->kids[ first->nkids - 1 ], "cannot qualify non-class object types" );
             }
-            scope_t* s = r->u.s.scope;
+            scope_t *s = r->u.p->u.s.scope;
+            // scope_t *s = enterObjectScope();
+            if ( s == NULL )
+            {
+               error( t, "Very strange bug:: Failed to get scope from object" );
+            }
             sym_t *symbol = scope_check(s, t->kids[1]->token->text);
             if ( symbol == NULL )
             {
@@ -1929,14 +1961,37 @@ type_t* checkTypes(tree *t)
 ////// Unary operators  //////////////
       case 926:   /* UNARY MINUS */
          s1 = checkTypes(t->kids[0]);
-         if ( s1->base_type != 1 && s2->base_type != 2 ) error(t, "Unary minus requires a numeric type");   /* FIX : better error message */
-         return s1;
+         switch( s1->base_type )
+         {
+            case 1:
+            case 2:
+               return s1;
+            default:
+               error(t, "Unary minus requires a numeric type"); /* FIX : better error message */
+         }
+         break;
       case 933:   /* Unary DROLL */
          s1 = checkTypes(t->kids[0]);
-         if ( s1->base_type != 1 ) error(t, "Unary Dice roll requires integer expression");
-         return s1;
-//////////////////////////////// OPERATORS THAT RETURN BOOLEAN VALUES ///////////////////////////////////
+         switch( s1->base_type )
+         {
+            case 1:
+               return s1;
+            default:
+               error(t, "Unary Dice roll requires integer operand"); /* FIX : better error message */
+         }
+         break;
       case 932:   /* BANG */
+         s1 = checkTypes(t->kids[0]);
+
+         switch( s1->base_type )
+         {
+            case 4:
+               return s1;
+            default:
+               error(t, "Boolean negation requires boolean value"); /* FIX : better error message */
+         }
+         break;
+//////////////////////////////// OPERATORS THAT RETURN BOOLEAN VALUES ///////////////////////////////////
       case 970:   /* LT */
       case 971:   /* LE */
       case 972:   /* GT */
@@ -2163,6 +2218,7 @@ int semanticCheck(tree *t, int p)
    initSemanticCheck();
    // Make Global scope
    yyscope = create_scope("Global Scope", NULL);
+   firstScope = yyscope;
 
    tok_t T;
    T.category = IDENT;

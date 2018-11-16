@@ -1,15 +1,15 @@
 class object {
-   int z;
+   string z;
    object() {
-      z = 3;
+      z = "3";
    }
 
-   void f( int x )
+   void f( string x )
    {
       write("z is " x);
    }
 
-   int g()
+   string g()
    {
       return z;
    }
