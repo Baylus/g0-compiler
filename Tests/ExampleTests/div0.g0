@@ -1,0 +1,21 @@
+double convertD( string )
+int convertI( int )
+
+void main()
+{
+   string dc
+   double dd
+   write( "enter a number: " )
+   dc = read()
+   dd = 5.3 / convertD( dc )
+   write( dd )
+   write( "\nnow, for integers")
+
+   string i
+   int i2
+   write( "enter a number: " )
+   i = read()
+   i2 = 5.3 / convertI(i)
+   write( i2 )
+   write( "that's all folks")
+}

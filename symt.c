@@ -186,7 +186,7 @@ void printTable(symList_t *L, int depth)
 		printf("%*s", depth * 4, " ");
 		printf( "\"%s\" : type %d\n", q->info->label, q->info->type->base_type);
 		if ( q->info->s.myScope != NULL )
-			print_Scope( q->info->s.myScope, depth );
+			print_Scope( q->info->s.myScope, depth + 1 );
 		
 		q = q->next;
 	}

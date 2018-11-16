@@ -29,12 +29,15 @@ Key:
 #include <stdarg.h>
 
 extern int yydebug;     // g0gram.y/g0gram.h
-extern char* filename;  // main.c
+extern char* yyfilename;  // main.c
 int print_Symbols;      // main.c
 
 extern void myError(tree* t, const char *fmt, ...);
 void printLine(FILE* , int);
 struct token *getToken(tree *t);
+type_t* getReturnType(tree* t);
+void shallowDelete( type_t* t );
+type_t* checkTypes(tree *t);
 
 void myError( tree* t, const char *fmt, ...)
 {
@@ -46,7 +49,7 @@ void myError( tree* t, const char *fmt, ...)
    // ... print the formatted buffer... 
 
    tok_t* T = getToken(t);
-   fprintf( stderr, "semantic error: in file %s, line %d, \n", filename, T->lineno );
+   fprintf( stderr, "semantic error: in file %s, line %d, \n", yyfilename, T->lineno );
    printLine( stderr, T->lineno );
    fprintf( stderr, "%s, before token %s\n", buffer, T->text );
    
@@ -98,7 +101,7 @@ void printLine( FILE* stream, int l )
     */
    int maxlen = 256;
    FILE* fp = NULL;
-   fp = fopen(filename, "r");
+   fp = fopen(yyfilename, "r");
    if (fp == NULL)
       return;
    
@@ -191,6 +194,12 @@ void raiseTypeError( tree*t, type_t* a, type_t* b, char* s )
             "semantic error: %s incompatible types on line %d\n\targs required was %d, but %d were provided\n"
             , s, getToken(t)->lineno, a->u.f.nargs, b->u.f.nargs);
          printLine(stderr,  getToken(t)->lineno);
+         break;
+      case 0:
+         // Types are same, so it must be unpermitted operation
+         fprintf(stderr,
+                 "semantic error: %s unpermitted operation on line %d\n\ttypes were %s\n", s, getToken(t)->lineno, sa);
+         printLine(stderr, getToken(t)->lineno);
          break;
       default:
          {
@@ -373,8 +382,9 @@ int check_operator( int operator, type_t* x, type_t* y )
          switch( operator )
          {
             case ASN: 
-            case EQ: 
+            case EQ:
             case NE:
+            case PLUS:
                return 0; 
             default:
                return 1;
@@ -480,11 +490,13 @@ struct token* getToken( tree* t )
       case 659:   // ClassDeclaration: ClassHeader ClassBlock
          return t->kids[0]->kids[0]->token;
          break;
+      case 697:   // MethodHeader:  Type MethodDeclarator
       case 741:   // FunctionDefinition:  Type IDENT ( [FormalParameterList] ) FunctionBody
       case 742:   // 
       case 743:   // 
-      case 744:   // 
-         return t->kids[1]->token;
+      case 744:   //
+         // return t->kids[1]->token;
+         return getToken(t->kids[1]);
          break;
       // case :   // Add PrimaryNoNewArray
 
@@ -656,7 +668,8 @@ scope_t *enterObjectScope(scope_t *s, type_t *t)
 
    if (t->base_type != 8)
    {
-      error(NULL, "Type does not match class object for qualified name resolution\n");
+      // error(NULL, "Type does not match class object for qualified name resolution\n");
+      return NULL;   // Error handling is outside of this function
    }
    char *classname = t->u.p->u.s.label;         // gives the class name that t is an object of.
    scope_t *n = enterScope(yyscope, classname); // Enters the scope of the given class name visible to scope n
@@ -1033,32 +1046,15 @@ scope_t* checkQualified( tree* t )
          // What does this mean if there is? maybe instead of a class object, its a method invoc. or array access.
          if (t->kids[0]->code == IDENT)
          {
-            // We need to check if we have a good situation
-            // switch ( t->code )
-            // {
-            //    case :
-
-            //       break;
-            //    case :
-
-            //       break;
-            //    case :
-
-            //       break;
-            //    case :
-
-            //       break;
-            //    case :
-
-            //       break;
-            //    case :
-
-            //       break;
-
-            // }
+            // So we know that we are in a good spot, we just need to return the 
+            // current scope to give the next guy a starting point to check for
+            // symbols
+            return yyscope;
          }
          error(t, "Failed to qualify name");
       }
+      // There are certain exceptions to this.
+
       sym_t* f = findSymbol( n, t->kids[1]->token->text );
       /* Maybe add more debug info for this. Or just info at all. */
       if ( f == NULL ) 
@@ -1081,7 +1077,9 @@ scope_t* checkQualified( tree* t )
             {
                /* If return type is not a class object ( The only qualifiable type ),
                   return null. */
-               return NULL;
+               // We want to raise error, not return here.
+               error( t->kids[1], "Failed to qualify identifier" );
+               // return NULL;
             }
             /* WARNING WARNING WARNING: This part might be all sorts of crazy */
             /* Need to convert class objects into the names of the classes they represent */
@@ -1153,7 +1151,8 @@ int generateSymbolTables(tree *t, int bool_print)
          /* Class Declaration */
          case 659:   // ClassDeclaration: ClassHeader ClassBlock
             p = t->kids[0];   // p = ClassHeader: CLASS CLASS_NAME
-            T = p->kids[1]->token;
+            // T = p->kids[1]->token;
+            T = getToken(p);  // p has 1 child
             // Grab the token of tree CLASS
             itype = getType( p ); 
             /* Add symbol to the current scope */
@@ -1298,7 +1297,11 @@ int generateSymbolTables(tree *t, int bool_print)
          case 907:   /* MethodInvocation: PrimaryNoNewArray . IDENT ( [ArgumentList] ) */
          case 908:   /* MethodInvocation: PrimaryNoNewArray . IDENT ( [ArgumentList] ) */
          case 1059:   /* QualifiedName: Name . IDENT */
-            checkQualified(t);
+            // checkQualified(t);
+            // if ( getReturnType(t) )
+            // getReturnType(t);
+            // free(checkTypes(t));
+            checkTypes(t);
             break;
          default:
             {
@@ -1359,6 +1362,14 @@ type_t *getReturnType(tree *t)
             error(t, "Type does not match list, string, or table for array access");
          }
          break;
+      case 905:   // Method
+      case 906:   // MethodInvocation: Name ()
+         if ( t->nkids > 1 )
+         {
+            // check argument list
+         }
+         
+         break;
       case 907: /* MethodInvocation: PrimaryNoNewArray . IDENT ( [ArgumentList] ) */
       case 908: /* MethodInvocation: PrimaryNoNewArray . IDENT ( [ArgumentList] ) */
          /* Find return value scope, and pass backwards. */
@@ -1377,11 +1388,15 @@ type_t *getReturnType(tree *t)
             if ( t->nkids > 2 )
             {
                // check argument lists
+               type_t* new = checkTypes( t->kids[2] );
 
+               // switch( compareTypes() )
             }
 
             r = tmp->type->u.f.retType; // make type the returned type from function.
+            // return r;
          }         // r = tmp->type;
+         break;
       case 901:  /* FieldAccess: PrimaryNoNewArray . IDENT */
       case 1059: /* QualifiedName: Name . IDENT */
          {
@@ -1405,8 +1420,11 @@ type_t *getReturnType(tree *t)
             r = tmp->type;
          }         // r = r->u.p; // Class type
          break;
+      case 893:   // PrmaryNoNewArray: ( Expression )
+         return getReturnType( t->kids[0] );
+         break;
       default:
-         error(t, "DEBUG::: func processTree.c:checkQualified(): Unknown qualified code");
+         error(t, "DEBUG::: func processTree.c:getReturnType(): Unknown qualified code");
       }
       return r; // Final return value should be r.
       // Reason for this is because some expressions want to return the value retrieved from getReturnType()
@@ -1499,6 +1517,7 @@ type_t* checkTypes(tree *t)
    {
       // Things that switch the scope
       case 659:   // ClassDeclaration: ClassHeader ClassBlock
+      case 693:   // MethodDeclaration: MethodHeader MethodBody
       case 741:   // FunctionDefinition:  Type IDENT ( [FormalParameterList] ) FunctionBody
       case 742:   // 
       case 743:   // 
@@ -1508,7 +1527,10 @@ type_t* checkTypes(tree *t)
             char* n = getToken( t )->text;
             // Find symbol
             sym_t* s = findSymbol( yyscope, n );
-            if ( s == NULL ) error(t, " Strange error, couldnt find reference to class.\n ");
+            if ( s == NULL ) 
+            {
+               error(t, " Strange error, couldnt find reference to class.\n ");
+            }
             // store old scope, and find new scope
             scope_t* oldscope = yyscope, *newscope = getSymbolScope( yyscope, s );
             if ( newscope == NULL )
@@ -1615,16 +1637,17 @@ type_t* checkTypes(tree *t)
       case 905:   /* MethodInvocation: Name ( ArgumentList ) */
       case 906:   /* MethodInvocation: Name (  ) */
          {
-            type_t* newType = NULL;
-            sym_t* symbol = findSymbol( yyscope, t->kids[0]->token->text );
-            if (symbol == NULL)
+            type_t *newType = checkTypes(t->kids[0]);
+            // type_t *newType = NULL;
+            // sym_t* symbol = findSymbol( yyscope, t->kids[0]->token->text );
+            if (newType == NULL)
             {
                error(t->kids[0], "failed to find symbol in current scope");   /* FIX */
             }
             else
             {
-               if ( yydebug )
-                  debug_symbol( symbol );
+               // if ( yydebug )
+                  // debug_symbol( newType );
             }
 
             if (t->nkids > 1)
@@ -1646,12 +1669,15 @@ type_t* checkTypes(tree *t)
             11: incorrect number of arguments.
             12: unexpected arg type ( differing argument types )
                */
-            switch (compareTypes(symbol->type, p))
+            switch (compareTypes(newType, p))
             {
             case 0:  /* Same function calls */
             case 13: /* Improper return types, this is fine because p cannot have return type */
-               newType = copyType(symbol->type->u.f.retType);
-
+               r = copyType(newType->u.f.retType);
+               // free(newType);
+               shallowDelete( newType );
+               newType = r;
+               // return r;
                break;
             ///////////// SEMANTIC ERROR ///////////////////////
             case 1: /* Unsimilar types */
@@ -1660,7 +1686,7 @@ type_t* checkTypes(tree *t)
                break;
             case 11: /* incorrect arg numbers */
                fprintf(stderr, "semantic error: invalid arg # for function call, on line %d\n\tfunction %s expects %d arguments, %d were given.\n",
-                       t->kids[0]->token->lineno, t->kids[0]->token->text, symbol->type->u.f.nargs, p->u.f.nargs);
+                       t->kids[0]->token->lineno, t->kids[0]->token->text, newType->u.f.nargs, p->u.f.nargs);
                exit(3);
                break;
             case 12: /* incorrect arg types */
@@ -1669,7 +1695,7 @@ type_t* checkTypes(tree *t)
                /* add detailed information on what type was expected */
                break;
             //////////// ERROR CONDITION //////////////
-            case 10: /* p is not a function, but symbol->type is */
+            case 10: /* p is not a function, but newType is */
                /* 
                         This should really never happen, and if it does, something very strange occurred.
                         */
@@ -1768,7 +1794,8 @@ type_t* checkTypes(tree *t)
                         exit( -5 );
                         break;
                   }
-                  free( p );
+                  // free( p );
+                  shallowDelete(p);
                   break;
                default:
                   error(NULL, "this isnt possible");
@@ -1885,6 +1912,7 @@ type_t* checkTypes(tree *t)
             s2 = checkTypes(t->kids[2]);
             int o = t->kids[1]->code;
 
+            // int r = check_operator( o, s1, s2 );
             if ( check_operator( o, s1, s2 ) )
             {
                // error(t, "operation not defined for given type");
@@ -1994,7 +2022,24 @@ type_t* checkTypes(tree *t)
             return r;   // return the list
          }
          break;
-///////////// BASIC TYPES ////////////////////
+   ////////////////// EXCEPTIONS ///////////////// 
+      case 944:   // ImplicitConcatenation
+      case 945:
+         s1 = checkTypes(t->kids[0]);
+         s2 = checkTypes(t->kids[1]);
+
+         if (check_operator( PLUS , s1, s2))
+         {
+            // error(t, "operation not defined for given type");  /* FIX : better error message */
+            char s[] = "Implicit string concatenation attempted";
+            // sprintf(s, "Implicit string concatenation attempted");
+            raiseTypeError(t, s1, s2, s);
+         }
+
+         free(s2);
+         return s1;
+         break;
+         ///////////// BASIC TYPES ////////////////////
       case INTLITERAL:
          return copyType( I_Type );
          break;
@@ -2022,6 +2067,30 @@ type_t* checkTypes(tree *t)
          // return the copy
          return p;
          break;
+   /////// RULES THAT ARE SUPPOSED TO CHECK THEIR CHILDREN ////////////////
+      case 655:   // CompilationUnits
+      case 683:   // ClassBlockUnitList: ClassBlockUnitList ClassBlockUnit
+      case 667:   // ClassBlock
+      case 752:   // Block
+      case 758:   // BlockStatementList
+      case 804:   // ExpressionStatement
+         {
+            int i;
+            for (i = 0; i < t->nkids; ++i)
+            {
+               checkTypes(t->kids[i]);
+            }
+         }
+         break;
+      case 668:   // ClassBlock  
+         // This one is special because it doesnt have children, but it says it does.
+         return NULL;
+         break;
+      case 677:   // ClassVariable
+      // case 677:   // ClassVariable
+         // These are special because we dont care about their types, because they wont be used.
+         return NULL;
+         break;
       default:
          // This means that the rest of the tree should be processed, but we dont care about
          // comparing or returning their types.
@@ -2029,7 +2098,7 @@ type_t* checkTypes(tree *t)
          int i;
          if (yydebug)
          {
-            printf(" checkTypes, default rule reached for tree code %d, with name %s\n", t->code, t->label);
+            printf("\tcheckTypes, default rule reached for tree code %d, with name %s, on line %d\n", t->code, t->label, getToken(t)->lineno);
          }
          for ( i = 0; i < t->nkids; ++i )
          {

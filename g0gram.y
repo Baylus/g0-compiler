@@ -141,6 +141,7 @@ PrimitiveType:
       | BOOL		{ $$ = $1; }
       | DOUBLE		{ $$ = $1; }
       | STRING		{ $$ = $1; }
+      | VOID
       ;
 
 CompilationUnits:
@@ -195,7 +196,7 @@ MethodDeclaration:
 
 MethodHeader:
         Type MethodDeclarator		{ $$ = alctree( "Method header", 697, 2, $1, $2 ); }
-      | VOID MethodDeclarator		{ $$ = alctree( "Method header", 698, 2, $1, $2 ); }
+      // | VOID MethodDeclarator		{ $$ = alctree( "Method header", 698, 2, $1, $2 ); }
       ;
 
 MethodDeclarator:
@@ -228,8 +229,8 @@ Function:
 FunctionPrototype:
         Type IDENT LP TypeList RP Semicolon	{ $$ = alctree( "func proto", 729, 3, $1, $2, $4 ); }
       | Type IDENT LP RP Semicolon		{ $$ = alctree( "func proto", 730, 2, $1, $2 ); }
-      | VOID IDENT LP TypeList RP Semicolon	{ $$ = alctree( "func proto", 731, 3, $1, $2, $4 ); }
-      | VOID IDENT LP RP Semicolon		{ $$ = alctree( "func proto", 732, 2, $1, $2 ); }
+      // | VOID IDENT LP TypeList RP Semicolon	{ $$ = alctree( "func proto", 731, 3, $1, $2, $4 ); }
+      // | VOID IDENT LP RP Semicolon		{ $$ = alctree( "func proto", 732, 2, $1, $2 ); }
       ;
 
 TypeList:
@@ -240,8 +241,8 @@ TypeList:
 FunctionDefinition:
         Type IDENT LP FormalParameterList RP FunctionBody	{ $$ = alctree( "func defn", 741, 4, $1, $2, $4, $6 ); }
       | Type IDENT LP RP FunctionBody				{ $$ = alctree( "func defn", 742, 3, $1, $2, $5 ); }
-      | VOID IDENT LP FormalParameterList RP FunctionBody	{ $$ = alctree( "func defn", 743, 4, $1, $2, $4, $6 ); }
-      | VOID IDENT LP RP FunctionBody				{ $$ = alctree( "func defn", 744, 3, $1, $2, $5 ); }
+      // | VOID IDENT LP FormalParameterList RP FunctionBody	{ $$ = alctree( "func defn", 743, 4, $1, $2, $4, $6 ); }
+      // | VOID IDENT LP RP FunctionBody				{ $$ = alctree( "func defn", 744, 3, $1, $2, $5 ); }
       ;
 
 FunctionBody:
@@ -249,8 +250,8 @@ FunctionBody:
       ;
 
 Block:
-        LC BlockStatementList RC 		{ $$ = alctree( "Block", 752, 3, $1, $2, $3 ); }
-      | LC RC 					{ $$ = alctree( "Empty Block", 753, 2, $1, $2 ); }
+        LC BlockStatementList RC 		{ $$ = alctree( "Block", 752, 1, $2 ); }
+      | LC RC 					{ $$ = alctree( "Empty Block", 753, 1, NULL ); }
       ;
 
 BlockStatementList:
@@ -537,7 +538,7 @@ FormalParameter:
       ;
 
 LocalVariable:
-        Type VariableDeclaratorList Semicolon		{ $$ = alctree( "local variable", 1041, 3, $1, $2, $3 ); }
+        Type VariableDeclaratorList Semicolon		{ $$ = alctree( "local variable", 1041, 2, $1, $2 ); }
       ;
 
 VariableDeclaratorId:

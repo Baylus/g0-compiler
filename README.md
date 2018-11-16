@@ -38,3 +38,7 @@ NOTE:
 Things i need to change in order to support proper syntax
 
 I need to change the ListLiteral to be a member of Literal, since this makes sense, and would allow several more things, but currently this causes 2 reduce/reduce errors.
+
+SUPER SCARY PROBLEM
+
+I dont believe that I am currently checking whether return statements are returning the right types, so i need to add that in to ensure nothing bad is happening. Not sure how I am going to do that though...

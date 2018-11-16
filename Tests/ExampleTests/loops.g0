@@ -1,0 +1,16 @@
+int f( double val )
+{
+   return val < 3.0
+}
+
+
+
+void main()
+{
+     double g
+     write( "Enter a real number: " )
+     g = read()
+     if ( f(g) ) {
+       write( "f is " f(g) )
+       }
+}
