@@ -121,6 +121,12 @@ tree *addLeaf(int code, struct token *t)
 void deleteTree( tree* t )
 {
 	if (t->nkids > 0){
+		// free(t->kids);
+		int i = 0;
+		for ( i = 0; i < t->nkids; ++i )
+		{
+			deleteTree( t->kids[i] );
+		}
 		free(t->kids);
 	}
 	else 
@@ -134,7 +140,7 @@ void deleteTree( tree* t )
 			free(t->token);
 		}
 	}
-	// free(t);
+	free(t);
 }
 
 void postTraversal(tree *t, int depth, void (*f)(tree *))

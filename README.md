@@ -23,3 +23,22 @@ Succeeds using the /Examples/HW2_Test/*,
 
 .../HW2_Test/g0stuff.g0 was modified to comment out the one line on 105: "L = [1, 2, 3]" that broke the grammar because it was not supported yet.
 
+In HW #4, many decisions were made:
+
+I am not going to support empty list initializers, e.g.
+"
+list l;
+l = [];
+"
+
+This is primarily due to the fact that there would be huge conflicts between empty initializers and default table mappings. anytime a identifier + a "[]" was given,  
+
+
+NOTE:
+Things i need to change in order to support proper syntax
+
+I need to change the ListLiteral to be a member of Literal, since this makes sense, and would allow several more things, but currently this causes 2 reduce/reduce errors.
+
+SUPER SCARY PROBLEM
+
+I dont believe that I am currently checking whether return statements are returning the right types, so i need to add that in to ensure nothing bad is happening. Not sure how I am going to do that though...

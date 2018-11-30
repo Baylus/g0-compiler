@@ -14,10 +14,13 @@ HW #3: Semantic Analysis
 #include "tree.h"
 // #include "symt.h"
 #include "scope.h"
+#include "type.h"
 
-int generateSymbolTables( tree* t, int bool_print );
+int generateSymbolTables(tree *t, int bool_print);
+type_t* checkTypes(tree *t);
 int semanticCheck( tree* t, int print );
 int checkUndeclaredSymbols( tree* t, int print );
 
+void deleteType( type_t* );
 
 #endif

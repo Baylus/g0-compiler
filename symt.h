@@ -63,5 +63,6 @@ uint32_t hash(char *n);
 sym_t* addIdent( symList_t* l, sym_t* i );
 sym_t *searchList(symList_t l, char *name);
 
+void printTable( symList_t* , int depth);
 
 #endif

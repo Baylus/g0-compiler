@@ -68,3 +68,20 @@ sym_t* scope_addSymbol(scope_t *s, struct token *t, type_t* r )
 
    return p;
 }
+
+void delete_Scope(scope_t *s)
+{
+   // Delete scope
+}
+
+void print_Scope(scope_t *s, int depth)
+{
+   /* Print scope */
+   printf("%*s", depth * 4, " ");
+   printf("%s\n", s->scopeName);
+   int i;
+   for( i = 0; i < HASH_TABLE_SIZE; ++i )
+   {
+      printTable( &s->SymbolTable[i], depth + 1 );
+   }
+}
