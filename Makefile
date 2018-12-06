@@ -8,7 +8,9 @@
 YACC=yacc
 LEX=flex
 CC=cc
-CFLAGS= -Wall -g
+INCDIR=include
+
+CFLAGS= -Wall -g 
 
 all: g0
 
@@ -31,7 +33,7 @@ symt.o: symt.h
 
 type.o: type.h
 
-tree.o: tree.h token.h g0gram.h
+tree.o: tree.h token.h g0gram.h type.h
 
 scope.o: symt.h type.h token.h
 
@@ -40,6 +42,9 @@ g0.o: main.c
 
 .c.o:
 	$(CC) -c $(CFLAGS) $<
+
+testDir: g0
+	perl scripts/checkDir.pl $(DIR)
 
 test: g0
 	perl scripts/check.pl Examples/

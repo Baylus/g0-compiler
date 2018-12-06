@@ -12,6 +12,7 @@ HW #2: Syntax Analysis
 #define TREE_H
 
 #include "token.h"
+#include "type.h"
 
 typedef struct treeNode {
 	char* label;
@@ -22,6 +23,7 @@ typedef struct treeNode {
 	   struct token* token; // or: struct token *leaf;
 	   struct treeNode **kids;
    };
+	type_t* type;
 } tree ;
 
 tree* alctree( char* label, int code, int kids, ... );

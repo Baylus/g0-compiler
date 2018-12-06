@@ -65,6 +65,7 @@ type_t *V_Type, *I_Type, *D_Type, *S_Type, *B_Type, *L_Type, *T_Type;
 scope_t* firstScope = NULL;
 extern scope_t* yyscope;   // g0lex.l
 
+tree* recent_token = NULL;  // Used to store recent tokens while parsing
 
 int print = 0;
 
@@ -116,11 +117,20 @@ void printLine( FILE* stream, int l )
    fclose(fp);
 }
 
+int type_error_raised = 0;
+
 void raiseTypeError( tree*t, type_t* a, type_t* b, char* s )
 {
    /* 
    Raises and issue with the given types.
+
+   Details:
+      If you are calling this, it means you know there is an error, and you need to fix it.
+
+   IMPORTANT: You must call exit(3) when using this function
     */
+   type_error_raised = 1;
+
    if (a == NULL || b == NULL) 
       error(t, "one of two types is NULL");
 
@@ -211,7 +221,7 @@ void raiseTypeError( tree*t, type_t* a, type_t* b, char* s )
          }
    }
 
-   exit(3);
+   // exit(3); 
 }
 
 type_t** reverseTypeList( type_t** l, int size )
@@ -275,7 +285,17 @@ int compareTypes( type_t* a, type_t* b )
       return 0;   // I am hoping by allowing it to be type checked, it will be easy later to simply promote it to a double.
    }
 
-   if ( a->base_type != b->base_type ) return 1;
+   if ( a->base_type != b->base_type ) 
+   {
+      // This if statement avoids recursive check
+      if (type_error_raised == 0)
+      {
+         // type_error_raised = 1;
+         raiseTypeError(recent_token, a, b, NULL);
+      }
+      return 1;
+      // exit(3);
+   }
 
    switch( a->base_type )
    {
@@ -313,7 +333,10 @@ int compareTypes( type_t* a, type_t* b )
                g0 prohibits functions from being passed in as arguments to functions.
                */
                if ( compareTypes( a->u.f.argtype[i], b->u.f.argtype[i] ) )
+               {
+                  // raiseTypeError(recent_token, a, b, NULL);
                   return 12;
+               }
                ++i;
             }
 
@@ -1532,6 +1555,8 @@ Details:
 */
 type_t* checkTypes(tree *t)
 {
+   // Store t into recent token
+   recent_token = t;
 
    // r is return value, p is temp type
    type_t* r = NULL, *p = NULL;
@@ -1573,9 +1598,9 @@ type_t* checkTypes(tree *t)
 
             yyscope = oldscope;
          }
-         break;
-// Process tree nodes and return their types
-/////////////////// Primary / PrimaryNoNewArray Handling ////////////////////////////
+      break;
+   // Process tree nodes and return their types
+ /////////////////// Primary / PrimaryNoNewArray Handling ////////////////////////////
       case 883:   /* Primary: SHARP PrimaryNoNewArray */
          r = checkTypes( t->kids[0] );
          switch( r->base_type )
@@ -1584,7 +1609,8 @@ type_t* checkTypes(tree *t)
             case 5:   // list
             case 6:   // table
                // Size of operator should work, return integer type.
-               return copyType(I_Type);
+               t->type = copyType(I_Type);
+               return t->type;
                break;
             default:
                fprintf( stderr, "semantic error on line %d:\n\tstatement did not return a type string, list, or table.\n", getToken(t)->lineno );
@@ -1592,18 +1618,13 @@ type_t* checkTypes(tree *t)
          break;
       /* Literals taken care of below */
       case 893:   /* PrimaryNoNewArray: ( Expression ) */
-         return checkTypes( t->kids[0] );
+         t->type =  checkTypes( t->kids[0] );
          break;
 /////////////////// MethodInvocation + a few other things from Assignable /////////////////////
       case 878:   // ArgumentList: Expression
-         r = calloc( 1, sizeof(type_t) );
-         r->base_type = 7;
-         r->u.f.nargs = 1;
-         // We can do this because there is only going to be one type.
-         // So we just pretend like the one argument type is actually our array of arg types.
-         r->u.f.argtype = calloc( 1, sizeof(type_t*) );
-         r->u.f.argtype[0] = checkTypes( t->kids[0] );
-         return r;
+         r = checkTypes( t->kids[0] );
+         t->type = copyType(r);
+         break;
       case 879:  // ArgumentList: ArgumentList CM Expression
          {
             type_t* p = calloc(1, sizeof(type_t));
@@ -1642,7 +1663,7 @@ type_t* checkTypes(tree *t)
                p->u.f.argtype = realloc(p->u.f.argtype, sizeof(type_t*) * (p->u.f.nargs));
             }
             p->u.f.argtype = reverseTypeList(p->u.f.argtype, p->u.f.nargs);
-            return p;
+            t->type =  p;
             break;
          }
       case 909:   /* MethodInvocation: CLASS_NAME ( ) */
@@ -1658,7 +1679,7 @@ type_t* checkTypes(tree *t)
             // temp = memcpy( temp, r->u.p, sizeof(type_t) );
             // r->u.p = temp;
             // Now r should be complete
-            return r;
+            t->type =  r;
          }
          break;
       case 905:   /* MethodInvocation: Name ( ArgumentList ) */
@@ -1679,7 +1700,22 @@ type_t* checkTypes(tree *t)
 
             if (t->nkids > 1)
             {
-               p = checkTypes(t->kids[1]);
+               if ( t->kids[1]->nkids > 1 )
+               {
+                  // If arguments are more than one
+                  p = checkTypes(t->kids[1]);
+               }
+               else
+               {
+                  p = calloc(1, sizeof(type_t));
+                  p->base_type = 7;
+                  p->u.f.nargs = 1;
+                  // We can do this because there is only going to be one type.
+                  // So we just pretend like the one argument type is actually our array of arg types.
+                  p->u.f.argtype = calloc(1, sizeof(type_t *));
+                  p->u.f.argtype[0] = checkTypes(t->kids[1]);
+
+               }
             }
             else
             {
@@ -1687,6 +1723,7 @@ type_t* checkTypes(tree *t)
                p = calloc(1, sizeof(type_t));
                p->base_type = 7;
             }
+            p->u.f.retType = copyType(newType->u.f.retType);
 
             // Compare the types.
             // free(p) after switch
@@ -1700,11 +1737,11 @@ type_t* checkTypes(tree *t)
             {
             case 0:  /* Same function calls */
             case 13: /* Improper return types, this is fine because p cannot have return type */
-               r = copyType(newType->u.f.retType);
-               free(newType);
-               // shallowDelete( newType );
-               newType = r;
-               // return r;
+               t->type = p;   // Save function call type to thing.
+               return t->type->u.f.retType;  // Return value should be returned type value.
+               // r = copyType(newType->u.f.retType);
+               // free(newType); // Dont free anymore, this value is stored in child's type field
+               // newType = r;
                break;
             ///////////// SEMANTIC ERROR ///////////////////////
             case 1: /* Unsimilar types */
@@ -1727,13 +1764,14 @@ type_t* checkTypes(tree *t)
                         This should really never happen, and if it does, something very strange occurred.
                         */
             default:
-               fprintf(stderr, "FATAL ERROR: THIS SHOULD NEVER HAPPEN\nprocessTree.c, checkTypes(): case 908\n");
+               fprintf(stderr, "FATAL ERROR: THIS SHOULD NEVER HAPPEN\nprocessTree.c, checkTypes(): case %d\n", t->code);
                exit(-5);
                break;
             }
             // shallowDelete( p );  // Deletes children too.
-            free(p);
-            return newType;
+            // free(p);
+
+            t->type = newType;
          }
          break;
       case 901:   /* FieldAccess: PrimaryNoNewArray . IDENT */
@@ -1776,7 +1814,22 @@ type_t* checkTypes(tree *t)
                case 908: /* MethodInvocation: PrimaryNoNewArray . IDENT (  ) */
                   if ( t->nkids > 2 )
                   {
-                     p = checkTypes( t->kids[2] );
+                     if (t->kids[2]->nkids > 1)
+                     {
+                        // If arguments are more than one
+                        p = checkTypes(t->kids[2]);
+                     }
+                     else
+                     {
+                        p = calloc(1, sizeof(type_t));
+                        p->base_type = 7;
+                        p->u.f.nargs = 1;
+                        // We can do this because there is only going to be one type.
+                        // So we just pretend like the one argument type is actually our array of arg types.
+                        p->u.f.argtype = calloc(1, sizeof(type_t *));
+                        p->u.f.argtype[0] = checkTypes(t->kids[2]);
+                     }
+
                   }
                   else
                   {
@@ -1784,6 +1837,7 @@ type_t* checkTypes(tree *t)
                      p = calloc( 1, sizeof(type_t) );
                      p->base_type = 7;
                   }
+                  p->u.f.retType = copyType(symbol->type->u.f.retType);
 
                   // Compare the types.
                   // free(p) after switch
@@ -1797,8 +1851,9 @@ type_t* checkTypes(tree *t)
                   {
                      case 0: /* Same function calls */
                      case 13: /* Improper return types, this is fine because p cannot have return type */
-                        newType = copyType(symbol->type->u.f.retType);
-                        
+                        t->type = p;
+                        return t->type->u.f.retType;
+                        // newType = copyType(symbol->type->u.f.retType);
                         break;
                      ///////////// SEMANTIC ERROR ///////////////////////
                      case 1: /* Unsimilar types */
@@ -1827,15 +1882,15 @@ type_t* checkTypes(tree *t)
                         break;
                   }
                   // free( p );
-                  shallowDelete(p);
+                  // shallowDelete(p); // Dont free type returned by checkTypes
                   break;
                default:
                   error(NULL, "this isnt possible");
                   exit(-1);
             }
             
-            free(r); // free copy of previous type checked
-            return newType;
+            // free(r); // free copy of previous type checked
+            t->type =  newType;
          }
          break;
 /////////////////// Assignable //////////////////////////
@@ -1879,9 +1934,9 @@ type_t* checkTypes(tree *t)
                error(t->kids[1], "failed to perform index with non-integer type");
             }
 
-            free(r);
-            free(p);
-            return newType;
+            // free(r); // Dont free types returned from checkTypes
+            // free(p);
+            t->type =  newType;
          }
          break;
       case 917:   /* DefaultTableMapping: PrimaryNoNewArray [ ] */
@@ -1893,8 +1948,8 @@ type_t* checkTypes(tree *t)
          }
          p = copyType(r->u.t.elemtype);
 
-         free(r);
-         return p;
+         // free(r);
+         t->type = p;
 ////////////////// Final parts of PrimaryNoNewArray ////////////////////////////////////
       case 897:   /* PrimaryNoNewArray: PrimaryNoNewArray [ Expression : Expression ] */
          /* List/string substring */
@@ -1914,10 +1969,10 @@ type_t* checkTypes(tree *t)
 
             p = ( r->base_type == 3 ) ? copyType( S_Type ) : copyType( r->u.l.elemtype );
 
-            free(r);
-            free(e1);
-            free(e2);
-            return p;
+            // free(r);
+            // free(e1);
+            // free(e2);
+            t->type = p;
          }
          break;
 
@@ -1951,11 +2006,13 @@ type_t* checkTypes(tree *t)
                // fprintf
                char s[32];
                sprintf(s, "%s operation attempted", t->kids[1]->token->text);
-               raiseTypeError(t, s1, s2, s);
+               // raiseTypeError(t, s1, s2, s); // Gonna call raiseTypeError() using compareTypes
+               compareTypes( s1, s2 );
+               exit(3);
             }
 
-            free(s2);
-            return s1;
+            // free(s2);
+            t->type = copyType(s1);
          }
          break;
 ////// Unary operators  //////////////
@@ -1965,7 +2022,8 @@ type_t* checkTypes(tree *t)
          {
             case 1:
             case 2:
-               return s1;
+               t->type = copyType(s1);
+               break;
             default:
                error(t, "Unary minus requires a numeric type"); /* FIX : better error message */
          }
@@ -1975,7 +2033,8 @@ type_t* checkTypes(tree *t)
          switch( s1->base_type )
          {
             case 1:
-               return s1;
+               t->type = copyType(s1);
+               break;
             default:
                error(t, "Unary Dice roll requires integer operand"); /* FIX : better error message */
          }
@@ -1986,7 +2045,8 @@ type_t* checkTypes(tree *t)
          switch( s1->base_type )
          {
             case 4:
-               return s1;
+               t->type = copyType(s1);
+               break;
             default:
                error(t, "Boolean negation requires boolean value"); /* FIX : better error message */
          }
@@ -2006,11 +2066,14 @@ type_t* checkTypes(tree *t)
             // error(t, "operation not defined for given type");  /* FIX : better error message */
             char s[32];
             sprintf( s, "%s operation attempted", t->kids[1]->token->text );
-            raiseTypeError( t , s1, s2, s );
+            // raiseTypeError( t , s1, s2, s ); // Gonna call typeError() using checkTypes
+            compareTypes(s1, s2);
+            exit(3);
          }
 
-         free(s2);
-         return s1;
+         // free(s2);
+         t->type = copyType(B_Type);
+         break;
       /* SwapExpression */
       // case 998:    /* Assignment: Assignable AssignmentOperator AssignmentExpression */
       case 1004:   /* SwapExpression: Assignable SWAP Assignable */
@@ -2026,8 +2089,8 @@ type_t* checkTypes(tree *t)
                error(t, "invalid swap on incompatible types");
             }
 
-            free(s2);
-            return s1;
+            // free(s2);
+            t->type = copyType(s1);
          }
          break;
 /////////////////////////// UNCATEGORIZED THINGS ///////////////////////////////////
@@ -2044,16 +2107,12 @@ type_t* checkTypes(tree *t)
                   /* FIX : add more detailed error reporting */
                   fprintf(stderr, "semantic error: list literal contains multiple non-comparable types, on line %d\n", getToken(t)->lineno);
                   exit(3);
-                  // char* t1 = NULL, t2 = NULL;
-                  // switch (s1)
-                  // fprintf( stderr,  )
                }
 
                // free(s1);
-               free(s2);
-               return s1;
+               // free(s2);
+               t->type = copyType(s1);
             }
-            // r = checkTypes( t->kids[0] );
             break;
          case 1572: /* ListLiteral: [ ListInitializer ] */
          {
@@ -2065,16 +2124,17 @@ type_t* checkTypes(tree *t)
             the whole list type when we return from this function, that will leave the list element type unfreed, and w/o
             a reference to free it.
 
-            So, we made the list of unfreed pointers to circumvent the issue, and track 
+            So, we made the list of unfreed pointers to circumvent the issue, and track pointers to be freed at
+            end of program
              */
             r = copyType(L_Type);
             p = checkTypes(t->kids[0]);
-            r->u.l.elemtype = p;
+            r->u.l.elemtype = copyType(p);   // This should allow us to free this entire type, without causing issues.
 
             // Store the pointer in unfreedPointers for free'ing later.
-            store(p);
+            // store(p);   // This is going to be handled when we eventually free the pointers to tree types
 
-            return r;   // return the list
+            t->type = r;   // return the list
          }
          break;
    ////////////////// EXCEPTIONS ///////////////// 
@@ -2086,31 +2146,32 @@ type_t* checkTypes(tree *t)
          if (check_operator( PLUS , s1, s2))
          {
             // error(t, "operation not defined for given type");  /* FIX : better error message */
-            char s[] = "Implicit string concatenation attempted";
-            // sprintf(s, "Implicit string concatenation attempted");
-            raiseTypeError(t, s1, s2, s);
+            // char s[] = "Implicit string concatenation attempted";
+            // raiseTypeError(t, s1, s2, s);
+            compareTypes(s1, s2);
+            exit(3);
          }
 
-         free(s2);
-         return s1;
+         // free(s2);
+         t->type = copyType(s1);
          break;
          ///////////// BASIC TYPES ////////////////////
       case INTLITERAL:
-         return copyType( I_Type );
+         t->type = copyType( I_Type );
          break;
       case FLOATLITERAL:
-         return copyType( D_Type );
+         t->type = copyType( D_Type );
          break;
       case TRUE:
       case FALSE:
-         return copyType( B_Type );
+         t->type = copyType( B_Type );
          break;
       case STRINGLITERAL:
       case CHARLITERAL:       /* LOOK: Not even sure if this is supposed to work */
-         return copyType( S_Type );
+         t->type = copyType( S_Type );
          break;
       case NULLLITERAL:
-         return copyType( V_Type ); /* LOOK : Going to be using void type to represent null... not sure how this is gonna work. */
+         t->type = copyType( V_Type ); /* LOOK : Going to be using void type to represent null... not sure how this is gonna work. */
          break;
       case IDENT:
          r = getType( t );
@@ -2118,9 +2179,9 @@ type_t* checkTypes(tree *t)
          // copies of references to types, so that we can safely free any memory we make
          // in this function
          // make p a copy of r
-         p = copyType( r );
+         // p = copyType( r );
          // return the copy
-         return p;
+         t->type = copyType(r);
          break;
    /////// RULES THAT ARE SUPPOSED TO CHECK THEIR CHILDREN ////////////////
       case 655:   // CompilationUnits
@@ -2133,18 +2194,18 @@ type_t* checkTypes(tree *t)
             int i;
             for (i = 0; i < t->nkids; ++i)
             {
-               checkTypes(t->kids[i]);
+               (void) checkTypes(t->kids[i]);
             }
          }
          break;
       case 668:   // ClassBlock  
          // This one is special because it doesnt have children, but it says it does.
-         return NULL;
+         t->type = NULL;
          break;
       case 677:   // ClassVariable
       // case 677:   // ClassVariable
          // These are special because we dont care about their types, because they wont be used.
-         return NULL;
+         t->type = NULL;
          break;
       default:
          // This means that the rest of the tree should be processed, but we dont care about
@@ -2157,14 +2218,12 @@ type_t* checkTypes(tree *t)
          }
          for ( i = 0; i < t->nkids; ++i )
          {
-            checkTypes( t->kids[i] );
+            (void) checkTypes( t->kids[i] );
          }
       }
    }
 
-
-   // If t does not have a type, return NULL by default
-   return NULL;
+   return t->type;   // t->type either is NULL, or holds the value it should return
 }
 
 

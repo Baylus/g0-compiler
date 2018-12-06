@@ -36,6 +36,8 @@ extern char* yyfilename;	//g0lex.l
 
 extern int print_Symbols;	// processTree.c
 
+int print_File;	// Determines whether files should be printed before processing
+
 char* filename;
 char* addExtension( char* f ) {
 	char* n = calloc(4000, sizeof(char));
@@ -102,9 +104,25 @@ int checkCommandOptions(char* arg) {
 		// scope requested.
 		return 4;
 	}
+	if ((strcmp("-p", arg) == 0) || (strcmp("-P", arg) == 0) || (strcmp("--print-file", arg) == 0))
+	{
+		// file print requested.
+		return 5;
+	}
 	return 0;
 }
 
+FILE* openFile(char* filename)
+{
+	FILE* f = fopen(filename, "r");
+	if (f == NULL)
+	{
+		printf("Error: Failed to open file %s\n", filename);
+		perror("Error with opening file\n");
+		exit(-1);
+	}
+	return f;
+}
 
 int main(int argc, char** argv)
 {
@@ -126,13 +144,16 @@ int main(int argc, char** argv)
 				boolPrintTree = 1;
 				break;
 			case 2:
-				boolPrintSymbol = 1;
+				boolPrintSymbol = !boolPrintSymbol;
 				break;
 			case 3:
 				yydebug = 1;
 				break;
 			case 4:
 				print_Symbols = 1;
+				break;
+			case 5:
+				print_File = 1;
 				break;
 		}
 	}
@@ -146,15 +167,17 @@ int main(int argc, char** argv)
 		printf("\nParsing file: %s\n", yyfilename);
 
 		// yyin = fopen(filename.c_str(), "r");
-		yyin = fopen(yyfilename, "r");
-		if (yyin == NULL)
+		yyin = openFile(yyfilename);
+		if (print_File == 1)
 		{
-			printf("Error: Failed to open file %s\n", yyfilename);
-			perror("Error with opening file\n");
-			exit(-1);
+			int c;
+			while( (c = fgetc(yyin)) != EOF )
+			{
+				printf("%c", c);
+			}
+			fclose(yyin);
+			yyin = openFile(yyfilename);
 		}
-
-		// int toknum = 0;
 
 		if (yyparse() == 0)
 		{
