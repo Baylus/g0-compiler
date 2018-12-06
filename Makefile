@@ -1,6 +1,10 @@
 #
 # g0 Makefile
 #
+
+# Wanna update to make more clean. will do later
+# https://hiltmon.com/blog/2013/07/03/a-simple-c-plus-plus-project-structure/
+
 YACC=yacc
 LEX=flex
 CC=cc
@@ -11,7 +15,7 @@ all: g0
 FILES=g0.o g0gram.o g0lex.o tree.o symt.o processTree.o scope.o
 
 g0: ${FILES}
-	cc -o g0 ${FILES}
+	cc -o g0 ${FILES} $(CFLAGS)
 
 g0gram.c g0gram.h: g0gram.y
 	$(YACC) -dtv --verbose g0gram.y
@@ -38,7 +42,7 @@ g0.o: main.c
 	$(CC) -c $(CFLAGS) $<
 
 test: g0
-	perl check.pl Examples/
+	perl scripts/check.pl Examples/
 
 clean:
 	rm -f g0 *.o
