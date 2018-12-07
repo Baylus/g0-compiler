@@ -13,6 +13,7 @@ HW #2: Syntax Analysis
 
 #include "token.h"
 #include "type.h"
+#include "tac.h"
 
 typedef struct treeNode {
 	char* label;
@@ -24,6 +25,8 @@ typedef struct treeNode {
 	   struct treeNode **kids;
    };
 	type_t* type;
+	/* Intermediate Code Generation */
+	addr_t address;
 } tree ;
 
 tree* alctree( char* label, int code, int kids, ... );
