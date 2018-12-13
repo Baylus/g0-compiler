@@ -312,26 +312,26 @@ StatementExpression:
       ;
 
 IfThenStatement:
-        IF LP Expression RP Statement	{ $$ = alctree( "If-then", 814, 5, $1, $2, $3, $4, $5 ); }
+        IF LP Expression RP Statement	{ $$ = alctree( "If-then", 814, 2, $3, $5 ); }
       ;
 
 IfThenElseStatement:
         IF LP Expression RP StatementNoShortIf 
-            ELSE Statement		{ $$ = alctree( "if-then-else stmt", 819, 7, $1, $2, $3, $4, $5, $6 ); }
+            ELSE Statement		{ $$ = alctree( "if-then-else stmt", 819, 3, $3, $5, $7 ); }
       ;
 
 IfThenElseStatementNoShortIf:
         IF LP Expression RP StatementNoShortIf
-            ELSE StatementNoShortIf		{ $$ = alctree( "if-then-else stmt (no short if)", 824, 7, $1, $2, $3, $4, $5, $6, $7 ); }
+            ELSE StatementNoShortIf		{ $$ = alctree( "if-then-else stmt (no short if)", 824, 3, $3, $5, $7 ); }
       ;
 
 WhileStatement:
-        WHILE LP Expression RP Statement	{ $$ = alctree( "while", 828, 5, $1, $2, $3, $4, $5 ); }
+        WHILE LP Expression RP Statement	{ $$ = alctree( "while", 828, 2, $3, $5 ); }
 	| IDENT NoLocalVariableBlock WHILE LP Expression RP Semicolon				{ yyerror("syntax error"); fprintf(stderr, "do-while loops not supported in g0!\n"); exit(2); }
       ;
 
 WhileStatementNoShortIf:
-        WHILE LP Expression RP StatementNoShortIf		{ $$ = alctree( "While (No short if)", 833, 5, $1, $2, $3, $4, $5 ); }
+        WHILE LP Expression RP StatementNoShortIf		{ $$ = alctree( "While (No short if)", 833, 2, $3, $5 ); }
       ;
 
 ForInit:
@@ -350,11 +350,11 @@ ForUpdate:
       ;
 
 ForStatement:
-        FOR LP ForInit SM ExpressionOpt SM ForUpdate RP Statement	{ $$ = alctree( "for stmt", 852, 9, $1, $2, $3, $4, $5, $6, $7, $8, $9 ); }
+        FOR LP ForInit SM ExpressionOpt SM ForUpdate RP Statement	{ $$ = alctree( "for stmt", 852, 4, $3, $5, $7, $9 ); }
       ;
 
 ForStatementNoShortIf:
-        FOR LP ForInit SM ExpressionOpt SM ForUpdate RP StatementNoShortIf	{ $$ = alctree( "for stmt (no short if)", 856, 9, $1, $2, $3, $4, $5, $6, $7, $8, $9 ); }
+        FOR LP ForInit SM ExpressionOpt SM ForUpdate RP StatementNoShortIf	{ $$ = alctree( "for stmt (no short if)", 856, 4, $3, $5, $7, $9 ); }
       ;
 
 StatementExpressionList:
@@ -371,7 +371,7 @@ BreakStatement:
       ;
 
 ReturnStatement:
-        RETURN Expression Semicolon		{ $$ = alctree( "return stmt", 873, 3, $1, $2, $3 ); }
+        RETURN Expression Semicolon		{ $$ = alctree( "return stmt", 873, 1, $2 ); }
       | RETURN Semicolon			{ $$ = alctree( "return stmt", 874, 2, $1, $2 ); }
       ;
 
